@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex,nofollow">
+<title>SWOT WEALTH · material do projeto</title>
+<link rel="stylesheet" href="fontes/fontes.css">
+<link rel="stylesheet" href="estilo.css">
+<style>
+:root{--sf:var(--disp);--sf-texto:var(--texto);--cinza-2:#8a8d86;--linha:rgba(17,17,17,.12)}
+html,body{overflow:auto;background:var(--papel);color:var(--grafite);height:auto}
+#campo,#moldura{display:none}
+.doc{position:static;inset:auto;overflow:visible;max-width:1000px;margin:0 auto;padding:60px 48px 80px;font-family:var(--sf-texto)}
+.doc header{border-bottom:2px solid var(--verde);padding-bottom:18px;margin-bottom:30px;display:flex;justify-content:space-between;align-items:baseline}
+.doc header img{height:44px}
+.doc header span{font-size:13px;color:var(--cinza)}
+.doc h1{font:600 44px/1.08 var(--disp);letter-spacing:-.025em;margin-bottom:8px} .doc h1 small{display:block;font:400 17px/1.5 var(--texto);letter-spacing:0;color:var(--cinza);margin-top:10px} .doc h2 small,.doc p small{font-weight:400}
+.doc h2{font-family:var(--sf);font-size:28px;font-weight:600;letter-spacing:-.02em;color:var(--verde);margin:36px 0 12px;page-break-after:avoid}
+.doc h2 span{font-weight:400;font-size:14px;color:var(--cinza);margin-left:10px}
+.doc section{page-break-inside:avoid}
+.doc table{margin:8px 0} .doc td{font-size:14px;padding:6px 10px} .doc th{font-size:12px}
+.doc .memo .lm span{max-width:none}
+.doc .regua{height:190px}
+.doc .grade{position:static;display:block} .doc .tile{margin-bottom:16px}
+.doc .custo{grid-template-columns:repeat(2,1fr)} .doc .custo .num{font-size:24px}
+.doc .funil .degrau .num{font-size:22px}
+.doc .barra{width:var(--w)} .doc [data-w]{width:attr(data-w)}
+.doc .proj i{height:var(--h)}
+.doc .politica{list-style:none;font-size:14px;line-height:1.6}
+.doc h3.qd{font:600 19px/1.3 var(--disp);letter-spacing:-.01em;margin:22px 0 4px}
+.doc h3.qd span{font:400 13px var(--texto);color:var(--cinza)}
+.doc p.qs{font:400 14px/1.5 var(--texto);color:var(--cinza);margin-bottom:8px}
+.doc table.mini{width:100%;border-collapse:collapse}
+.doc table.mini th{text-align:right;border-bottom:1px solid rgba(17,17,17,.2);color:var(--cinza);font-weight:500}
+.doc table.mini th:first-child,.doc table.mini td.e{text-align:left}
+.doc table.mini td{text-align:right;border-bottom:1px solid var(--fio)}
+.doc ol.itens{padding-left:22px;font-size:15px;line-height:1.7}
+.doc .rodape-doc{margin-top:40px;font-size:12px;color:var(--cinza-2);border-top:1px solid var(--linha);padding-top:12px}
+.acoes{position:fixed;right:24px;top:24px;display:flex;gap:8px}
+.acoes button{font:500 14px var(--texto);background:var(--verde);color:var(--marfim);border:none;padding:12px 20px;border-radius:999px;cursor:pointer}
+@media print{.acoes{display:none} .doc{padding:0} @page{margin:18mm}}
+</style>
+</head>
+<body>
+<div class="acoes"><button onclick="window.print()">Imprimir ou salvar em PDF</button></div>
+<div class="doc" id="doc"></div>
+<script type="module">
+// Material do projeto (v2): documento imprimível e arquivos CSV, gerados do mesmo conteúdo da apresentação.
+import * as motor from "./motor/motor.js";
+import { conteudo } from "./js/conteudo.js";
+import { F } from "./js/util.js";
+window.__motor = motor;
+const p = new URLSearchParams(location.search);
+const n = Number(p.get("projeto") || 1);
+const base = await fetch("dados/base.json", { cache: "no-store" }).then((r) => r.json());
+const R = motor.calcular(base);
+const C = conteudo(base, R, n);
+const E = C.entregavel;
+const mi = (v) => `R$ ${F.n(v / 1e6, 1)} mi`;
+const semTag = (x) => String(x ?? "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+
+// Cada quadro do diagnóstico vira uma tabela com os mesmos números do gráfico.
+function tabelaDoQuadro(qd) {
+  if (qd.id === "ebitda") return { cab: ["documento", "base", "ajustes", "EBITDA de 12 meses"], linhas: qd.barras.map((b) => [b.rot, mi(b.base), b.partes.map((x) => `+ ${mi(x.v)} ${x.t}`).join("; ") || "—", mi(b.base + b.partes.reduce((s, x) => s + x.v, 0))]) };
+  if (qd.id === "ticket") return { cab: ["ticket", "valor", "o que é"], linhas: [...qd.barras.map(([t, v, d]) => [t, F.brl(v), d]), ["desvio no orçamento, jan a ago", mi(qd.numero), ""]] };
+  if (qd.id === "matriz") return { cab: ["indicador", ...qd.docs, "dono", "fonte"], linhas: qd.linhas.map((l) => [l.nome, ...l.usos.map((u) => (u === "d" ? "diverge" : u ? "igual" : "")), l.dono ? "sim" : "não", l.fonte ? "sim" : "não"]) };
+  if (qd.id === "pessoas") return { cab: ["pessoa", ...qd.passos, "caminho inteiro"], linhas: qd.pessoas.map((x) => [x.cargo, ..."CBLAPQ".split("").map((id) => (x.acessos.includes(id) ? "●" : "")), x.caminho ? "sim" : ""]) };
+  if (qd.id === "fluxo") return { cab: ["fluxo", "valor pago em 12 meses"], linhas: qd.partes.map(([t, v]) => [t, mi(v)]) };
+  if (qd.id === "meses") return { cab: ["mês", "trocas", "confirmadas", "sem confirmação"], linhas: qd.meses.map((m, i) => [m, qd.total[i], qd.conf[i], qd.total[i] - qd.conf[i]]) };
+  if (qd.id === "fontes") return { cab: ["fonte", "saldo", "taxa ao ano", "custo ao ano"], linhas: qd.fontes.map((x) => [x.rot, mi(x.saldo), F.pct(x.taxa), mi(x.custo)]) };
+  if (qd.id === "hoje" || qd.id === "depois") return { cab: ["semana", "menor saldo"], linhas: qd.semanas.map((v, i) => [i + 1, mi(v)]) };
+  if (qd.tiles) return { cab: ["valor", "o que é", "natureza"], linhas: qd.tiles.map((t) => [t.v, t.t, t.e]) };
+  if (qd.acoes) return { cab: ["ação", "valor ao ano", "natureza", "quando"], linhas: [...qd.acoes.map((a) => [a.t, F.brl(Math.round(a.v)), a.tipo === "certo" ? "depende só da empresa" : "depende de terceiros", a.quando]), ["total", F.brl(Math.round(qd.total)), `${F.brl(Math.round(qd.certo))} certos`, ""]] };
+  return { cab: [], linhas: [] };
+}
+const tabHTML = (t) => `<table class="mini"><thead><tr>${t.cab.map((h) => `<th>${h}</th>`).join("")}</tr></thead><tbody>${t.linhas.map((l) => `<tr>${l.map((v, i) => `<td class="${i ? "" : "e"}">${v}</td>`).join("")}</tr>`).join("")}</tbody></table>`;
+function csv(linhas) { return "﻿" + linhas.map((l) => l.map((v) => `"${semTag(v).replace(/"/g, '""')}"`).join(";")).join(String.fromCharCode(13, 10)); }
+function baixar(nome, texto) { const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([texto], { type: "text/csv;charset=utf-8" })); a.download = nome; a.click(); }
+
+if (p.get("baixar") === "checklist") {
+  const linhas = [["bloco", "campo", "valor", "origem"]];
+  C.formulario.blocos.forEach((b) => {
+    if (b.tabela) b.tabela.linhas.forEach((l) => linhas.push([b.titulo, l[0], l.slice(1).join(" | "), b.origem]));
+    if (b.matriz) b.matriz.pessoas.forEach((x) => linhas.push([b.titulo, x.cargo, b.matriz.passos.filter((_, i) => x.acessos[i]).join(" | "), b.origem]));
+    if (b.campos) b.campos.forEach((c) => linhas.push([b.titulo, c.l, c.v, b.origem]));
+  });
+  baixar(`checklist_projeto${n}.csv`, csv(linhas));
+} else if (p.get("baixar") === "tabelas") {
+  const linhas = [["Diagnóstico"]];
+  C.quadros.forEach((qd) => { const t = tabelaDoQuadro(qd); linhas.push([], [qd.titulo], t.cab, ...t.linhas); });
+  linhas.push([], ["Planilha do entregável"], E.planilha.cab, ...E.planilha.linhas);
+  baixar(`tabelas_projeto${n}.csv`, csv(linhas));
+}
+
+document.getElementById("doc").innerHTML = `
+<header><img src="midia/marca/logo_horizontal.svg" alt="SWOT WEALTH"><span>Projeto ${n} · ${C.proj.nome} · ${E.capa.sub}</span></header>
+<h1>${C.proj.nome}<small>${C.proj.pergunta}</small></h1>
+<section><h2>Sumário</h2><ol style="padding-left:22px;line-height:1.7;font-size:15px">${E.capa.indice.map((i) => `<li>${i}</li>`).join("")}</ol></section>
+<section><h2>1 · Diagnóstico</h2>${C.quadros.map((qd) => `<h3 class="qd">${qd.titulo}</h3><p class="qs">${qd.sub}</p>${tabHTML(tabelaDoQuadro(qd))}`).join("")}</section>
+${E.folhas.map((fo, i) => `<section><h2>${i + 2} · ${fo.titulo} <span>${fo.sub}</span></h2>${fo.itens ? `<ol class="itens">${fo.itens.map((x) => `<li>${x}</li>`).join("")}</ol>` : tabHTML({ cab: [], linhas: fo.linhas })}</section>`).join("")}
+<section><h2>${E.folhas.length + 2} · ${E.planilha.titulo}</h2>${tabHTML({ cab: E.planilha.cab, linhas: E.planilha.linhas })}</section>
+<section><h2>Insumos recebidos</h2>${C.formulario.blocos.map((b) => `<h3 class="qd">${b.titulo} <span>· ${b.origem}</span></h3>${b.tabela ? tabHTML(b.tabela) : b.matriz ? tabHTML({ cab: ["pessoa", ...b.matriz.passos], linhas: b.matriz.pessoas.map((x) => [x.cargo, ...x.acessos.map((a) => (a ? "●" : ""))]) }) : tabHTML({ cab: [], linhas: b.campos.map((c) => [c.l, c.v]) })}`).join("")}<p class="qs">${C.formulario.selo}</p></section>
+<div class="rodape-doc">A rede é um exemplo montado com números públicos do setor (fontes na base de dados). Os valores de oportunidade são estimativas com memória de cálculo; o que depende só da empresa e o que depende de terceiros estão separados. Este documento não promete retorno financeiro. Base de dados versão ${base.versao}, gerada em ${base.gerado_em}.</div>`;
+</script>
+</body>
+</html>

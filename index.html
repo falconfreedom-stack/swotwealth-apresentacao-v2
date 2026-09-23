@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex,nofollow">
+<title>SWOT WEALTH · Inteligência financeira</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="icon" href="midia/marca/monograma.svg">
+<link rel="stylesheet" href="fontes/fontes.css">
+<link rel="stylesheet" href="estilo.css">
+<script type="importmap">{"imports":{"three":"./lib/three/three.module.js","three/addons/":"./lib/three/jsm/"}}</script>
+</head>
+<body>
+<div id="moldura">
+  <div id="palco">
+    <canvas id="mundo" width="1920" height="1080"></canvas>
+    <div id="cenas"></div>
+    <div id="abas"></div>
+    <div id="progresso"><i></i></div>
+    <div id="dica">espaço ou clique avança · ← volta · P pausa · 1, 2, 3 trocam o projeto · M material</div>
+    <div id="carregando"><img src="midia/marca/logo_horizontal_claro.svg" alt="SWOT WEALTH"><i></i></div>
+    <div id="inicio"><img src="midia/marca/logo_horizontal_claro.svg" alt="SWOT WEALTH"><button aria-label="Iniciar"><svg viewBox="0 0 24 24"><path d="M6 3.5 20 12 6 20.5Z" fill="#C8A45A"/></svg></button></div>
+  </div>
+</div>
+<div id="material">
+  <div class="caixa">
+    <img src="midia/marca/logo_horizontal.svg" alt="SWOT WEALTH" class="logo">
+    <h2>Material do projeto</h2>
+    <p id="material-sub">Documento do projeto, checklist de insumos e tabelas, para envio ao cliente.</p>
+    <a id="m-doc" href="#" target="_blank">Documento do projeto <span>abre para imprimir ou salvar em PDF</span></a>
+    <a id="m-check" href="#" download>Checklist de insumos preenchido <span>arquivo CSV</span></a>
+    <a id="m-tab" href="#" download>Tabelas do diagnóstico e do entregável <span>arquivo CSV</span></a>
+    <a id="m-base" href="#" download>Base de dados publicada <span>arquivo JSON, com a origem de cada dado</span></a>
+    <button class="fechar" id="m-fechar">fechar (M ou Esc)</button>
+  </div>
+</div>
+<script src="lib/gsap.min.js"></script>
+<script type="module" src="js/app.js"></script>
+</body>
+</html>

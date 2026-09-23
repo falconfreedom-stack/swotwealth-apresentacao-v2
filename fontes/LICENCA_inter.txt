@@ -1,0 +1,6 @@
+Inter e Inter Tight
+Copyright (c) 2016 The Inter Project Authors (https://github.com/rsms/inter)
+
+Estas fontes são licenciadas sob a SIL Open Font License, versão 1.1.
+Texto integral da licença: https://openfontlicense.org/open-font-license-official-text/
+Cópias usadas: arquivos variáveis (eixo de peso 100 a 900), subconjuntos latin e latin-ext, via @fontsource.
