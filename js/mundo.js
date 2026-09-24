@@ -35,6 +35,15 @@ vec3 estudio(vec3 R){
   float ceu = 0.010 + 0.018 * smoothstep(-0.2, 1.0, R.y);
   return vec3(1.0, 0.975, 0.93) * caixa * 1.25 * uLuz + vec3(0.80, 0.86, 0.84) * tira * 0.45 * uLuz + vec3(ceu * 0.8, ceu, ceu * 0.9);
 }
+// Ouro polido (ponteiros e índices de hora): base difusa que mantém a peça legível em qualquer ângulo,
+// mais o reflexo do estúdio, que acende uma faceta de cada vez conforme a luz gira.
+vec3 ouroPolido(vec3 N, vec3 V, float base){
+  vec3 env = estudio(reflect(-V, N));
+  float lum = dot(env, vec3(0.3333));
+  float dif = clamp(dot(N, dirLuz(0.95)), 0.0, 1.0);
+  vec3 ouro = vec3(0.86, 0.69, 0.40);
+  return ouro * (base + 0.62 * dif * uLuz) + ouro * lum * 1.1 + vec3(1.0, 0.93, 0.78) * lum * lum * 0.55;
+}
 `;
 const V_MUNDO = /* glsl */`
 varying vec3 vP; varying vec3 vW; varying vec2 vUv; varying vec3 vN;
@@ -42,7 +51,7 @@ void main(){ vP = position; vUv = uv; vN = normalize(mat3(modelMatrix) * normal)
 
 // O mostrador: raiado que acende com a luz, aros finos, os índices e o reflexo do vidro de safira.
 const F_DISCO = COMUM + /* glsl */`
-uniform sampler2D uIdx; uniform float uAneis; uniform float uVidro;
+uniform sampler2D uIdx; uniform float uAneis; uniform float uVidro; uniform float uHoras;
 varying vec3 vP; varying vec3 vW;
 float faixa(float x, float c, float hw, float aa){ return 1.0 - smoothstep(hw - aa, hw + aa, abs(x - c)); }
 void main(){
@@ -66,6 +75,26 @@ void main(){
   vec3 marfim = vec3(0.93, 0.91, 0.85);
   float aros = faixa(r, 0.930, 0.0011, aa) * 0.5 + faixa(r, 0.760, 0.0008, aa) * 0.28 + faixa(r, 0.975, 0.0012, aa) * 0.45;
   c = mix(c, marfim, clamp(aros, 0.0, 1.0) * uAneis);
+  // índices de hora aplicados: doze bastões de ouro facetados (o das 12, duplo), com sombra no mostrador
+  if (uHoras > 0.001 && r > 0.60 && r < 0.78) {
+    float ph = 0.52359878, k = floor(th / ph + 0.5), ak = k * ph;
+    vec2 dk = vec2(sin(ak), -cos(ak)), tk = vec2(cos(ak), sin(ak));
+    vec3 Ld = dirLuz(0.95); vec2 so = vec2(Ld.x, Ld.z) / max(Ld.y, 0.25) * 0.0055;
+    float duplo = 1.0 - step(0.5, mod(k, 12.0));
+    float hw = mix(0.0085, 0.0058, duplo), cx = duplo * 0.0112;
+    // sombra: o mesmo bastão visto a partir do ponto, na direção da luz
+    vec2 q = p + so; float qa = dot(q, dk), qt = abs(dot(q, tk)) - cx;
+    float sb = 0.004;
+    float somb = (1.0 - smoothstep(hw - sb, hw + sb, abs(qt))) * smoothstep(0.648 - sb, 0.648 + sb, qa) * (1.0 - smoothstep(0.735 - sb, 0.735 + sb, qa));
+    c *= 1.0 - 0.55 * somb * uHoras;
+    float al = dot(p, dk), at = dot(p, tk), rel = abs(at) - cx;
+    float cov = (1.0 - smoothstep(hw - aa, hw + aa, abs(rel))) * smoothstep(0.648 - aa, 0.648 + aa, al) * (1.0 - smoothstep(0.735 - aa, 0.735 + aa, al));
+    if (cov > 0.001) {
+      float lado = sign(rel) * sign(at + 1e-6);
+      vec3 N = normalize(vec3(tk.x, 0.0, tk.y) * lado * 0.48 + vec3(0.0, 0.88, 0.0));
+      c = mix(c, ouroPolido(N, V, 0.30), cov * uHoras);
+    }
+  }
   float x = th / ${PASSO.toFixed(8)}; float si = floor(x); float f = x - si - 0.5;
   vec4 d = texture2D(uIdx, vec2((si + 0.5) / ${SLOTS}.0, 0.5));
   if (d.a > 0.5) {
@@ -108,12 +137,13 @@ void main(){
   vec3 polido = aco + env * vec3(0.78, 0.82, 0.80) * fres;
   vec3 lateral = aco * 1.2 + vec3(0.30, 0.31, 0.30) * escovado * uLuz * (0.5 + 0.5 * N.y) + env * 0.18;
   vec3 c = mix(polido, lateral, lado);
-  // escala gravada no topo do aro: 120 traços finos, os de 5 em 5 mais longos (antisserrilhada por fwidth)
+  // escala de minutos gravada no topo do aro: 60 traços finos, os das horas mais longos e largos (antisserrilhada por fwidth)
   float th = atan(vW.x, -vW.z); if (th < 0.0) th += 6.2831853;
-  float xi = th / 6.2831853 * 120.0, fi = abs(fract(xi + 0.5) - 0.5), wi = fwidth(xi) * 0.8 + 1e-4;
+  float xi = th / 6.2831853 * 60.0, fi = abs(fract(xi + 0.5) - 0.5), wi = fwidth(xi) * 0.8 + 1e-4;
   float longo = step(0.5, 1.0 - step(0.5, abs(mod(floor(xi + 0.5), 5.0))));
-  float faixaT = smoothstep(0.140, 0.150, v) * (1.0 - smoothstep(longo > 0.5 ? 0.235 : 0.195, (longo > 0.5 ? 0.235 : 0.195) + 0.01, v));
-  float traco = (1.0 - smoothstep(0.035 - wi, 0.035 + wi, fi)) * faixaT * (1.0 - lado);
+  float faixaT = smoothstep(0.140, 0.150, v) * (1.0 - smoothstep(longo > 0.5 ? 0.245 : 0.195, (longo > 0.5 ? 0.245 : 0.195) + 0.01, v));
+  float lt = longo > 0.5 ? 0.034 : 0.018;
+  float traco = (1.0 - smoothstep(lt - wi, lt + wi, fi)) * faixaT * (1.0 - lado);
   c = mix(c, vec3(0.80, 0.78, 0.72) * (0.55 + 0.45 * lum * 2.0), traco * 0.85);
   vec3 ouro = vec3(0.83, 0.64, 0.33);
   c = mix(c, ouro * (0.10 + 1.55 * lum) + vec3(1.0, 0.9, 0.7) * lum * lum * 0.8, chanfro);
@@ -187,16 +217,86 @@ void main(){
   gl_FragColor = vec4(pontilhar(c * uExpo), m * uA);
 }`;
 
-// Ponteiro facetado: metade clara, metade escura, que se invertem com a luz.
-const F_PONTEIRO = COMUM + /* glsl */`
-uniform float uAng; uniform float uA;
-varying vec3 vP;
+// Os ponteiros (hora, minuto e segundo) e a tampa central. Cada ponteiro é uma faixa estreita que gira com
+// ele e só alarga quando o relógio corre; o desenho é descrito pela meia largura em função do raio, e a
+// cobertura é calculada em ângulo, o que dá de uma vez o antisserrilhado e o borrão de movimento (obturador de
+// 180°). Os de hora e minuto são "dauphine", com duas facetas que trocam de luz; o de segundo é uma agulha com
+// contrapeso. Cada um desenha antes a própria sombra (que cai também sobre os de baixo), e o vidro de safira
+// reflete por cima de tudo.
+const F_PONTEIROS = COMUM + /* glsl */`
+uniform float uK; uniform float uAngK; uniform float uVarreK; uniform float uA; uniform float uVidro;
+varying vec3 vW;
+const float PI = 3.14159265;
+float envolver(float x){ return x - 6.2831853 * floor((x + PI) / 6.2831853); }
+float sobre(float a, float b, float lo, float hi){ return max(0.0, min(b, hi) - max(a, lo)); }
+// meia largura de cada ponteiro no raio r: frente (f = 1) ou cauda (f = 0)
+float largura(int k, float r, bool f){
+  if (k == 0) { if (f) return r < 0.085 ? mix(0.012, 0.029, r / 0.085) : 0.029 * max(0.0, 0.46 - r) / 0.375; return r < 0.075 ? mix(0.012, 0.009, r / 0.075) : 0.0; }
+  if (k == 1) { if (f) return r < 0.10 ? mix(0.010, 0.021, r / 0.10) : 0.021 * max(0.0, 0.72 - r) / 0.62; return r < 0.095 ? mix(0.010, 0.007, r / 0.095) : 0.0; }
+  if (f) return r < 0.865 ? mix(0.0032, 0.0014, r / 0.865) : 0.0;
+  float dc = r - 0.118; return max(r < 0.125 ? 0.0032 : 0.0, sqrt(max(0.0, 0.0185 * 0.0185 - dc * dc)));
+}
+// cobertura (lado horário, lado anti-horário) do ponteiro k no ponto polar (r, th), com o arco varrido s e o borrão e
+vec2 cobertura(int k, float r, float th, float a, float s, float e, float er){
+  float lo = min(-s, 0.0) - e * 0.5, hi = max(-s, 0.0) + e * 0.5, n = hi - lo;
+  float wmax = min(0.8, 0.034 / max(r, 1e-3)) + abs(s) + e;      // nenhum ponteiro é mais largo que isso neste raio
+  vec2 cv = vec2(0.0);
+  float d = envolver(th - a);
+  if (abs(d) < wmax && r < 0.875) {
+    float w = atan(largura(k, r, true), r);
+    float fimR = k == 2 ? 1.0 - smoothstep(0.865 - er, 0.865 + er, r) : 1.0;
+    cv += vec2(sobre(d - w, d, lo, hi), sobre(d, d + w, lo, hi)) / n * fimR;
+  }
+  float dt = envolver(th - a - PI);
+  if (abs(dt) < wmax && r < 0.145) {
+    float lim = k == 0 ? 0.075 : k == 1 ? 0.095 : 0.14;
+    float w = atan(largura(k, r, false), r) * (k == 2 ? 1.0 : 1.0 - smoothstep(lim - er, lim + er, r));
+    cv += vec2(sobre(dt, dt + w, lo, hi), sobre(dt - w, dt, lo, hi)) / n;
+  }
+  return min(cv, vec2(1.0));
+}
 void main(){
-  float lado = sign(vP.x);
-  float k = 0.5 + 0.5 * lado * sin(uLuzA - uAng);
-  vec3 ouro = vec3(0.88, 0.72, 0.43);
-  vec3 c = ouro * mix(0.48, 1.12, k);
-  gl_FragColor = vec4(pontilhar(c * uExpo), uA);
+  vec2 p = vW.xz;
+  float r = length(p);
+  if (r < 0.0005) p = vec2(0.0005, 0.0);
+  float px = length(fwidth(p)) + 1e-6;
+  float e = px / max(r, 0.004);
+  vec3 V = normalize(cameraPosition - vW);
+  vec3 Ld = dirLuz(0.95); vec2 so = vec2(Ld.x, Ld.z) / max(Ld.y, 0.25);
+  int k = int(uK + 0.5);
+  float h = k == 0 ? 0.007 : k == 1 ? 0.012 : k == 2 ? 0.017 : 0.019;     // altura sobre o mostrador
+  vec2 q = p + so * h; float rq = length(q);
+  vec4 acc;
+  if (k < 3) {
+    float b = (0.003 + h * 0.5) / max(rq, 0.01);
+    vec2 cs = cobertura(k, rq, atan(q.x, -q.y), uAngK, uVarreK, e + b, px + 0.003 + h * 0.5);
+    acc = vec4(0.0, 0.0, 0.0, clamp(cs.x + cs.y, 0.0, 1.0) * 0.5);
+    vec2 cv = cobertura(k, r, atan(p.x, -p.y), uAngK, uVarreK, e, px);
+    float a = clamp(cv.x + cv.y, 0.0, 1.0);
+    if (a > 0.002) {
+      vec3 tg = vec3(cos(uAngK), 0.0, sin(uAngK)), up = vec3(0.0, 1.0, 0.0);
+      float inc = k == 2 ? 0.30 : 0.46;
+      vec3 cR = ouroPolido(normalize(tg * sin(inc) + up * cos(inc)), V, 0.26);
+      vec3 cL = ouroPolido(normalize(-tg * sin(inc) + up * cos(inc)), V, 0.26);
+      acc = vec4((cR * cv.x + cL * cv.y) / max(cv.x + cv.y, 1e-4) * a, a) + acc * (1.0 - a);
+    }
+  } else {
+    // a tampa: cúpula de ouro com o pino do segundo
+    acc = vec4(0.0, 0.0, 0.0, smoothstep(0.036, 0.026, rq) * 0.5);
+    float tampa = 1.0 - smoothstep(0.029 - px * 0.5, 0.029 + px * 0.5, r);
+    if (tampa > 0.002) {
+      vec2 n2 = p / 0.029;
+      vec3 cor = ouroPolido(normalize(vec3(n2.x * 0.9, 1.0, n2.y * 0.9)), V, 0.30);
+      cor *= 1.0 - 0.35 * (1.0 - smoothstep(0.0, px * 1.2 + 0.0012, abs(r - 0.011)));
+      acc = vec4(cor * tampa, tampa) + acc * (1.0 - tampa);
+    }
+  }
+  acc *= uA;
+  if (acc.a < 0.002) discard;
+  // o vidro de safira reflete por cima de tudo (a sombra escurece o mostrador, não o reflexo)
+  float fres = 0.03 + 0.97 * pow(1.0 - clamp(V.y, 0.0, 1.0), 5.0);
+  if (fres * uVidro > 0.06) acc.rgb += estudio(vec3(-V.x, V.y, -V.z)) * fres * uVidro * 0.55 * acc.a;
+  gl_FragColor = vec4(pontilhar(acc.rgb / acc.a * uExpo), acc.a);
 }`;
 
 // Lâmina de vidro (também as barras dos gráficos): retângulo arredondado por SDF, fio de luz na borda,
@@ -292,6 +392,12 @@ function mascara(img, w, h) {
 }
 const aleat = (s) => { const x = Math.sin(s * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); };
 const lerp = (a, b, t) => a + (b - a) * t;
+// arco do ponteiro no quadro → borrão de obturador de 180°; um salto (busca na linha do tempo) não borra
+const varre = (v) => (Math.abs(v) > 1.2 ? 0 : v * 0.5);
+// o relógio corre e assenta: velocidade t(1 − t)², pico no primeiro terço e parada sem tranco
+const CORRIDA = (t) => t * t * (6 - 8 * t + 3 * t * t);
+// comprimento, cauda e meia largura máxima de cada ponteiro (o desenho fino está em F_PONTEIROS); null = a tampa
+const PONTEIROS = [{ L: 0.46, cauda: 0.075, hw: 0.029 }, { L: 0.72, cauda: 0.095, hw: 0.021 }, { L: 0.865, cauda: 0.14, hw: 0.0185 }, null];
 export const direcao = (th, r = 1, y = 0) => new THREE.Vector3(Math.sin(th) * r, y, -Math.cos(th) * r);
 export const CORES = { marfim: [0.93, 0.91, 0.85], ouro: [0.86, 0.69, 0.39], verde: [0.20, 0.52, 0.40], grafite: [0.34, 0.38, 0.36], vermelho: [0.72, 0.36, 0.28] };
 
@@ -332,8 +438,11 @@ export class Mundo {
     this.camera = new THREE.PerspectiveCamera(30, W / H, 0.01, 80);
     this.cam = { x: 0.07, y: 0.075, z: -0.30, tx: 0, ty: 0, tz: -0.545, fov: 24 };
     this.luz = { a: -1.2, i: 1, expo: 1 };
-    this.disco = { acesos: 0, top3: 0, pulso: 0, aneis: 1, vidro: 1 };
-    this.ponteiro = { ang: 0, a: 0 };
+    this.disco = { acesos: 0, top3: 0, pulso: 0, aneis: 1, vidro: 1, horas: 1 };
+    // o relógio: hora do dia em horas (hora e minuto) e segundos à parte; anda em tempo real, para na pausa,
+    // e as cenas o fazem correr e assentar (correrRelogio, assentarRelogio)
+    this.relogio = { hora: 10 + 8 / 60 + 24 / 3600, seg: 24, ritmoSeg: 1, a: 1 };
+    this.parado = false;
     this.marca = { a: 1 };
     this.multidao = { fase: 0, a: 0 };
     this.dados = { fase: 0, a: 0 };
@@ -356,7 +465,7 @@ export class Mundo {
     this.construirDisco();
     this.construirCaixa();
     this.construirMarca(mono, nome);
-    this.construirPonteiro();
+    this.construirPonteiros();
     this.construirLaminas();
     this.construirBarras(64);
     this.construirSombras();
@@ -366,8 +475,8 @@ export class Mundo {
     this.construirDados();
     this.construirMatriz();
     const q = new URLSearchParams(location.search);
-    const dbg = (q.get("dbg") || "").split(",");     // conferência de custo: refl, chao, fundo, disco, vidro
-    this.dbg = { refl: dbg.includes("refl"), vidro: dbg.includes("vidro") };
+    const dbg = (q.get("dbg") || "").split(",");     // conferência de custo: refl, chao, fundo, disco, vidro, ponteiros
+    this.dbg = { refl: dbg.includes("refl"), vidro: dbg.includes("vidro"), ponteiros: dbg.includes("ponteiros") };
     if (dbg.includes("chao")) this.objChao.material.visible = false;
     if (dbg.includes("fundo")) this.objFundo.material.visible = false;
     if (dbg.includes("disco")) this.matDisco.visible = false;
@@ -434,7 +543,7 @@ export class Mundo {
   construirDisco() {
     const U = this.U;
     const geo = new THREE.CircleGeometry(1.0, 256); geo.rotateX(-Math.PI / 2);
-    this.matDisco = new THREE.ShaderMaterial({ vertexShader: V_MUNDO, fragmentShader: F_DISCO, uniforms: { ...U, uIdx: { value: this.idxTex }, uAneis: { value: 1 }, uVidro: { value: 1 } } });
+    this.matDisco = new THREE.ShaderMaterial({ vertexShader: V_MUNDO, fragmentShader: F_DISCO, uniforms: { ...U, uIdx: { value: this.idxTex }, uAneis: { value: 1 }, uVidro: { value: 1 }, uHoras: { value: 1 } } });
     this.disc = new THREE.Mesh(geo, this.matDisco); this.scene.add(this.disc);
   }
 
@@ -465,15 +574,20 @@ export class Mundo {
     this.posMono = new THREE.Vector3(0, 0, -0.545);
   }
 
-  construirPonteiro() {
-    const s = new THREE.Shape();
-    s.moveTo(-0.0125, 0); s.lineTo(0, 0.68); s.lineTo(0.0125, 0); s.lineTo(0.006, -0.12); s.lineTo(-0.006, -0.12); s.closePath();
-    const geo = new THREE.ShapeGeometry(s); geo.rotateX(-Math.PI / 2);
-    const cubo = new THREE.CircleGeometry(0.024, 64); cubo.rotateX(-Math.PI / 2); cubo.translate(0, 0.0005, 0);
-    this.matPonteiro = new THREE.ShaderMaterial({ vertexShader: V_MUNDO, fragmentShader: F_PONTEIRO, transparent: true, depthWrite: false, uniforms: { ...this.U, uAng: { value: 0 }, uA: { value: 0 } } });
-    this.objPonteiro = new THREE.Group();
-    this.objPonteiro.add(new THREE.Mesh(geo, this.matPonteiro), new THREE.Mesh(cubo, this.matPonteiro));
-    this.objPonteiro.position.y = 0.006; this.objPonteiro.renderOrder = 3; this.scene.add(this.objPonteiro);
+  // Uma malha por ponteiro (hora, minuto, segundo) e uma para a tampa, na ordem em que se empilham.
+  construirPonteiros() {
+    const uA = { value: 1 }, uVidro = { value: 1 };
+    this.uPonteiros = { uA, uVidro };
+    this.objPonteiros = PONTEIROS.map((P, k) => {
+      const geo = P ? new THREE.PlaneGeometry(2, P.L + P.cauda + 0.06) : new THREE.PlaneGeometry(0.11, 0.11);
+      if (P) geo.translate(0, (P.L - P.cauda) / 2, 0);
+      geo.rotateX(-Math.PI / 2);
+      const mat = new THREE.ShaderMaterial({ vertexShader: V_MUNDO, fragmentShader: F_PONTEIROS, transparent: true, depthWrite: false,
+        uniforms: { ...this.U, uK: { value: k }, uAngK: { value: 0 }, uVarreK: { value: 0 }, uA, uVidro } });
+      const m = new THREE.Mesh(geo, mat); m.position.y = 0.010; m.renderOrder = 4 + k * 0.1; this.scene.add(m);
+      return m;
+    });
+    this.angAnt = null;
   }
 
   matLamina(extra = {}) {
@@ -501,7 +615,7 @@ export class Mundo {
 
   construirSombras() {
     const mk = () => { const m = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.ShaderMaterial({ vertexShader: V_MUNDO, fragmentShader: F_SOMBRA, transparent: true, depthWrite: false,
-      uniforms: { uTam: { value: new THREE.Vector2(1, 1) }, uA: { value: 0 }, uDifuso: { value: 0.02 } } })); m.renderOrder = 1; m.visible = false; this.scene.add(m); return m; };
+      uniforms: { uTam: { value: new THREE.Vector2(1, 1) }, uA: { value: 0 }, uDifuso: { value: 0.02 } } })); m.renderOrder = 8; m.visible = false; this.scene.add(m); return m; };
     this.objSombras = this.laminas.map(mk);          // uma por lâmina deitada
     this.objSombraGraf = mk();                       // faixa sob a base de um gráfico
   }
@@ -582,7 +696,8 @@ export class Mundo {
   // Monta o grafo de um projeto a partir dos nós da conta (conteudo.js): posição 3D de cada nó sobre o disco.
   prepararGrafo(parede, poseLamina) {
     const nos = parede.nos, lig = parede.lig;
-    const P = nos.map((no, i) => new THREE.Vector3((no.x - 1000) / 1920 * 3.1, 1.30 - (no.y - 240) / 420 * 0.95, -0.15 + (aleat(i * 3.3) - 0.5) * 0.55 + (no.ouro ? 0.18 : 0)));
+    // o grafo fica um pouco à direita do centro: sobra lugar para os rótulos das fontes, à esquerda dos nós
+    const P = nos.map((no, i) => new THREE.Vector3((no.x - 1000) / 1920 * 3.1 + 0.35, 1.30 - (no.y - 240) / 420 * 0.95, -0.15 + (aleat(i * 3.3) - 0.5) * 0.55 + (no.ouro ? 0.18 : 0)));
     this.grafoPos = P;
     const pos = new Float32Array(lig.length * 6), t = new Float32Array(lig.length * 2);
     lig.forEach(([a, b], e) => { pos.set([P[a].x, P[a].y, P[a].z, P[b].x, P[b].y, P[b].z], e * 6); t[e * 2] = e / lig.length; t[e * 2 + 1] = (e + 1) / lig.length; });
@@ -702,7 +817,7 @@ export class Mundo {
       top3: { x: 0, y: 1.25, z: 2.55, tx: 0, ty: 0.30, tz: 0, fov: 34 },
       analise: { x: 0.0, y: 0.95, z: 3.05, tx: 0, ty: 0.72, tz: -0.1, fov: 36 },
       socios: { x: 0.9, y: 0.26, z: 1.65, tx: -0.2, ty: 0.02, tz: -0.3, fov: 30 },
-      oferta: { x: -1.1, y: 2.5, z: 1.9, tx: -1.05, ty: -0.05, tz: 0.15, fov: 32 },
+      oferta: { x: -1.24, y: 2.5, z: 1.9, tx: -1.19, ty: -0.05, tz: 0.15, fov: 32 },
       estudio: { x: 2.6, y: 1.0, z: 3.6, tx: 0.2, ty: 0.05, tz: 0, fov: 26 },
     };
     if (nome === "setor") {
@@ -779,11 +894,32 @@ export class Mundo {
     return tl;
   }
   luzPara(tl, v, dur, pos, ease = "sine.inOut") { tl.to(this.luz, { ...v, duration: dur, ease }, pos); return tl; }
+  // O relógio corre `horas` (negativo corre para trás) e assenta; o segundo acompanha, acelerando e voltando ao normal.
+  correrRelogio(tl, horas, dur, pos) {
+    const R = this.relogio;
+    tl.to(R, { hora: `${horas < 0 ? "-" : "+"}=${Math.abs(horas)}`, duration: dur, ease: CORRIDA }, pos);
+    this.ritmoSegundo(tl, Math.sign(horas), dur, pos);
+    return tl;
+  }
+  // Corre para trás e para exatamente em `alvo` (horas; 10 + 10/60 = 10h10). A distância é medida quando a corrida começa.
+  assentarRelogio(tl, alvo, dur, pos) {
+    const R = this.relogio;
+    const volta = () => (((R.hora - alvo) % 12) + 12) % 12;
+    if (volta() < 1.5 || volta() > 6) R.hora += 3.6 - volta();     // entrada direta na cena: garante uma volta visível
+    tl.to(R, { hora: () => R.hora - volta(), duration: dur, ease: CORRIDA }, pos);
+    this.ritmoSegundo(tl, -1, dur, pos);
+    return tl;
+  }
+  ritmoSegundo(tl, sentido, dur, pos) {
+    const R = this.relogio;
+    tl.to(R, { ritmoSeg: 60 * sentido, duration: dur * 0.33, ease: "power2.in" }, pos);
+    tl.to(R, { ritmoSeg: 1, duration: dur * 0.67, ease: "power2.out" }, pos + dur * 0.33);
+  }
 
   base(tl, o = {}) {
     tl.set(this.luz, { a: -0.6, i: 1, expo: 1, ...o.luz }, 0);
-    tl.set(this.disco, { acesos: 208, top3: 0, pulso: 0, aneis: 1, vidro: 1, ...o.disco }, 0);
-    tl.set(this.ponteiro, { ang: 0, a: 0, ...o.ponteiro }, 0);
+    tl.set(this.disco, { acesos: 208, top3: 0, pulso: 0, aneis: 1, vidro: 1, horas: 1, ...o.disco }, 0);
+    tl.set(this.relogio, { ritmoSeg: 1 }, 0);
     tl.set(this.marca, { a: 1, ...o.marca }, 0);
     tl.set(this.multidao, { fase: 0, a: 0 }, 0);
     tl.set(this.dados, { fase: 0, a: 0 }, 0);
@@ -826,10 +962,17 @@ export class Mundo {
   // ---------------------------------------------------------------------------- por quadro
   quadro() {
     if (!this.pronto) return;
-    const c = this.cam, L = this.luz, d = this.disco;
+    const c = this.cam, L = this.luz, d = this.disco, Rl = this.relogio;
+    // o relógio anda com o tempo real (menos na pausa); o arco de cada ponteiro no quadro vira borrão
+    const agora = performance.now(), dtR = this.tRel ? Math.min(0.1, (agora - this.tRel) / 1000) : 0; this.tRel = agora;
+    if (!this.parado) { Rl.hora += dtR / 3600; Rl.seg += dtR * Rl.ritmoSeg; }
+    const uH = Rl.hora / 12 * TAU, uM = Rl.hora * TAU, uS = Rl.seg / 60 * TAU;
+    const AA = this.angAnt || (this.angAnt = [uH, uM, uS]);
+    const vH = uH - AA[0], vM = uM - AA[1], vS = uS - AA[2]; AA[0] = uH; AA[1] = uM; AA[2] = uS;
+    const aH = ((uH % TAU) + TAU) % TAU, aM = ((uM % TAU) + TAU) % TAU, aS = ((uS % TAU) + TAU) % TAU;
     // assinatura do estado (números, sem texto e sem alocar): se nada mudou, não desenha
     const N = this._nums || (this._nums = []); N.length = 0;
-    N.push(c.x, c.y, c.z, c.tx, c.ty, c.tz, c.fov, L.a, L.i, L.expo, d.acesos, d.top3, d.pulso, d.aneis, d.vidro, this.ponteiro.ang, this.ponteiro.a, this.marca.a,
+    N.push(c.x, c.y, c.z, c.tx, c.ty, c.tz, c.fov, L.a, L.i, L.expo, d.acesos, d.top3, d.pulso, d.aneis, d.vidro, d.horas, aH, aM, aS, Rl.a, this.marca.a,
       this.multidao.fase, this.multidao.a, this.dados.fase, this.dados.a, this.grafo.desenho, this.grafo.nos, this.grafo.a, this.poeira.a, this.chao.refl, this.matriz.a, this.matriz.n);
     for (const l of this.laminas) N.push(l.p, l.e, l.branco, l.a);
     for (const b of this.barras) N.push(b.a, b.k, b.h, b.y0, b.x);
@@ -850,8 +993,16 @@ export class Mundo {
     this.U.uExpo.value = L.expo; this.U.uLuzA.value = L.a; this.U.uLuz.value = L.i;
     this.matDisco.uniforms.uAneis.value = d.aneis; this.matDisco.uniforms.uVidro.value = this.dbg.vidro ? 0 : d.vidro;
     this.matMono.uniforms.uA.value = this.marca.a; this.matNome.uniforms.uA.value = this.marca.a;
-    this.objPonteiro.rotation.y = -this.ponteiro.ang; this.objPonteiro.visible = this.ponteiro.a > 0.001;
-    this.matPonteiro.uniforms.uAng.value = this.ponteiro.ang; this.matPonteiro.uniforms.uA.value = this.ponteiro.a;
+    this.matDisco.uniforms.uHoras.value = d.horas;
+    this.uPonteiros.uA.value = Rl.a; this.uPonteiros.uVidro.value = this.dbg.vidro ? 0 : d.vidro;
+    for (let k = 0; k < 4; k++) {
+      const m = this.objPonteiros[k], P = PONTEIROS[k];
+      m.visible = Rl.a > 0.001 && !this.dbg.ponteiros;
+      if (!P) continue;
+      const ang = k === 0 ? aH : k === 1 ? aM : aS, sv = varre(k === 0 ? vH : k === 1 ? vM : vS);
+      const u = m.material.uniforms; u.uAngK.value = ang; u.uVarreK.value = sv;
+      m.rotation.y = -ang; m.scale.x = P.hw + 0.036 + (P.L + 0.03) * Math.abs(sv) * 1.15;
+    }
     const escalaPx = (H * this.escala) / (2 * Math.tan(THREE.MathUtils.degToRad(c.fov) / 2));
     const pts = (o, fase, a) => { const u = o.material.uniforms; u.uFase.value = fase; u.uA.value = a; u.uEscalaPx.value = escalaPx; o.visible = a > 0.001; };
     pts(this.objPoeira, 0, 0.35 * this.poeira.a);
@@ -911,9 +1062,12 @@ export class Mundo {
     const G = this.barrasG;
     this.barras.forEach((b, i) => {
       const m = this.objBarras[i];
+      const hor = !!b.hor;
+      // uma parte empilhada (sobre) nasce do topo atual da barra de baixo, e não de uma base fixa
+      const y0 = b.sobre != null && this.barras[b.sobre] ? this.barras[b.sobre].alturaAtual : b.y0;
+      b.alturaAtual = y0 + (hor ? b.h : b.h * b.k);
       m.visible = b.a > 0.001 && b.k > 0.001;
       if (!m.visible) return;
-      const hor = !!b.hor;
       const hh = hor ? b.h : Math.max(1e-4, b.h * b.k), ww = hor ? Math.max(1e-4, b.w * b.k) : b.w;
       if (b.pos) {       // barra com base própria no mundo (anel de unidades, por exemplo)
         m.position.copy(b.pos); m.position.y += b.y0 + hh / 2; m.quaternion.setFromAxisAngle(T.eixoY, b.giro ?? 0); m.scale.set(ww, hh, 1);
@@ -921,7 +1075,7 @@ export class Mundo {
         return;
       }
       const cx = hor ? b.x - b.w / 2 + ww / 2 : b.x;
-      G.ponto(cx, b.y0 + hh / 2, b.z ?? 0, m.position); m.quaternion.copy(G.quat); m.scale.set(ww * G.esc, hh * G.esc, 1);
+      G.ponto(cx, y0 + hh / 2, b.z ?? 0, m.position); m.quaternion.copy(G.quat); m.scale.set(ww * G.esc, hh * G.esc, 1);
       const u = m.material.uniforms; u.uTam.value.set(ww * G.esc, hh * G.esc); u.uA.value = b.a; u.uRaio.value = Math.min(b.raio ?? 0.012, ww * G.esc / 2, hh * G.esc / 2);
     });
     this.linhasG.forEach((l, i) => { const o = this.objLinhasG[i]; o.visible = l.a > 0.001; const u = o.material.uniforms; u.uDesenho.value = l.desenho; u.uA.value = l.a; });
@@ -952,7 +1106,9 @@ export class Mundo {
     const cam = this.camDe(this.plano("rasante"));
     const fim = () => gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, px);
     for (let i = 0; i < 3; i++) this.renderizar(cam); fim();
-    const r = [0, 1, 2].map(() => { const t0 = performance.now(); for (let i = 0; i < 4; i++) this.renderizar(cam); fim(); return (performance.now() - t0) / 4; }).sort((a, b) => a - b)[1];
+    // seis lotes de quatro quadros; vale o quartil superior, e não a mediana: uma leitura otimista escolhia
+    // uma resolução que a GPU não sustentava nas cenas mais pesadas
+    const r = [0, 1, 2, 3, 4, 5].map(() => { const t0 = performance.now(); for (let i = 0; i < 4; i++) this.renderizar(cam); fim(); return (performance.now() - t0) / 4; }).sort((a, b) => a - b)[4];
     this.msGPU = +r.toFixed(1);
     // orçamento de 5 ms de GPU por quadro: sobra folga para a composição da página, o texto e outras abas abertas
     if (!q.has("captura") && !this.fixa && r > 5) { this.teto = Math.max(0.75, +Math.sqrt(5 / r).toFixed(2)); this.aplicarEscala(Math.min(this.teto, this.alvoEscala())); }

@@ -56,7 +56,8 @@ export function digitar(tl, elm, texto, msPorChar = 0.028, pos = undefined) {
 export function cascata(tl, elms, cada = 0.08, pos = undefined, dur = 0.6, y = 14) {
   const list = Array.from(elms);
   if (!list.length) return tl;
-  tl.fromTo(list, { opacity: 0, y }, { opacity: 1, y: 0, duration: dur, ease: "power2.out", stagger: cada }, pos);
+  list.forEach((e) => { e.style.opacity = "0"; });      // estado inicial sem leitura de estilo; a animação se inicializa quando começa
+  tl.fromTo(list, { opacity: 0, y }, { opacity: 1, y: 0, duration: dur, ease: "power2.out", stagger: cada, immediateRender: false }, pos);
   return tl;
 }
 

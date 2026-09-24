@@ -2,9 +2,9 @@
 // câmera e luz dentro da própria linha do tempo GSAP e marca os pontos para onde o espaço salta.
 // Os gráficos são objetos do instrumento (barras de vidro, índices, linhas de luz) com rótulo direto;
 // as folhas são lâminas no espaço com o HTML colado a elas. Todo número vem do motor, via conteudo.js.
-import { F, contar, cascata, entrar, g } from "./util.js?v=202609232228";
-import { top3, HISTORIA, SOCIOS, FASES, AMOSTRA, TOP3_CODIGOS, DIAS } from "./conteudo.js?v=202609232228";
-import { FASES_N, direcao } from "./mundo.js?v=202609232228";
+import { F, contar, cascata, entrar, g } from "./util.js?v=202609241929";
+import { top3, HISTORIA, SOCIOS, FASES, AMOSTRA, TOP3_CODIGOS, DIAS } from "./conteudo.js?v=202609241929";
+import { FASES_N, direcao } from "./mundo.js?v=202609241929";
 
 const gsap = () => g();
 const marco = (tl, nome, t) => tl.addLabel(nome, t);
@@ -20,29 +20,41 @@ function rot(c, M, v, cls, html, dx = 0, dy = 0) {
   const el = c.lastElementChild; M.ancorar(el, v, dx, dy);
   const m = el.querySelector(".miolo"); m.style.opacity = 0; return m;
 }
-const aparecer = (tl, els, t, dur = 0.6, cada = 0.06, y = 10) => { const l = [].concat(els).filter(Boolean); if (l.length) tl.fromTo(l, { opacity: 0, y }, { opacity: 1, y: 0, duration: dur, ease: "power2.out", stagger: cada }, t); };
+// O estado inicial vai direto no estilo e a animação só se inicializa quando começa: montar a cena sem que o
+// GSAP leia e escreva o estilo de cada elemento em sequência (um recálculo de estilo por elemento).
+const aparecer = (tl, els, t, dur = 0.6, cada = 0.06, y = 10) => { const l = (els instanceof Element ? [els] : Array.from(els || [])).filter(Boolean); if (!l.length) return; l.forEach((e) => { e.style.opacity = "0"; }); tl.fromTo(l, { opacity: 0, y }, { opacity: 1, y: 0, duration: dur, ease: "power2.out", stagger: cada, immediateRender: false }, t); };
 const sumir = (tl, els, t, dur = 0.5) => { const l = [].concat(els).filter(Boolean); if (l.length) tl.to(l, { opacity: 0, duration: dur, ease: "power1.in" }, t); };
 // Folha HTML colada a uma lâmina (tamanho de layout em px = tamanho na leitura, para o texto sair nítido).
 function folha(c, M, i, w, h, cls, html) {
   const d = document.createElement("div"); d.className = `folha3d ${cls}`; d.style.width = `${w}px`; d.style.height = `${h}px`; d.innerHTML = html;
   c.appendChild(d); M.colar(d, i, w, h); return d;
 }
-// Cresce um conjunto de barras (estados de mundo.js) em cascata.
-const crescer = (tl, bs, t, dur = 1.0, cada = 0.08, ease = "power3.out") => bs.forEach((b, i) => { tl.set(b, { a: 1 }, t + i * cada); tl.fromTo(b, { k: 0 }, { k: 1, duration: dur, ease }, t + i * cada); });
+// Cresce um conjunto de barras (estados de mundo.js) em cascata, com uma animação só para o conjunto inteiro
+// (o anel de 45 unidades seriam 90 animações a criar na montagem da cena).
+const crescer = (tl, bs, t, dur = 1.0, cada = 0.08, ease = "power3.out") => {
+  if (!bs.length) return;
+  const e = gsap().parseEase(ease), total = dur + cada * (bs.length - 1), p = { v: 0 };
+  const aplicar = () => { const tt = p.v * total; for (let i = 0; i < bs.length; i++) { const x = (tt - i * cada) / dur; bs[i].a = x >= 0 ? 1 : 0; bs[i].k = x <= 0 ? 0 : x >= 1 ? 1 : e(x); } };
+  bs.forEach((b) => { b.k = 0; });
+  tl.fromTo(p, { v: 0 }, { v: 1, duration: total, ease: "none", onUpdate: aplicar, immediateRender: false }, t);
+};
 const apagar = (tl, bs, t, dur = 0.6) => bs.forEach((b) => tl.to(b, { a: 0, duration: dur, ease: "power1.in" }, t));
 
 // ---------------------------------------------------------------------------------------------
 // Planos fixos da v2
 const PLANO_FOLHA = { x: 0, y: 1.0, z: 3.35, tx: 0, ty: 0.80, tz: 0, fov: 30 };
 const RET_FOLHA = { left: 190, top: 112, width: 1540, height: 880 };
-const RET_T3 = [0, 1, 2].map((i) => ({ left: 150 + i * 560, top: 330, width: 500, height: 620 }));
-const CARTAO = { w: 610, h: 756 };          // tamanho do cartão do Top 3 quando a câmera para de frente
+const RET_T3 = [0, 1, 2].map((i) => ({ left: 150 + i * 560, top: 318, width: 500, height: 623 }));
+// tamanho do cartão do Top 3 quando a câmera para de frente; na fila ele aparece a 500/610 disso, por isso nenhum texto do cartão fica abaixo de 22 px
+const CARTAO = { w: 610, h: 760 };
 function lamT3(M, i) {
   const cod = COD(i + 1), ix = M.top3[cod];
   const para = M.poseRet(RET_T3[i], "top3", 1.6);
   return { de: M.poseDeitada(direcao(ix.ang, 0.86), 0.012, 0.05, ix.ang), para, raio: para.w * 26 / 500 };
 }
 const poseFolha = (M) => M.poseRet(RET_FOLHA, PLANO_FOLHA, 2.6);
+// o instrumento à direita, no alto, com o texto no escuro da esquerda (retrato da rede e a pergunta)
+const PLANO_RETRATO = { x: -0.72, y: 2.25, z: 2.75, tx: -1.35, ty: 0, tz: 0.05, fov: 30 };
 
 // ============================================================================ 0 · abertura
 export function abertura(c, ctx) {
@@ -97,7 +109,7 @@ export function projetos208(c, ctx) {
   M.orbitar(tl, { de: th0, ate: th9, ...orb }, durVolta, 11.2, "none");
   amostras.forEach((m, i) => {
     const t = 11.2 + durVolta * (M.angSetor(i) - th0) / (th9 - th0);
-    tl.fromTo(m, { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.35, ease: "power2.out" }, t - 0.9);
+    tl.fromTo(m, { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.35, ease: "power2.out", immediateRender: false }, t - 0.9);
     tl.to(m, { opacity: 0, duration: 0.3 }, t + 1.05);
   });
   marco(tl, "volta", 11.2);
@@ -148,17 +160,20 @@ export function historia(c, ctx) {
   const B = M.definirBarras(G, specs);
   const anel = B.slice(0, n), bE = B.slice(n, n + 3), bD = B.slice(n + 3);
   // rótulos dos gráficos
-  const labE = eb.map(([t, v], i) => [rot(c, M, G.ponto(-0.62 + i * 0.62, v / 1e6 * sE + 0.02), "val c", `<b class="num">R$ ${r1(v)} mi</b>`, 0, -24), rot(c, M, G.ponto(-0.62 + i * 0.62, 0), "cat c", t, 0, 28)]).flat();
-  const labD = [rot(c, M, G.ponto(-0.34, H.caixa.rend * sT + 0.02), "val c", `<b class="num">${F.pct(H.caixa.rend)}</b>`, 0, -24), rot(c, M, G.ponto(-0.34, 0), "cat c", "rendimento do caixa parado", 0, 28),
-    rot(c, M, G.ponto(0.34, H.caixa.custo * sT + 0.02), "val c ouro", `<b class="num">${F.pct(H.caixa.custo)}</b>`, 0, -24), rot(c, M, G.ponto(0.34, 0), "cat c", "custo da conta garantida", 0, 28)];
+  // o nome de cada barra fica acima do valor, no escuro, e não sobre o mostrador
+  const labE = eb.map(([t, v], i) => [rot(c, M, G.ponto(-0.62 + i * 0.62, v / 1e6 * sE + 0.02), "val c", `<b class="num">R$ ${r1(v)} mi</b>`, 0, -24), rot(c, M, G.ponto(-0.62 + i * 0.62, v / 1e6 * sE + 0.02), "cat c", t, 0, -72)]).flat();
+  const labD = [rot(c, M, G.ponto(-0.34, H.caixa.rend * sT + 0.02), "val c", `<b class="num">${F.pct(H.caixa.rend)}</b>`, 0, -24), rot(c, M, G.ponto(-0.34, H.caixa.rend * sT + 0.02), "cat c", "rendimento do caixa parado", 0, -72),
+    rot(c, M, G.ponto(0.34, H.caixa.custo * sT + 0.02), "val c ouro", `<b class="num">${F.pct(H.caixa.custo)}</b>`, 0, -24), rot(c, M, G.ponto(0.34, H.caixa.custo * sT + 0.02), "cat c", "custo da conta garantida", 0, -72)];
   // pagamentos: 2.280 pontos, um a cada dez; os dourados são a parte de pessoa única
-  const colsP = 60, linhasP = 38, nP = colsP * linhasP, ouroA = Math.round(nP * (1 - H.pagamentos.pct / 100));
-  const cel = []; for (let k = 0; k < nP; k++) { const cx = Math.floor(k / linhasP), cy = k % linhasP; cel.push({ x: -0.95 + cx * 0.0322, y: 0.06 + cy * 0.0215, cor: k >= ouroA ? "ouro" : "marfim", tam: k >= ouroA ? 0.019 : 0.015 }); }
+  // 76 colunas × 30 linhas (a matriz mais baixa deixa o título livre)
+  const colsP = 76, linhasP = 30, nP = colsP * linhasP, ouroA = Math.round(nP * (1 - H.pagamentos.pct / 100)), dxP = 0.027, dyP = 0.0215, x0P = -(colsP - 1) * dxP / 2;
+  const cel = []; for (let k = 0; k < nP; k++) { const cx = Math.floor(k / linhasP), cy = k % linhasP; cel.push({ x: x0P + cx * dxP, y: 0.06 + cy * dyP, cor: k >= ouroA ? "ouro" : "marfim", tam: k >= ouroA ? 0.019 : 0.015 }); }
   const Mz = M.definirMatriz(G, cel);
-  const labC = [rot(c, M, G.ponto(-0.95 + (ouroA / linhasP) * 0.0322 / 2 - 0.47, 0.06 + 38 * 0.0215 + 0.03), "cat", `${F.n(R.seg.pagamentos.titulos - R.seg.pagamentos.pessoa_unica_titulos)} pagamentos com segunda pessoa`, 0, -16),
-    rot(c, M, G.ponto(0.95 - 0.21, 0.06 + 38 * 0.0215 + 0.03), "cat ouro", `${F.n(R.seg.pagamentos.pessoa_unica_titulos)} com uma pessoa só`, 0, -16)];
+  const topoP = 0.06 + (linhasP - 1) * dyP + 0.04;
+  const labC = [rot(c, M, G.ponto(x0P, topoP), "cat e", `${F.n(R.seg.pagamentos.titulos - R.seg.pagamentos.pessoa_unica_titulos)} pagamentos com segunda pessoa`, 0, -14),
+    rot(c, M, G.ponto(x0P + (colsP - 1) * dxP, topoP), "cat d ouro", `${F.n(R.seg.pagamentos.pessoa_unica_titulos)} com uma pessoa só`, 0, -14)];
   // A · o retrato da rede
-  M.irPara(tl, { x: -0.35, y: 2.25, z: 2.75, tx: -0.98, ty: 0, tz: 0.05, fov: 30 }, 3.0, 0);
+  M.irPara(tl, PLANO_RETRATO, 3.0, 0);
   M.luzPara(tl, { a: 4.4 }, 12, 0);
   tl.set(q(".qa"), { opacity: 1 }, 0.6);
   aparecer(tl, q(".qa").querySelectorAll(".rotulo, h1"), 0.6, 0.8, 0.15);
@@ -187,7 +202,7 @@ export function historia(c, ctx) {
   marco(tl, "q4", 42.6);
   // E · a pergunta
   sumir(tl, [q(".qd"), ...labD], 53.0); apagar(tl, bD, 53.0);
-  M.irPara(tl, "inteiro", 3.0, 53.0);
+  M.irPara(tl, PLANO_RETRATO, 3.0, 53.0);
   M.luzPara(tl, { expo: 0.5 }, 2.4, 53.2);
   tl.set(q(".qe"), { opacity: 1 }, 53.6);
   cascata(tl, [q(".qe h1")], 0, 53.8, 1.1, 14);
@@ -228,8 +243,8 @@ export function top3Cena(c, ctx) {
   sumir(tl, q(".topo"), 10.8);
   let t = 11.0;
   [0, 1, 2].forEach((i) => {
-    M.irPara(tl, M.planoFrente(Ls[i].para, 0.70, 26), 1.5, t, {}, "power3.inOut");
-    tl.to(cartoes.filter((_, k) => k !== i), { opacity: 0.25, duration: 0.6 }, t);
+    M.irPara(tl, M.planoFrente(Ls[i].para, CARTAO.h / 1080, 26), 1.5, t, {}, "power3.inOut");
+    tl.to(cartoes.filter((_, k) => k !== i), { opacity: 0.2, duration: 0.6 }, t);
     tl.to(cartoes[i], { opacity: 1, duration: 0.6 }, t);
     [0, 1, 2].forEach((k) => tl.to(M.laminas[k], { a: k === i ? 1 : 0.35, duration: 0.6 }, t));
     marco(tl, `p${i + 1}`, t);
@@ -308,12 +323,12 @@ export function formulario(c, ctx) {
     tl.to(blocos.filter((x) => x !== b), { opacity: 0.4, duration: 0.3 }, t);
     tl.to(b, { opacity: 1, duration: 0.3 }, t);
     const linhas = [...b.querySelectorAll("tr.vazia, .mz-l.vazia")];
-    linhas.forEach((tr, i) => { tl.fromTo(tr, { opacity: 0 }, { opacity: 1, duration: 0.25 }, t + 0.2 + i * 0.16); tl.call(() => bump(), null, t + 0.2 + i * 0.16); });
+    linhas.forEach((tr, i) => { tl.fromTo(tr, { opacity: 0 }, { opacity: 1, duration: 0.25, immediateRender: false }, t + 0.2 + i * 0.16); tl.call(() => bump(), null, t + 0.2 + i * 0.16); });
     if (linhas.length) t += 0.2 + linhas.length * 0.16 + 0.3;
     [...b.querySelectorAll(".campo")].forEach((cp) => {
       // o valor já está escrito na folha; entra com um deslize curto (só composição, sem redesenhar o texto)
       const v = cp.querySelector(".v"), d = 0.28;
-      tl.fromTo(v, { opacity: 0, x: -10 }, { opacity: 1, x: 0, duration: d, ease: "power2.out" }, t);
+      tl.fromTo(v, { opacity: 0, x: -10 }, { opacity: 1, x: 0, duration: d, ease: "power2.out", immediateRender: false }, t);
       tl.call(() => bump(), null, t + 0.1);
       t += 0.2;
     });
@@ -349,7 +364,11 @@ export function analise(c, ctx) {
   M.irPara(tl, "analise", 2.0, 0.2, {}, "power3.inOut");
   const P = M.prepararGrafo(C.parede, flut);
   const ancs = [...c.querySelectorAll(".no")];
-  ancs.forEach((el, i) => M.ancorar(el, P[i], nos[i].ouro ? 16 : 12, 0));
+  // o deslocamento do rótulo vai ao GSAP em porcentagem: a entrada anima x e não pode apagar o alinhamento
+  const PCT = { "": [0, -50], esq: [-100, -50], cima: [-50, -100], baixo: [-50, 0] };
+  const lados = ladosDoGrafo(M, P, C.parede, ancs), miolosG = ancs.map((a) => a.querySelector(".miolo"));
+  miolosG.forEach((m) => gsap().getProperty(m, "x"));            // lê tudo antes de escrever: um recálculo de estilo só
+  lados.forEach(([cls, dx, dy], i) => { if (cls) ancs[i].classList.add(cls); gsap().set(miolosG[i], { xPercent: PCT[cls][0], yPercent: PCT[cls][1] }); M.ancorar(ancs[i], P[i], dx, dy); });
   tl.set([q(".topo"), q(".rod"), q(".dias"), q(".socios"), ...ancs.map((a) => a.querySelector(".miolo"))], { opacity: 0 }, 0);
   tl.set(M.dados, { fase: 0, a: 0 }, 0);
   tl.to(M.dados, { a: 1, duration: 0.8 }, 1.6);
@@ -360,14 +379,14 @@ export function analise(c, ctx) {
   tl.set(M.grafo, { a: 1 }, 5.0);
   tl.to(M.grafo, { nos: 1, duration: 3.0, ease: "none" }, 5.0);
   tl.to(M.grafo, { desenho: 1, duration: 4.2, ease: "none" }, 5.4);
-  ancs.forEach((a, i) => tl.fromTo(a.querySelector(".miolo"), { opacity: 0, x: -6 }, { opacity: nos[i].ouro ? 1 : 0.8, x: 0, duration: 0.5 }, 5.2 + 3.0 * i / nos.length));
+  ancs.forEach((a, i) => tl.fromTo(a.querySelector(".miolo"), { opacity: 0, x: -6 }, { opacity: nos[i].ouro ? 1 : 0.8, x: 0, duration: 0.5, immediateRender: false }, 5.2 + 3.0 * i / nos.length));
   M.irPara(tl, "analise", 16, 3.0, { cam: { x: -1.2, y: 1.1, z: 2.8 } }, "sine.inOut");
   M.luzPara(tl, { a: 4.6, expo: 1 }, 17, 2.0);
   cascata(tl, [q(".rod")], 0, 9.6);
   marco(tl, "contas", 10.2);
   tl.to([q(".rod"), q(".topo")], { opacity: 0, duration: 0.5 }, 19.0);
   tl.to(ancs.map((a) => a.querySelector(".miolo")), { opacity: 0, duration: 0.6 }, 19.0);
-  tl.to([M.grafo, M.dados], { a: 0.22, duration: 0.8 }, 19.0);
+  tl.to([M.grafo, M.dados], { a: 0, duration: 0.8 }, 19.0);
   tl.set(q(".dias"), { opacity: 1 }, 19.4);
   cascata(tl, [q(".dias h2")], 0, 19.4, 0.8, 10);
   cascata(tl, c.querySelectorAll(".dias .linha div"), 0.2, 19.9, 0.6, 8);
@@ -385,6 +404,50 @@ export function analise(c, ctx) {
   return tl;
 }
 
+// Tamanho de um rótulo do grafo sem pedir layout à página (a montagem da cena não pode forçar reflow).
+let _medida;
+function medidaRotulo(no) {
+  const k = _medida || (_medida = document.createElement("canvas").getContext("2d"));
+  const larg = (fonte, t) => { k.font = fonte; return k.measureText(t).width; };
+  const i = no.t.indexOf(" · ");
+  if (!no.ouro || i < 0) return { w: larg("400 18px Inter", no.t), h: 23 };
+  return { w: Math.max(larg("400 18px Inter", no.t.slice(0, i)), larg("600 27px 'Inter Tight'", no.t.slice(i + 3))), h: 55 };
+}
+
+// Cada rótulo do grafo vai para o lado (direita, esquerda, acima, abaixo) em que nenhuma ligação o atravessa e
+// nenhum outro rótulo ou nó o toca. A conta é feita na tela, com a câmera no meio da deriva da cena.
+function ladosDoGrafo(M, P, parede, ancs) {
+  const cam = M.plano("analise", { cam: { x: -0.6, y: 1.02, z: 2.92 } });
+  const T = P.map((v) => M.naTela(v, cam));
+  const segs = parede.lig.map(([a, b]) => [T[a], T[b]]);
+  const dentro = (p, r) => p.x > r.x0 && p.x < r.x1 && p.y > r.y0 && p.y < r.y1;
+  const corta = (a, b, c, d) => { const o = (p, q, r) => Math.sign((q.x - p.x) * (r.y - p.y) - (q.y - p.y) * (r.x - p.x)); return o(a, b, c) !== o(a, b, d) && o(c, d, a) !== o(c, d, b); };
+  const cruza = ([a, b], r) => {
+    if (dentro(a, r) || dentro(b, r)) return true;
+    const k = [{ x: r.x0, y: r.y0 }, { x: r.x1, y: r.y0 }, { x: r.x1, y: r.y1 }, { x: r.x0, y: r.y1 }];
+    return k.some((p, i) => corta(a, b, p, k[(i + 1) % 4]));
+  };
+  const feitos = [];
+  return ancs.map((el, i) => {
+    const { w, h } = medidaRotulo(parede.nos[i]), { x, y } = T[i];
+    const g = parede.nos[i].ouro ? 30 : 22, gv = 16;
+    const op = [
+      ["", g, 0, { x0: x + g, y0: y - h / 2, x1: x + g + w, y1: y + h / 2 }, 0],
+      ["esq", -g, 0, { x0: x - g - w, y0: y - h / 2, x1: x - g, y1: y + h / 2 }, 0.1],
+      ["cima", 0, -gv, { x0: x - w / 2, y0: y - gv - h, x1: x + w / 2, y1: y - gv }, 0.2],
+      ["baixo", 0, gv, { x0: x - w / 2, y0: y + gv, x1: x + w / 2, y1: y + gv + h }, 0.3],
+    ].map(([cls, dx, dy, r, pref]) => {
+      const f = { x0: r.x0 - 4, y0: r.y0 - 4, x1: r.x1 + 4, y1: r.y1 + 4 };
+      let custo = pref + segs.filter((sg) => cruza(sg, f)).length * 10 + T.filter((p, k) => k !== i && dentro(p, f)).length * 10;
+      custo += feitos.filter((o) => o.x0 < f.x1 && o.x1 > f.x0 && o.y0 < f.y1 && o.y1 > f.y0).length * 20;
+      if (r.x0 < 50 || r.x1 > 1870 || r.y0 < 230 || r.y1 > 1030) custo += 50;
+      return { cls, dx, dy, r, custo };
+    }).sort((a, b) => a.custo - b.custo);
+    feitos.push(op[0].r);
+    return [op[0].cls, op[0].dx, op[0].dy];
+  });
+}
+
 // ============================================================================ 6 · o diagnóstico: gráficos no instrumento
 // Cada quadro: título (o achado), subtítulo, o gráfico construído e lido de frente.
 function montarQuadro(qd, c, M, G, specs, rots, linhas, matriz) {
@@ -397,51 +460,57 @@ function montarQuadro(qd, c, M, G, specs, rots, linhas, matriz) {
   const pct = (v, cc = 1) => F.pct(v, cc);
   if (qd.id === "ebitda") {
     const sy = 0.74 / 50;
+    const xs = [-0.86, -0.20, 0.72];              // a segunda barra fica longe da terceira: os ajustes cabem entre as duas
     qd.barras.forEach((b, i) => {
-      const x = -0.72 + i * 0.72, h0 = b.base / 1e6 * sy;
+      const x = xs[i], h0 = b.base / 1e6 * sy;
       bar({ x, y0: 0, h: h0, w: 0.32, cor: "marfim", cheio: 0.72, topo: b.partes.length ? 0 : 1 });
       let y = h0;
-      b.partes.forEach((p, k) => { const h = p.v / 1e6 * sy; bar({ x, y0: y, h, w: 0.32, cor: "ouro", cheio: 0.8, topo: k === b.partes.length - 1 ? 1 : 0 }); lab(P(x + 0.17, y + h / 2), "seg", `+ R$ ${r1(p.v)} mi <span>${p.t}</span>`, 10, k === 0 && b.partes.length > 1 ? 8 : k > 0 ? -12 : 0); y += h; });
+      b.partes.forEach((p, k) => { const h = p.v / 1e6 * sy; bar({ x, y0: y, h, w: 0.32, cor: "ouro", cheio: 0.8, topo: k === b.partes.length - 1 ? 1 : 0, sobre: specs.length - 1 }); lab(P(x + 0.17, y + h / 2), "seg", `+ R$ ${r1(p.v)} mi <span>${p.t}</span>`, 10, k === 0 && b.partes.length > 1 ? 8 : k > 0 ? -12 : 0); y += h; });
       lab(P(x, y + 0.02), "val c", `<b class="num">R$ ${r1(b.base + b.partes.reduce((s, p) => s + p.v, 0))} mi</b>`, 0, -26);
-      lab(P(x, 0), "cat c", b.rot, 0, 30);
+      lab(P(x, y + 0.02), "cat c", b.rot, 0, -74);
     });
-    S.plano = { x: 0.05, y: 0.50, dist: 4.6, fov: 20, alt: 0.3 };
+    S.plano = { x: 0.13, y: 0.50, dist: 4.6, fov: 20, alt: 0.3 };
   }
   if (qd.id === "ticket") {
     const sy = 0.66 / 160, xs = [-0.82, -0.3, 0.22];
-    qd.barras.forEach(([t, v, s], i) => { bar({ x: xs[i], y0: 0, h: v * sy, w: 0.30, cor: i === 2 ? "verde" : "marfim", cheio: 0.72 }); lab(P(xs[i], v * sy + 0.02), "val c", `<b class="num">R$ ${v}</b>`, 0, -26); lab(P(xs[i], 0), "cat c", `${t}<span>${s}</span>`, 0, 36); });
+    // o valor da barra recebida vai dentro dela; acima fica a parte dourada que falta até a tabela.
+    // O nome de cada barra fica acima, no escuro, e não sobre o mostrador.
     const vT = qd.barras[0][1], vR = qd.barras[2][1];
-    bar({ x: xs[2], y0: vR * sy, h: (vT - vR) * sy, w: 0.30, cor: "ouro", cheio: 0.28, topo: 0 });
-    lin({ pts: [[xs[0] + 0.15, vT * sy], [xs[2] + 0.15, vT * sy]], cor: "ouro", tracejada: true });
+    qd.barras.forEach(([t, v, s], i) => {
+      bar({ x: xs[i], y0: 0, h: v * sy, w: 0.30, cor: i === 2 ? "verde" : "marfim", cheio: 0.72 });
+      lab(i === 2 ? P(xs[i], v * sy - 0.05) : P(xs[i], v * sy + 0.02), "val c", `<b class="num">R$ ${v}</b>`, 0, i === 2 ? 0 : -26);
+      lab(P(xs[i], (i === 2 ? vT : v) * sy + 0.02), "cat c", `${t}<span>${s}</span>`, 0, i === 2 ? -30 : -84);
+    });
+    bar({ x: xs[2], y0: vR * sy, h: (vT - vR) * sy, w: 0.30, cor: "ouro", cheio: 0.28, topo: 0, sobre: specs.length - 1 });
     lab(P(xs[2] + 0.17, (vR + (vT - vR) / 2) * sy), "seg", `R$ ${vT - vR} <span>por aluno, todo mês</span>`, 10, 0);
-    lab(P(0.72, 0.46), "grande", `<b class="num">R$ ${r1(qd.numero)} mi</b><span>${qd.numeroRot}</span>`, 0, 0);
-    S.plano = { x: 0.12, y: 0.50, dist: 4.6, fov: 20, alt: 0.3 };
+    lab(P(0.80, 0.30), "grande", `<b class="num">R$ ${r1(qd.numero)} mi</b><span>${qd.numeroRot}</span>`, 0, 0);
+    S.plano = { x: 0.16, y: 0.50, dist: 4.6, fov: 20, alt: 0.3 };
   }
   if (qd.id === "matriz") {
-    const cel = [], esp = 0.058, cx = [-0.86, 0.46];
+    const cel = [], esp = 0.05, cx = [-0.86, 0.46];
     qd.linhas.forEach((l, i) => {
-      const bl = i < 13 ? 0 : 1, row = i % 13, y = 0.74 - row * esp;
+      const bl = i < 13 ? 0 : 1, row = i % 13, y = 0.84 - row * esp;
       lab(P(cx[bl] - 0.08, y), `ind ${l.divergente ? "ouro" : ""}`, l.nome, 0, 0);
       l.usos.forEach((u, k) => { if (u) cel.push({ x: cx[bl] + k * 0.1, y, cor: u === "d" ? "ouro" : "marfim", tam: u === "d" ? 0.034 : 0.022 }); });
     });
-    ["conselho", "banco", "DRE", "painel", "orçamento"].forEach((d, k) => { lab(P(cx[0] + k * 0.1, 0.80), "col", d); lab(P(cx[1] + k * 0.1, 0.80), "col", d); });
+    ["conselho", "banco", "DRE", "painel", "orçamento"].forEach((d, k) => { lab(P(cx[0] + k * 0.1, 0.90), "col", d); lab(P(cx[1] + k * 0.1, 0.90), "col", d); });
     S.matriz = cel;
-    S.plano = { x: 0.02, y: 0.45, dist: 4.5, fov: 20, alt: 0.2 };
+    S.plano = { x: 0.02, y: 0.62, dist: 4.5, fov: 20, alt: 0.2 };
   }
   if (qd.id === "pessoas") {
-    const cel = [], esp = 0.047, x0 = -0.2, dxp = 0.13;
+    const cel = [], esp = 0.045, x0 = -0.2, dxp = 0.13, y0p = 1.00;
     const incompat = new Set();
     qd.pessoas.forEach((p, i) => {
-      const y = 0.84 - i * esp;
+      const y = y0p - i * esp;
       lab(P(x0 - 0.08, y), `ind ${p.caminho ? "ouro" : ""}`, p.cargo, 0, 0);
       const emConflito = new Set(p.conflitos.flat());
       qd.passos.forEach((_, k) => { const id = "CBLAPQ"[k]; if (p.acessos.includes(id)) cel.push({ x: x0 + k * dxp, y, cor: emConflito.has(id) ? "ouro" : "marfim", tam: emConflito.has(id) ? 0.032 : 0.022 }); });
       if (p.caminho) lin({ pts: [[x0 - 0.02, y], [x0 + 4 * dxp + 0.02, y]], cor: "ouro" });
       incompat.add(i);
     });
-    ["cadastra<br>fornecedor", "troca<br>conta", "lança<br>título", "aprova", "libera<br>no banco", "concilia"].forEach((ps, k) => lab(P(x0 + k * dxp, 0.84), "colh", ps, 0, -62));
+    ["cadastra<br>fornecedor", "troca<br>conta", "lança<br>título", "aprova", "libera<br>no banco", "concilia"].forEach((ps, k) => lab(P(x0 + k * dxp, y0p), "colh", ps, 0, -62));
     S.matriz = cel;
-    S.plano = { x: 0.1, y: 0.56, dist: 4.6, fov: 20, alt: 0.2 };
+    S.plano = { x: 0.1, y: 0.72, dist: 4.6, fov: 20, alt: 0.2 };
   }
   if (qd.id === "fluxo") {
     const tot = qd.partes.reduce((s, p) => s + p[1], 0), L = 2.1, sx = L / tot;
@@ -450,12 +519,14 @@ function montarQuadro(qd, c, M, G, specs, rots, linhas, matriz) {
     lab(P(-1.05, 0.26), "cat e", `${F.n(tot / 1e6, 1)} milhões pagos a fornecedores em doze meses`, 0, 10);
     S.plano = { x: 0.0, y: 0.5, dist: 4.4, fov: 20, alt: 0.3 };
   }
+  const regua = (xa, xb, plano, dy) => { const m = lab(P((xa + xb) / 2, 0), "regua c", "", 0, dy); m.style.width = `${Math.round((xb - xa + 0.12) * M.pxPorUnidade(plano.dist, plano.fov))}px`; };
   if (qd.id === "meses") {
     const sy = 0.12, dx = 0.175, x0 = -0.96;
+    regua(x0, x0 + 11 * dx, { dist: 4.4, fov: 20 }, 24);
     qd.meses.forEach((m, i) => {
       const x = x0 + i * dx, conf = qd.conf[i], sem = qd.total[i] - conf;
       if (conf) bar({ x, y0: 0, h: conf * sy, w: 0.11, cor: "marfim", cheio: 0.72, topo: sem ? 0 : 1 });
-      if (sem) bar({ x, y0: conf * sy, h: sem * sy, w: 0.11, cor: "ouro", cheio: 0.8 });
+      if (sem) bar({ x, y0: conf * sy, h: sem * sy, w: 0.11, cor: "ouro", cheio: 0.8, sobre: conf ? specs.length - 1 : undefined });
       lab(P(x, qd.total[i] * sy + 0.02), "val c peq", `<b class="num">${qd.total[i]}</b>`, 0, -16);
       lab(P(x, 0), "cat c", m, 0, 24);
     });
@@ -469,23 +540,26 @@ function montarQuadro(qd, c, M, G, specs, rots, linhas, matriz) {
       const w = f.saldo * sx;
       bar({ x: x + w / 2, y0: 0, h: f.taxa * sy, w, cor: f.rot === "antecipação" ? "verde" : i === 0 ? "ouro" : "marfim", cheio: 0.7 });
       lab(P(x + w / 2, f.taxa * sy + 0.02), "val c peq", `<b class="num">${pct(f.taxa)}</b>`, 0, -18);
-      lab(P(x + w / 2, 0), `cat c ${i % 2 ? "baixo" : ""}`, `${f.rot}<span>R$ ${r1(f.saldo)} mi</span>`, 0, i % 2 ? 66 : 30);
-      if (w > 0.3) lab(P(x + w / 2, f.taxa * sy * 0.5), "dentro c", `R$ ${r1(f.custo)} mi<span>por ano</span>`, 0, 0);
+      lab(P(x + w / 2, f.taxa * sy + 0.02), "cat c", `${f.rot}<span>R$ ${r1(f.saldo)} mi</span>`, 0, -66);
+      if (w > 0.3) lab(P(x + w / 2, f.taxa * sy * 0.80), "dentro c", `R$ ${r1(f.custo)} mi<span>por ano</span>`, 0, 0);
       x += w + gap;
     });
     lin({ pts: [[-1.1, qd.rendimento * sy], [1.12, qd.rendimento * sy]], cor: "marfim", tracejada: true });
     lab(P(1.12, qd.rendimento * sy), "seg", `${pct(qd.rendimento)} <span>rende o caixa parado</span>`, 10, 0);
-    S.plano = { x: 0.08, y: 0.5, dist: 4.5, fov: 20, alt: 0.3 };
+    S.plano = { x: 0.20, y: 0.5, dist: 4.5, fov: 20, alt: 0.3 };
   }
   if (qd.id === "hoje" || qd.id === "depois") {
-    const sy = 0.66 / 12e6, dx = 0.16, x0 = -0.96;
-    qd.semanas.forEach((v, i) => { bar({ x: x0 + i * dx, y0: 0, h: v * sy, w: 0.105, cor: qd.id === "hoje" ? "marfim" : "verde", cheio: 0.72 }); if (i % 2 === 0) lab(P(x0 + i * dx, 0), "cat c", `sem. ${i + 1}`, 0, 24); });
-    lab(P(x0, qd.semanas[0] * sy + 0.02), "val c peq", `<b class="num">R$ ${r1(qd.semanas[0])} mi</b>`, 0, -18);
-    const iMin = qd.semanas.indexOf(Math.min(...qd.semanas));
-    lab(P(x0 + iMin * dx, qd.semanas[iMin] * sy + 0.02), "val c peq ouro", `<b class="num">R$ ${r1(qd.semanas[iMin])} mi</b><span>mínimo</span>`, 0, -18);
+    const sy = 0.66 / 12e6, dx = 0.145, x0 = -0.96, S13 = qd.semanas;
+    regua(x0, x0 + 12 * dx, { dist: qd.candidatos ? 4.9 : 4.5, fov: 20 }, 24);
+    S13.forEach((v, i) => { bar({ x: x0 + i * dx, y0: 0, h: v * sy, w: 0.100, cor: qd.id === "hoje" ? "marfim" : "verde", cheio: 0.72 }); if (i % 2 === 0) lab(P(x0 + i * dx, 0), "cat c", `sem. ${i + 1}`, 0, 24); });
+    // o rótulo de uma barra fica acima das vizinhas, para não encostar no vidro delas
+    const acima = (i) => Math.max(...[i - 1, i, i + 1].filter((k) => k >= 0 && k < S13.length).map((k) => S13[k])) * sy + 0.02;
+    lab(P(x0, acima(0)), "val c peq", `<b class="num">R$ ${r1(S13[0])} mi</b>`, 0, -18);
+    const iMin = S13.indexOf(Math.min(...S13));
+    lab(P(x0 + iMin * dx, acima(iMin)), "val c peq ouro", `<b class="num">R$ ${r1(S13[iMin])} mi</b><span>mínimo</span>`, 0, -30);
     lin({ pts: [[x0 - 0.08, qd.linha * sy], [x0 + 12 * dx + 0.08, qd.linha * sy]], cor: "ouro", tracejada: true });
-    lab(P(x0 + 12 * dx + 0.08, qd.linha * sy), "segd", qd.linhaRot, 0, -18);
-    if (qd.candidatos) lab(P(1.28, 0.78), "cand", `<h5>antecipação da agenda</h5>${qd.candidatos.map((cc) => `<div class="${cc.abaixo ? "" : "ok"}"><b>${cc.p}%</b><span>${cc.abaixo ? `${cc.abaixo} semanas abaixo do mínimo` : "nenhuma semana abaixo"}</span></div>`).join("")}`, 0, 0);
+    lab(P(x0 + 12 * dx + 0.08, qd.linha * sy), "seg", qd.linhaRot, 12, 0);
+    if (qd.candidatos) lab(P(1.08, 0.78), "cand", `<h5>antecipação da agenda</h5>${qd.candidatos.map((cc) => `<div class="${cc.abaixo ? "" : "ok"}"><b>${cc.p}%</b><span>${cc.abaixo ? `${cc.abaixo} semanas abaixo do mínimo` : "nenhuma semana abaixo"}</span></div>`).join("")}`, 0, 0);
     S.plano = { x: qd.candidatos ? 0.2 : 0.05, y: 0.5, dist: qd.candidatos ? 4.9 : 4.5, fov: 20, alt: 0.3 };
   }
   if (qd.tiles) {
@@ -495,9 +569,9 @@ function montarQuadro(qd, c, M, G, specs, rots, linhas, matriz) {
   }
   if (qd.acoes) {
     const max = Math.max(...qd.acoes.map((a) => a.v)), L = 1.05, sx = L / max, esp = 0.13, x0 = -0.1;
-    qd.acoes.forEach((a, i) => { const y = 0.72 - i * esp, w = a.v * sx; bar({ x: x0 + w / 2, y0: y - 0.035, h: 0.07, w, cor: a.tipo === "certo" ? "ouro" : "marfim", cheio: 0.78, hor: true, topo: 0 }); lab(P(x0 - 0.05, y), "acao", `${a.t}<span>${a.tipo === "certo" ? "depende só da empresa" : a.nota || "depende de terceiros"}</span>`, 0, 0); lab(P(x0 + w + 0.03, y), "val e peq", `<b class="num">R$ ${F.n(Math.round(a.v / 1000))} mil</b>`, 0, 0); });
-    lab(P(x0, 0.72 - 5 * esp + 0.03), "total", `<b class="num">R$ ${r1(qd.total)} mi</b> por ano · <b class="num ouro">R$ ${r1(qd.certo)} mi</b> certos`, 0, 0);
-    S.plano = { x: 0.15, y: 0.5, dist: 4.5, fov: 20, alt: 0.25 };
+    qd.acoes.forEach((a, i) => { const y = 0.86 - i * esp, w = a.v * sx; bar({ x: x0 + w / 2, y0: y - 0.035, h: 0.07, w, cor: a.tipo === "certo" ? "ouro" : "marfim", cheio: 0.78, hor: true, topo: 0 }); lab(P(x0 - 0.05, y), "acao", `${a.t}<span>${a.tipo === "certo" ? "depende só da empresa" : a.nota || "depende de terceiros"}</span>`, 0, 0); lab(P(x0 + w + 0.03, y), "val e peq", `<b class="num">R$ ${F.n(Math.round(a.v / 1000))} mil</b>`, 0, 0); });
+    lab(P(x0, 0.86 - 5 * esp + 0.03), "total", `<b class="num">R$ ${r1(qd.total)} mi</b> por ano · <b class="num ouro">R$ ${r1(qd.certo)} mi</b> certos`, 0, 0);
+    S.plano = { x: 0.0, y: 0.5, dist: 4.5, fov: 20, alt: 0.25 };
   }
   return S;
 }
@@ -551,24 +625,26 @@ export function diagnostico(c, ctx) {
 
 // ============================================================================ 7 · o entregável: o que chega à empresa
 // As peças pousam sobre o instrumento; a câmera desce sobre cada uma.
+// As peças ficam em volta do centro, sobre o vidro: os ponteiros, a tampa e a marca continuam à vista.
 const PECAS = [
-  { id: "capa", x: -0.47, z: 0.02, w: 0.44, h: 0.60, giro: 0.05, y: 0.006 },
-  { id: "f0", x: 0.02, z: -0.10, w: 0.44, h: 0.60, giro: -0.03, y: 0.007 },
-  { id: "f1", x: 0.50, z: 0.06, w: 0.44, h: 0.60, giro: -0.07, y: 0.008 },
-  { id: "planilha", x: -0.20, z: 0.60, w: 0.56, h: 0.34, giro: 0.02, y: 0.006 },
-  { id: "painel", x: 0.42, z: 0.62, w: 0.48, h: 0.30, giro: -0.04, y: 0.009 },
-  { id: "devolutiva", x: -0.50, z: -0.58, w: 0.36, h: 0.22, giro: 0.08, y: 0.009 },
+  { id: "capa", x: -0.56, z: 0.10, w: 0.40, h: 0.545, giro: 0.06, y: 0.022 },
+  { id: "f0", x: -0.28, z: 0.56, w: 0.40, h: 0.545, giro: -0.04, y: 0.026 },
+  { id: "f1", x: 0.20, z: 0.52, w: 0.40, h: 0.545, giro: 0.05, y: 0.024 },
+  { id: "planilha", x: 0.58, z: 0.12, w: 0.50, h: 0.304, giro: -0.05, y: 0.028 },
+  { id: "painel", x: 0.58, z: 0.47, w: 0.44, h: 0.275, giro: 0.04, y: 0.030 },
+  { id: "devolutiva", x: -0.56, z: -0.50, w: 0.32, h: 0.195, giro: -0.07, y: 0.026 },
 ];
 function htmlPeca(p, E, C) {
   if (p.id === "capa") return `<div class="capa"><img src="midia/marca/logo_horizontal_claro.svg" alt="SWOT WEALTH"><h2>${E.capa.titulo}</h2><p>${E.capa.sub}</p><ol>${E.capa.indice.map((x) => `<li>${x}</li>`).join("")}</ol></div>`;
   if (p.id === "f0" || p.id === "f1") {
     const f = E.folhas[p.id === "f0" ? 0 : 1];
-    const corpo = f.itens ? `<ol class="itens">${f.itens.map((x) => `<li>${x}</li>`).join("")}</ol>` : `<table>${f.linhas.map((l) => `<tr>${l.map((v, i) => `<td class="${i ? "d" : ""}">${v}</td>`).join("")}</tr>`).join("")}</table>`;
+    const linha = (l) => (l.length > 2 ? `<tr><td>${l[0]}<span class="q">${l[2]}</span></td><td class="d">${l[1]}</td></tr>` : `<tr>${l.map((v, i) => `<td class="${i ? "d" : ""}">${v}</td>`).join("")}</tr>`);
+    const corpo = f.itens ? `<ol class="itens">${f.itens.map((x) => `<li>${x}</li>`).join("")}</ol>` : `<table class="${f.linhas[0].length > 2 ? "tres" : ""}">${f.linhas.map(linha).join("")}</table>`;
     return `<div class="pg"><div class="cab"><img src="${LOGO_ESC}" alt=""><span>${C.proj.nome}</span></div><h2>${f.titulo}</h2><p class="sub">${f.sub}</p>${corpo}</div>`;
   }
   if (p.id === "planilha") {
     const P = E.planilha;
-    return `<div class="xl"><div class="xl-t"><i></i>${P.titulo}</div><table><thead><tr><th></th>${P.cab.map((h) => `<th>${h}</th>`).join("")}</tr></thead><tbody>${P.linhas.slice(0, 14).map((l, i) => `<tr><td class="n">${i + 2}</td>${l.map((v) => `<td>${v}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
+    return `<div class="xl"><div class="xl-t"><i></i>${P.titulo}</div><table class="${P.cab.length > 5 ? "largo" : ""}"><thead><tr><th></th>${P.cab.map((h) => `<th>${h}</th>`).join("")}</tr></thead><tbody>${P.linhas.slice(0, P.cab.length > 5 ? 13 : 14).map((l, i) => `<tr><td class="n">${i + 2}</td>${l.map((v) => `<td>${v}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
   }
   if (p.id === "painel") {
     const P = E.painel, max = Math.max(...P.valores);
@@ -608,6 +684,7 @@ export function entregavel(c, ctx) {
     tl.to(els[i], { opacity: 1, duration: 0.5 }, 2.0 + i * 0.16);
   });
   cascata(tl, [q(".topo")], 0, 1.2, 0.9, 10);
+  M.correrRelogio(tl, 3.6, 5.0, 0.3);          // enquanto as peças pousam, o relógio corre e assenta
   marco(tl, "mesa", 1.2);
   let t = 5.2;
   const ordem = ["capa", "f0", "f1", "planilha", "painel", "devolutiva"], tempos = { capa: 7, f0: 8, f1: 7, planilha: 6.5, painel: 6, devolutiva: 5 };
@@ -616,6 +693,8 @@ export function entregavel(c, ctx) {
     const i = PECAS.findIndex((p) => p.id === id), pose = poses[i];
     const oc = id === "painel" || id === "planilha" || id === "devolutiva" ? 0.62 : OCUPA;
     M.irPara(tl, M.planoFrente(pose, oc, 26, 0, 0), 1.6, t, {}, "power3.inOut");
+    // só a peça lida fica inteira; as vizinhas viram vidro apagado, sem texto
+    PECAS.forEach((_, k) => { tl.to(els[k], { opacity: k === i ? 1 : 0, duration: 0.6 }, t + (k === i ? 0 : 0.15)); tl.to(M.laminas[k], { a: k === i ? 1 : 0.22, duration: 0.7 }, t + (k === i ? 0 : 0.15)); });
     const leg = q(`.leg-peca [data-p="${id}"]`);
     aparecer(tl, leg, t + 0.8, 0.6);
     marco(tl, id, t);
@@ -623,6 +702,7 @@ export function entregavel(c, ctx) {
     sumir(tl, leg, t - 0.4, 0.4);
   });
   M.irPara(tl, VISTA, 2.2, t, {}, "power3.inOut");
+  PECAS.forEach((_, k) => { tl.to(els[k], { opacity: 1, duration: 0.8 }, t + 0.3); tl.to(M.laminas[k], { a: 1, duration: 0.8 }, t + 0.3); });
   marco(tl, "fim", t + 0.4);
   tl.to({}, { duration: 2.4 }, t);
   return tl;
@@ -647,6 +727,7 @@ export function resultado(c, ctx) {
   });
   M.irPara(tl, { x: -1.08, y: 3.55, z: 0.95, tx: -1.0, ty: 0, tz: 0.12, fov: 34 }, 14, 0, {}, "sine.inOut");
   M.luzPara(tl, { a: 10.4 }, 14, 0);
+  M.assentarRelogio(tl, 10 + 10 / 60, 5.2, 1.4);   // o relógio volta as horas e assenta em 10h10 com o número
   tl.set([q(".bloco-r"), ...q(".bloco-r").children], { opacity: 0 }, 0);
   tl.set(q(".bloco-r"), { opacity: 1 }, 0.8);
   aparecer(tl, [q(".rotulo"), q("h1")], 0.8, 0.8, 0.15);
