@@ -1,10 +1,10 @@
 // Controlador: carrega base, motor e o instrumento 3D; toca as cenas em sequência, com marcos para saltar,
 // pausa, escolha do projeto (com escolha automática se ninguém escolher) e as teclas.
-import * as motor from "../motor/motor.js";
-import { Mundo } from "./mundo.js";
-import { ORDEM } from "./cenas.js";
-import { conteudo, TOP3_CODIGOS, NOMES } from "./conteudo.js";
-import { el } from "./util.js";
+import * as motor from "../motor/motor.js?v=202609232228";
+import { Mundo } from "./mundo.js?v=202609232228";
+import { ORDEM } from "./cenas.js?v=202609232228";
+import { conteudo, TOP3_CODIGOS, NOMES } from "./conteudo.js?v=202609232228";
+import { el } from "./util.js?v=202609232228";
 
 window.__motor = motor;
 const gsap = window.gsap;
@@ -28,6 +28,7 @@ async function carregar() {
   const inicio = Number(params.get("cena") || 0);
   if (params.get("projeto")) escolher(Number(params.get("projeto")));
   estado.abrirEscolha = abrirEscolha;
+  estado.proximaCena = () => { if (estado.i + 1 < ORDEM.length) ir(estado.i + 1); };
   const comecar = () => {
     ir(inicio, params.has("fim"));
     if (params.has("t")) { const t = Number(params.get("t")); estado.tl.pause(); estado.tl.seek(Math.min(t, estado.tl.duration()), false); }
@@ -53,6 +54,11 @@ async function carregar() {
     const f = () => { const a = performance.now(); if (a - t0 > 2000) d.push(a - ant); ant = a; if (a - t0 < 14000) requestAnimationFrame(f); else {
       d.sort((x, y) => x - y); const q = (p) => d[Math.floor(d.length * p)].toFixed(1);
       window.__medida = { quadros: d.length, p50: q(0.5), p95: q(0.95), p99: q(0.99), max: d[d.length - 1].toFixed(1), desenhos: estado.mundo.desenhos, escala: estado.mundo.escala, nivel: estado.mundo.nivel, msGPU: estado.mundo.msGPU, msEscala: estado.mundo.msEscala }; } };
+    requestAnimationFrame(f);
+  }
+  if (params.has("longos")) {   // conferência contínua: todo quadro acima de 25 ms, com a cena e o tempo da cena
+    window.__longos = []; let ant = performance.now();
+    const f = () => { const a = performance.now(), dt = a - ant; ant = a; if (dt > 25) window.__longos.push({ dt: +dt.toFixed(1), cena: estado.i, t: +(estado.tl?.time() || 0).toFixed(2), em: +(a / 1000).toFixed(1) }); requestAnimationFrame(f); };
     requestAnimationFrame(f);
   }
   document.title = document.title; // marcador para a conferência headless
@@ -88,10 +94,13 @@ function ir(i, aoFim = false) {
   if (def.projeto && !estado.projeto) escolher(1);
   const anterior = estado.cena;
   if (estado.tl) estado.tl.kill();
+  estado.podeEscolher = false; estado.escolhaAberta = false; clearTimeout(estado.auto);
   const c = el("div", { class: "cena" });
   document.getElementById("cenas").appendChild(c);
   estado.i = i; estado.cena = c;
+  const t0 = performance.now();
   const tl = def.f(c, estado);
+  (window.__montagem || (window.__montagem = [])).push({ cena: i, ms: +(performance.now() - t0).toFixed(1) });
   estado.tl = tl;
   tl.eventCallback("onComplete", () => { if (estado.tl === tl && !estado.escolhaAberta && i + 1 < ORDEM.length) ir(i + 1); });
   if (anterior) gsap.to(anterior, { opacity: 0, duration: 0.7, ease: "power2.inOut", onComplete: () => anterior.remove() });
@@ -107,7 +116,7 @@ function avancar() {
   if (estado.escolhaAberta) { dica("1, 2 ou 3 escolhe o projeto"); return; }
   const t = tl.time();
   const proximos = Object.values(tl.labels).filter((tt) => tt > t + 0.05).sort((a, b) => a - b);
-  if (proximos.length) { tl.seek(proximos[0], false); if (!estado.pausado) tl.play(); }
+  if (proximos.length) { tl.seek(proximos[0], false); if (!estado.pausado && !estado.escolhaAberta) tl.play(); }
   else if (estado.i + 1 < ORDEM.length) ir(estado.i + 1);
 }
 function voltar() {
@@ -137,11 +146,12 @@ function abrirEscolha() {
   estado.auto = setTimeout(() => escolhaFeita(estado.projeto || 1), 10000);
 }
 function escolhaFeita(n) {
-  if (!estado.escolhaAberta) return;
+  if (!estado.escolhaAberta && !estado.podeEscolher) return;
+  estado.podeEscolher = false;
   clearTimeout(estado.auto);
   estado.escolhaAberta = false;
   escolher(n); progresso();
-  estado.tl.play();
+  if (estado.tl && estado.tl.saida) estado.tl.saida(n); else if (estado.tl) estado.tl.play();
 }
 
 function teclas() {
@@ -153,11 +163,11 @@ function teclas() {
     else if (e.key === "ArrowLeft" || e.key === "PageUp") { e.preventDefault(); voltar(); }
     else if (e.key.toLowerCase() === "r") { estado.pausado = false; ir(0); }
     else if (e.key.toLowerCase() === "m") material(true);
-    else if (["1", "2", "3"].includes(e.key)) { if (estado.escolhaAberta) escolhaFeita(Number(e.key)); else if (ORDEM[estado.i]?.projeto) trocarProjeto(Number(e.key)); }
+    else if (["1", "2", "3"].includes(e.key)) { if (estado.escolhaAberta || estado.podeEscolher) escolhaFeita(Number(e.key)); else if (ORDEM[estado.i]?.projeto) trocarProjeto(Number(e.key)); }
   });
   document.addEventListener("click", (e) => {
     const p = e.target.closest("[data-escolha]");
-    if (p && estado.escolhaAberta) { escolhaFeita(Number(p.dataset.escolha)); return; }
+    if (p && (estado.escolhaAberta || estado.podeEscolher)) { escolhaFeita(Number(p.dataset.escolha)); return; }
     if (!estado.iniciado && estado.dar) return;
     if (!e.target.closest("button, a, #inicio") && e.target.closest("#palco")) avancar();   // toque ou clique avança (celular e tablet)
   });

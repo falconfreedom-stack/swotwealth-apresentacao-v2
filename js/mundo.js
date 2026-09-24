@@ -622,7 +622,7 @@ export class Mundo {
     const giro = o.giro ?? 0, esc = o.escala ?? 1;
     const G = { origem: (o.origem || new THREE.Vector3(0, 0, 0)).clone(), giro, esc,
       dir: new THREE.Vector3(Math.cos(giro), 0, -Math.sin(giro)), normal: new THREE.Vector3(Math.sin(giro), 0, Math.cos(giro)), quat: new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), giro) };
-    G.ponto = (x, y, z = 0) => G.origem.clone().addScaledVector(G.dir, x * esc).add(new THREE.Vector3(0, y * esc, 0)).addScaledVector(G.normal, z * esc);
+    G.ponto = (x, y, z = 0, alvo) => { const v = (alvo || new THREE.Vector3()).copy(G.origem).addScaledVector(G.dir, x * esc).addScaledVector(G.normal, z * esc); v.y += y * esc; return v; };
     return G;
   }
   // Barras: cada spec {x, y0, h, w, cor, cheio, ouro, z}. Devolve os estados animáveis {a, k} (k = crescimento 0..1).
@@ -665,12 +665,14 @@ export class Mundo {
   definirMatriz(G, celulas) {
     const n = celulas.length, g = this.objMatriz.geometry;
     const f0 = new Float32Array(n * 3), f1 = new Float32Array(n * 3), cor = new Float32Array(n * 3), tam = new Float32Array(n), at = new Float32Array(n);
-    celulas.forEach((c, i) => {
-      const p = G.ponto(c.x, c.y, 0.01);
-      f1.set([p.x, p.y, p.z], i * 3);
-      const q = G.ponto(c.x, c.y - 0.05, 0.25); f0.set([q.x, q.y, q.z], i * 3);
-      cor.set(CORES[c.cor] || c.cor || CORES.marfim, i * 3); tam[i] = c.tam ?? 0.02; at[i] = i / n;
-    });
+    const tmp = new THREE.Vector3();
+    for (let i = 0; i < n; i++) {
+      const c = celulas[i], o = i * 3;
+      G.ponto(c.x, c.y, 0.01, tmp); f1[o] = tmp.x; f1[o + 1] = tmp.y; f1[o + 2] = tmp.z;
+      G.ponto(c.x, c.y - 0.05, 0.25, tmp); f0[o] = tmp.x; f0[o + 1] = tmp.y; f0[o + 2] = tmp.z;
+      const k = CORES[c.cor] || c.cor || CORES.marfim; cor[o] = k[0]; cor[o + 1] = k[1]; cor[o + 2] = k[2];
+      tam[i] = c.tam ?? 0.02; at[i] = i / n;
+    }
     g.setAttribute("position", new THREE.BufferAttribute(f0, 3)); g.setAttribute("aF1", new THREE.BufferAttribute(f1, 3)); g.setAttribute("aF2", new THREE.BufferAttribute(f1.slice(), 3));
     g.setAttribute("aCor", new THREE.BufferAttribute(cor, 3)); g.setAttribute("aTam", new THREE.BufferAttribute(tam, 1)); g.setAttribute("aAtraso", new THREE.BufferAttribute(at, 1));
     this.matriz = { a: 0, n: 0 };
@@ -801,7 +803,7 @@ export class Mundo {
   posicionarAncora(a) {
     if (!a.m) a.m = a.el.firstElementChild;
     if (a.m && a.m.style.opacity === "0" && a.ult) return;          // invisível: não recalcula (economiza estilo e layout)
-    const p = a.v.clone().project(this.camera);
+    const p = (this._pa || (this._pa = new THREE.Vector3())).copy(a.v).project(this.camera);
     if (p.z > 1) { a.el.style.visibility = "hidden"; return; }
     a.el.style.visibility = "";
     const x = ((p.x + 1) / 2 * W + a.dx).toFixed(1), y = ((1 - p.y) / 2 * H + a.dy).toFixed(1);
@@ -813,7 +815,8 @@ export class Mundo {
   posicionarColagem(c) {
     const m = this.objLaminas[c.lamina];
     if (!m.visible) { if (c.el.style.visibility !== "hidden") c.el.style.visibility = "hidden"; return; }
-    const q = [[-0.5, 0.5], [0.5, 0.5], [0.5, -0.5], [-0.5, -0.5]].map(([x, y]) => new THREE.Vector3(x, y, 0).applyMatrix4(m.matrixWorld).project(this.camera));
+    const C4 = this._c4 || (this._c4 = [[-0.5, 0.5], [0.5, 0.5], [0.5, -0.5], [-0.5, -0.5]].map(() => new THREE.Vector3()));
+    const q = C4.map((v, k) => v.set(k === 0 || k === 3 ? -0.5 : 0.5, k < 2 ? 0.5 : -0.5, 0).applyMatrix4(m.matrixWorld).project(this.camera));
     if (q.some((p) => p.z > 1)) { c.el.style.visibility = "hidden"; return; }
     c.el.style.visibility = "";
     const t = homografia(c.w, c.h, q.map((p) => ({ x: (p.x + 1) / 2 * W, y: (1 - p.y) / 2 * H })));
@@ -824,18 +827,25 @@ export class Mundo {
   quadro() {
     if (!this.pronto) return;
     const c = this.cam, L = this.luz, d = this.disco;
-    const nums = [c.x, c.y, c.z, c.tx, c.ty, c.tz, c.fov, L.a, L.i, L.expo, d.acesos, d.top3, d.pulso, d.aneis, d.vidro, this.ponteiro.ang, this.ponteiro.a, this.marca.a,
-      this.multidao.fase, this.multidao.a, this.dados.fase, this.dados.a, this.grafo.desenho, this.grafo.nos, this.grafo.a, this.poeira.a, this.chao.refl, this.matriz.a, this.matriz.n,
-      ...this.laminas.flatMap((l) => [l.p, l.e, l.branco, l.a]), ...this.barras.flatMap((b) => [b.a, b.k, b.h, b.y0, b.x]), ...this.linhasG.flatMap((l) => [l.a, l.desenho])];
-    const assinatura = nums.map((v) => (+v).toFixed(4)).join(",");
-    if (assinatura === this.ultimo && !this.sujo) {
+    // assinatura do estado (números, sem texto e sem alocar): se nada mudou, não desenha
+    const N = this._nums || (this._nums = []); N.length = 0;
+    N.push(c.x, c.y, c.z, c.tx, c.ty, c.tz, c.fov, L.a, L.i, L.expo, d.acesos, d.top3, d.pulso, d.aneis, d.vidro, this.ponteiro.ang, this.ponteiro.a, this.marca.a,
+      this.multidao.fase, this.multidao.a, this.dados.fase, this.dados.a, this.grafo.desenho, this.grafo.nos, this.grafo.a, this.poeira.a, this.chao.refl, this.matriz.a, this.matriz.n);
+    for (const l of this.laminas) N.push(l.p, l.e, l.branco, l.a);
+    for (const b of this.barras) N.push(b.a, b.k, b.h, b.y0, b.x);
+    for (const l of this.linhasG) N.push(l.a, l.desenho);
+    const A = this._ant || (this._ant = []);
+    let igual = A.length === N.length;
+    for (let i = 0; igual && i < N.length; i++) if (Math.abs(A[i] - N[i]) > 1e-5) igual = false;
+    if (igual && !this.sujo) {
       this.tempos.length = 0; this.tAnt = 0;
       if (this.escalaPendente && this.escalaPendente !== this.escala) this.aplicarEscala(this.escalaPendente);
       return;
     }
-    const idx = [d.acesos, d.top3, d.pulso].map((v) => v.toFixed(3)).join(",");
-    if (idx !== this.idxAnt) { this.atualizarIndices(); this.idxAnt = idx; }
-    this.ultimo = assinatura; this.sujo = false;
+    this._ant = N; this._nums = A;
+    if (d.acesos !== this._ia || d.top3 !== this._it || d.pulso !== this._ip) { this.atualizarIndices(); this._ia = d.acesos; this._it = d.top3; this._ip = d.pulso; }
+    this.sujo = false;
+    const T = this._tmp || (this._tmp = { v1: new THREE.Vector3(), v2: new THREE.Vector3(), v3: new THREE.Vector3(), q1: new THREE.Quaternion(), q2: new THREE.Quaternion(), eixoY: new THREE.Vector3(0, 1, 0) });
     const cam = this.camDe(c);
     this.U.uExpo.value = L.expo; this.U.uLuzA.value = L.a; this.U.uLuz.value = L.i;
     this.matDisco.uniforms.uAneis.value = d.aneis; this.matDisco.uniforms.uVidro.value = this.dbg.vidro ? 0 : d.vidro;
@@ -859,7 +869,7 @@ export class Mundo {
       const m = this.objLaminas[i], P = this.poses[i];
       m.visible = l.a > 0.001 && !!P.para;
       if (!m.visible) return;
-      const pos = P.de.pos.clone().lerp(P.para.pos, l.p), q = P.de.quat.clone().slerp(P.para.quat, l.p);
+      const pos = T.v1.copy(P.de.pos).lerp(P.para.pos, l.p), q = T.q1.copy(P.de.quat).slerp(P.para.quat, l.p);
       let w = lerp(P.de.w, P.para.w, l.p), h = lerp(P.de.h, P.para.h, l.p);
       if (l.e > 0) {
         const T = this.poseRetCam({ left: -60, top: -60, width: W + 120, height: H + 120 }, cam, 0.5);
@@ -877,7 +887,7 @@ export class Mundo {
       const alt = Math.max(0, m.position.y - P.para.pos.y), perto = Math.max(0, 1 - alt / 0.6);
       sm.visible = perto > 0.01;
       if (!sm.visible) return;
-      const L = new THREE.Vector3(Math.sin(this.luz.a), 0, -Math.cos(this.luz.a));
+      const L = T.v2.set(Math.sin(this.luz.a), 0, -Math.cos(this.luz.a));
       sm.position.set(m.position.x - L.x * (0.022 + alt * 0.3), 0.0012, m.position.z - L.z * (0.022 + alt * 0.3));
       sm.quaternion.copy(m.quaternion);
       const ww = m.scale.x + 0.08 + alt * 0.4, hh = m.scale.y + 0.08 + alt * 0.4;
@@ -885,13 +895,14 @@ export class Mundo {
       const u = sm.material.uniforms; u.uTam.value.set(ww, hh); u.uA.value = 0.8 * perto * l.a; u.uDifuso.value = 0.035 + alt * 0.25;
     });
     {
-      const sg = this.objSombraGraf, vis = this.barras.filter((b) => !b.pos && b.a > 0.01 && b.k > 0.01 && (b.y0 ?? 0) < 0.02);
-      sg.visible = vis.length > 0;
+      const sg = this.objSombraGraf;
+      let x0 = Infinity, x1 = -Infinity, a = 0;
+      for (const b of this.barras) if (!b.pos && b.a > 0.01 && b.k > 0.01 && (b.y0 ?? 0) < 0.02) { x0 = Math.min(x0, b.x - b.w / 2); x1 = Math.max(x1, b.x + b.w / 2); a = Math.max(a, b.a); }
+      sg.visible = a > 0;
       if (sg.visible) {
-        const G = this.barrasG, xs = vis.map((b) => (b.hor ? [b.x - b.w / 2, b.x + b.w / 2] : [b.x - b.w / 2, b.x + b.w / 2])).flat();
-        const x0 = Math.min(...xs) - 0.05, x1 = Math.max(...xs) + 0.05, a = Math.max(...vis.map((b) => b.a));
-        const c = G.ponto((x0 + x1) / 2, 0, -0.02); sg.position.set(c.x, 0.0012, c.z);
-        sg.quaternion.copy(G.quat).multiply(new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 2));
+        const G = this.barrasG; x0 -= 0.05; x1 += 0.05;
+        const c = G.ponto((x0 + x1) / 2, 0, -0.02, T.v3); sg.position.set(c.x, 0.0012, c.z);
+        sg.quaternion.copy(G.quat).multiply(this._qDeitar || (this._qDeitar = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(1, 0, 0), -Math.PI / 2)));
         const ww = (x1 - x0) * G.esc, hh = 0.16 * G.esc; sg.scale.set(ww, hh, 1);
         const u = sg.material.uniforms; u.uTam.value.set(ww, hh); u.uA.value = 0.5 * a; u.uDifuso.value = 0.05;
       }
@@ -905,14 +916,12 @@ export class Mundo {
       const hor = !!b.hor;
       const hh = hor ? b.h : Math.max(1e-4, b.h * b.k), ww = hor ? Math.max(1e-4, b.w * b.k) : b.w;
       if (b.pos) {       // barra com base própria no mundo (anel de unidades, por exemplo)
-        const q = new THREE.Quaternion().setFromAxisAngle(new THREE.Vector3(0, 1, 0), b.giro ?? 0);
-        m.position.copy(b.pos).add(new THREE.Vector3(0, b.y0 + hh / 2, 0)); m.quaternion.copy(q); m.scale.set(ww, hh, 1);
+        m.position.copy(b.pos); m.position.y += b.y0 + hh / 2; m.quaternion.setFromAxisAngle(T.eixoY, b.giro ?? 0); m.scale.set(ww, hh, 1);
         const u = m.material.uniforms; u.uTam.value.set(ww, hh); u.uA.value = b.a; u.uRaio.value = Math.min(b.raio ?? 0.006, ww / 2, hh / 2);
         return;
       }
       const cx = hor ? b.x - b.w / 2 + ww / 2 : b.x;
-      const centro = G.ponto(cx, b.y0 + hh / 2, b.z ?? 0);
-      m.position.copy(centro); m.quaternion.copy(G.quat); m.scale.set(ww * G.esc, hh * G.esc, 1);
+      G.ponto(cx, b.y0 + hh / 2, b.z ?? 0, m.position); m.quaternion.copy(G.quat); m.scale.set(ww * G.esc, hh * G.esc, 1);
       const u = m.material.uniforms; u.uTam.value.set(ww * G.esc, hh * G.esc); u.uA.value = b.a; u.uRaio.value = Math.min(b.raio ?? 0.012, ww * G.esc / 2, hh * G.esc / 2);
     });
     this.linhasG.forEach((l, i) => { const o = this.objLinhasG[i]; o.visible = l.a > 0.001; const u = o.material.uniforms; u.uDesenho.value = l.desenho; u.uA.value = l.a; });
@@ -945,17 +954,15 @@ export class Mundo {
     for (let i = 0; i < 3; i++) this.renderizar(cam); fim();
     const r = [0, 1, 2].map(() => { const t0 = performance.now(); for (let i = 0; i < 4; i++) this.renderizar(cam); fim(); return (performance.now() - t0) / 4; }).sort((a, b) => a - b)[1];
     this.msGPU = +r.toFixed(1);
-    if (!q.has("captura") && !this.fixa && r > 10) { this.teto = Math.max(0.7, +Math.sqrt(10 / r).toFixed(2)); this.aplicarEscala(Math.min(this.teto, this.alvoEscala())); }
+    // orçamento de 5 ms de GPU por quadro: sobra folga para a composição da página, o texto e outras abas abertas
+    if (!q.has("captura") && !this.fixa && r > 5) { this.teto = Math.max(0.75, +Math.sqrt(5 / r).toFixed(2)); this.aplicarEscala(Math.min(this.teto, this.alvoEscala())); }
   }
+  // A resolução é escolhida uma vez, no carregamento (e ao mudar o tamanho da janela): trocar a escala no meio
+  // da peça realoca a imagem e congela a tela por mais de 100 ms. Aqui só se registram os tempos, para conferência.
   adaptar() {
-    if (this.fixa) return;
     const agora = performance.now();
-    if (this.tAnt) this.tempos.push(agora - this.tAnt);
+    if (this.tAnt) { this.tempos.push(agora - this.tAnt); if (this.tempos.length > 240) this.tempos.shift(); }
     this.tAnt = agora;
-    if (this.tempos.length < 40) return;
-    const s = this.tempos.slice().sort((a, b) => a - b), p90 = s[Math.floor(s.length * 0.9)];
-    this.tempos.length = 0;
-    if (p90 > 21 && this.escala > 0.7 * this.alvoEscala()) { this.teto = Math.max(0.6, +(this.escala - 0.08).toFixed(2)); this.escalaPendente = Math.min(this.teto, this.alvoEscala()); }
   }
   aplicarEscala(e) {
     this.escala = e;

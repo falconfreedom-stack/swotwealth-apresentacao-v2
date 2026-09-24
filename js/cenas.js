@@ -2,9 +2,9 @@
 // câmera e luz dentro da própria linha do tempo GSAP e marca os pontos para onde o espaço salta.
 // Os gráficos são objetos do instrumento (barras de vidro, índices, linhas de luz) com rótulo direto;
 // as folhas são lâminas no espaço com o HTML colado a elas. Todo número vem do motor, via conteudo.js.
-import { F, contar, cascata, entrar, g } from "./util.js";
-import { top3, HISTORIA, SOCIOS, FASES, AMOSTRA, TOP3_CODIGOS, DIAS } from "./conteudo.js";
-import { FASES_N, direcao } from "./mundo.js";
+import { F, contar, cascata, entrar, g } from "./util.js?v=202609232228";
+import { top3, HISTORIA, SOCIOS, FASES, AMOSTRA, TOP3_CODIGOS, DIAS } from "./conteudo.js?v=202609232228";
+import { FASES_N, direcao } from "./mundo.js?v=202609232228";
 
 const gsap = () => g();
 const marco = (tl, nome, t) => tl.addLabel(nome, t);
@@ -204,7 +204,8 @@ export function top3Cena(c, ctx) {
   c.className = "cena c-top3";
   const P = top3();
   c.innerHTML = `<div class="topo"><h1 class="t-titulo">Começamos pelo Top 3.</h1><p class="t-lead">Três projetos escolhidos por usarem documentos que a sua empresa já produz e por trazerem, em dez dias, um achado que muda uma decisão.</p></div>
-  <div class="topo escolha"><h1 class="t-titulo">Escolha o projeto que quer ver funcionando.</h1><p class="t-leg">Toque no cartão ou tecle 1, 2 ou 3.</p></div>`;
+  <div class="topo escolha"><h1 class="t-titulo">Escolha o projeto que quer ver funcionando.</h1><p class="t-leg">Toque no cartão ou tecle 1, 2 ou 3.</p></div>
+  <p class="dica-escolha">Toque num cartão ou tecle 1, 2 ou 3 para ver o projeto funcionando.</p>`;
   const q = (s) => c.querySelector(s);
   const tl = gsap().timeline({ paused: true });
   M.base(tl, { cam: "inteiro", disco: { top3: 1 }, luz: { a: 1.4 } });
@@ -218,7 +219,10 @@ export function top3Cena(c, ctx) {
   M.luzPara(tl, { expo: 0.62 }, 1.6, 2.0);
   cascata(tl, [q(".topo")], 0, 0.4, 1.0, 12);
   [0, 1, 2].forEach((i) => { tl.set(M.laminas[i], { a: 1 }, 2.2 + i * 0.18); tl.to(M.laminas[i], { p: 1, duration: 1.8, ease: "power3.inOut" }, 2.2 + i * 0.18); });
-  cartoes.forEach((d, i) => { tl.to(d, { opacity: 1, duration: 0.5 }, 4.0 + i * 0.2); cascata(tl, d.querySelectorAll(".n, h3, .perg, h4, li"), 0.025, 4.0 + i * 0.2, 0.45, 8); });
+  cartoes.forEach((d, i) => tl.to(d, { opacity: 1, duration: 0.7, ease: "power1.out" }, 4.0 + i * 0.25));
+  tl.set(q(".dica-escolha"), { opacity: 0 }, 0);
+  tl.call(() => { ctx.podeEscolher = true; }, null, 4.2);
+  tl.to(q(".dica-escolha"), { opacity: 1, duration: 0.6 }, 5.0);
   marco(tl, "leitura", 4.2);
   // um cartão de cada vez em primeiro plano
   sumir(tl, q(".topo"), 10.8);
@@ -235,19 +239,31 @@ export function top3Cena(c, ctx) {
   tl.to(cartoes, { opacity: 1, duration: 0.6 }, t);
   [0, 1, 2].forEach((k) => tl.to(M.laminas[k], { a: 1, duration: 0.6 }, t));
   tl.set(q(".topo.escolha"), { opacity: 0 }, 0);
+  tl.to(q(".dica-escolha"), { opacity: 0, duration: 0.4 }, t + 0.4);
   cascata(tl, [q(".topo.escolha")], 0, t + 0.6, 0.8, 10);
   tl.call(() => ctx.abrirEscolha && ctx.abrirEscolha(), null, t + 1.6);
   marco(tl, "escolha", t + 1.6);
-  tl.to([q(".topo.escolha")], { opacity: 0, duration: 0.5 }, t + 1.7);
-  tl.call(() => { const n = ctx.projeto || 1; [0, 1, 2].forEach((i) => { if (i !== n - 1) { gsap().to(M.laminas[i], { a: 0, duration: 0.6 }); gsap().to(cartoes[i], { opacity: 0, duration: 0.5 }); } }); }, null, t + 1.7);
-  tl.to({}, { duration: 0.7 }, t + 1.7);
+  tl.to({}, { duration: 0.6 }, t + 1.6);
+  // a escolha (a qualquer momento depois que os cartões aparecem): os outros cartões saem, a câmera volta
+  // à fila e a peça segue para o formulário do projeto escolhido
+  tl.saida = (n) => {
+    tl.pause();
+    const s = gsap().timeline(), k = n - 1;
+    s.to(cartoes.filter((_, j) => j !== k), { opacity: 0, duration: 0.5 }, 0);
+    s.to(cartoes[k], { opacity: 1, duration: 0.4 }, 0);
+    [0, 1, 2].forEach((j) => s.to(M.laminas[j], { a: j === k ? 1 : 0, duration: 0.6 }, 0));
+    s.to([...c.querySelectorAll(".topo"), q(".dica-escolha")], { opacity: 0, duration: 0.4 }, 0);
+    M.irPara(s, "top3", 1.2, 0.05, {}, "power3.inOut");
+    s.call(() => ctx.proximaCena && ctx.proximaCena(), null, 1.3);
+    return s;
+  };
   return tl;
 }
 
 // ============================================================================ 4 · o formulário se preenche
 function campoHTML(cp) {
   const cls = ["v", cp.t === "texto" ? "texto" : "", cp.alerta ? "alerta" : ""].filter(Boolean).join(" ");
-  return `<div class="campo vazio" data-valor="${(cp.v || "").replace(/"/g, "&quot;")}"><label>${cp.l}</label><div class="${cls}"><span class="txt"></span></div></div>`;
+  return `<div class="campo"><label>${cp.l}</label><div class="${cls}"><span class="txt">${cp.v || ""}</span></div></div>`;
 }
 function blocoHTML(b) {
   let corpo = "";
@@ -292,16 +308,14 @@ export function formulario(c, ctx) {
     tl.to(blocos.filter((x) => x !== b), { opacity: 0.4, duration: 0.3 }, t);
     tl.to(b, { opacity: 1, duration: 0.3 }, t);
     const linhas = [...b.querySelectorAll("tr.vazia, .mz-l.vazia")];
-    linhas.forEach((tr, i) => { tl.call(() => { tr.classList.remove("vazia"); bump(); }, null, t + 0.2 + i * 0.16); });
+    linhas.forEach((tr, i) => { tl.fromTo(tr, { opacity: 0 }, { opacity: 1, duration: 0.25 }, t + 0.2 + i * 0.16); tl.call(() => bump(), null, t + 0.2 + i * 0.16); });
     if (linhas.length) t += 0.2 + linhas.length * 0.16 + 0.3;
     [...b.querySelectorAll(".campo")].forEach((cp) => {
-      const txt = cp.querySelector(".txt"), v = cp.querySelector(".v"), valor = cp.dataset.valor;
-      tl.call(() => { cp.classList.remove("vazio"); v.classList.add("digitando"); }, null, t);
-      const o = { i: 0, ult: 0 }, d = Math.min(0.55, Math.max(0.16, valor.length * 0.016));
-      // digita no máximo 30 vezes por segundo: menos repintura da folha
-      tl.to(o, { i: valor.length, duration: d, ease: "none", onUpdate: () => { const agora = performance.now(); if (agora - o.ult < 33 && o.i < valor.length) return; o.ult = agora; txt.textContent = valor.slice(0, Math.round(o.i)); } }, t);
-      tl.call(() => { v.classList.remove("digitando"); bump(); }, null, t + d);
-      t += d + 0.08;
+      // o valor já está escrito na folha; entra com um deslize curto (só composição, sem redesenhar o texto)
+      const v = cp.querySelector(".v"), d = 0.28;
+      tl.fromTo(v, { opacity: 0, x: -10 }, { opacity: 1, x: 0, duration: d, ease: "power2.out" }, t);
+      tl.call(() => bump(), null, t + 0.1);
+      t += 0.2;
     });
     t += 0.35;
   });

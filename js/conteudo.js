@@ -1,7 +1,7 @@
 // Conteúdo das cenas (v2). Todo número vem do motor (calcular(base)); o texto fica aqui.
 // Projetos do Top 3: 1 · FIN8.2 catálogo de indicadores · 2 · FIN5.11 segregação de funções ·
 // 3 · FIN3.10 capital de giro e custo do dinheiro. A rede de academias é um exemplo do porte do cliente.
-import { F } from "./util.js";
+import { F } from "./util.js?v=202609232228";
 
 const r1 = (v) => F.n(v / 1e6, 1);            // milhões com uma casa
 const mi = (v) => `R$ ${r1(v)} mi`;

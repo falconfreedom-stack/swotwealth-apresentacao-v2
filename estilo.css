@@ -47,6 +47,9 @@ body{font-family:var(--texto);color:var(--marfim);-webkit-font-smoothing:antiali
 .num{font-family:var(--disp);font-weight:600;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
 .ouro{color:var(--ouro)}
 
+/* textos que entram e saem com movimento ficam em camada própria: a animação vira só composição, sem redesenhar o texto */
+.cena .topo,.cena .quadro,.cena .qtit,.cena .leg,.cena .fatos > div,.cena .faixa > div,.cena .amostra,.cena .areas,.cena .rod,.cena .dias,.cena .socios,
+.cena .ficha > div,.cena .amb,.cena .bloco-r,.cena .leg-peca > div,.cena .dica-escolha,.cena .cabd,.cena h1,.cena .t-lead{will-change:transform,opacity}
 /* âncoras: a posição vem do 3D; o miolo recebe as animações */
 .anc{position:absolute;left:0;top:0;will-change:transform}
 .anc .miolo{position:absolute;left:0;top:0;white-space:nowrap}
@@ -136,6 +139,7 @@ body{font-family:var(--texto);color:var(--marfim);-webkit-font-smoothing:antiali
 .c-top3 .topo{position:absolute;left:150px;top:92px;width:1600px}
 .c-top3 .topo .t-lead{margin-top:18px;max-width:1240px}
 .c-top3 .topo.escolha .t-leg{margin-top:14px}
+.c-top3 .dica-escolha{position:absolute;left:50%;top:996px;transform:translateX(-50%);white-space:nowrap;padding:12px 22px;border-radius:999px;background:rgba(4,10,7,.86);border:1px solid rgba(200,164,90,.45);font:500 20px/1 var(--texto);color:var(--ouro)}
 .c-top3 .cartao{padding:52px 50px 40px;display:flex;flex-direction:column;pointer-events:auto;cursor:pointer}
 .c-top3 .cartao .n{font:500 21px/1 var(--texto);color:var(--ouro)}
 .c-top3 .cartao h3{font:600 42px/1.06 var(--disp);letter-spacing:-.02em;color:var(--marfim);margin:14px 0 18px}
@@ -179,12 +183,12 @@ body{font-family:var(--texto);color:var(--marfim);-webkit-font-smoothing:antiali
 .form .campo .v.texto{font:500 18px/1.3 var(--texto);max-width:230px}
 .form .campo .v.alerta{color:var(--risco)}
 .form .digitando .txt:after{content:"";display:inline-block;width:2px;height:.9em;background:var(--ouro);margin-left:2px;vertical-align:-2px}
-.form .vazio .v{opacity:.001}
+.form .campo .v{opacity:0;will-change:transform,opacity}
 .form table{border-collapse:collapse;width:100%;font:400 18px/1.3 var(--texto)}
 .form th{font:500 18px/1.2 var(--texto);color:var(--cinza);text-align:right;padding:5px 8px;border-bottom:1px solid rgba(17,17,17,.14)}
 .form td{padding:6px 8px;text-align:right;border-bottom:1px solid var(--fio)}
 .form th.e,.form td.e{text-align:left}
-.form tr.vazia td{opacity:.001}
+.form tbody tr,.form .mz-l{opacity:0;will-change:opacity}
 .form .mz{font:400 18px/1 var(--texto)}
 .form .mz-cab,.form .mz-l{display:grid;grid-template-columns:300px repeat(6,1fr);align-items:center}
 .form .mz-cab i{font:500 18px/1.15 var(--texto);font-style:normal;color:var(--cinza);text-align:center;padding:0 2px 8px}
@@ -192,7 +196,7 @@ body{font-family:var(--texto);color:var(--marfim);-webkit-font-smoothing:antiali
 .form .mz-l span{color:var(--grafite)}
 .form .mz-l i{justify-self:center;width:12px;height:12px;border-radius:50%;border:1px solid rgba(17,17,17,.14)}
 .form .mz-l i.s{background:var(--verde-c);border-color:var(--verde-c)}
-.form .mz-l.vazia i.s{background:none;border-color:rgba(17,17,17,.14)}
+
 .form .selo{position:absolute;left:54px;bottom:26px;width:900px;font:400 18px/1.45 var(--texto);color:var(--cinza);border-left:2px solid var(--ouro);padding:3px 0 3px 14px}
 
 /* ---------- 5 · a análise */
