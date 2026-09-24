@@ -1,10 +1,10 @@
 // Controlador: carrega base, motor e o instrumento 3D; toca as cenas em sequência, com marcos para saltar,
 // pausa, escolha do projeto (com escolha automática se ninguém escolher) e as teclas.
-import * as motor from "../motor/motor.js?v=202609241929";
-import { Mundo } from "./mundo.js?v=202609241929";
-import { ORDEM } from "./cenas.js?v=202609241929";
-import { conteudo, TOP3_CODIGOS, NOMES } from "./conteudo.js?v=202609241929";
-import { el } from "./util.js?v=202609241929";
+import * as motor from "../motor/motor.js?v=202609241945";
+import { Mundo } from "./mundo.js?v=202609241945";
+import { ORDEM } from "./cenas.js?v=202609241945";
+import { conteudo, TOP3_CODIGOS, NOMES } from "./conteudo.js?v=202609241945";
+import { el } from "./util.js?v=202609241945";
 
 window.__motor = motor;
 const gsap = window.gsap;
@@ -13,6 +13,7 @@ const estado = { i: -1, tl: null, cena: null, projeto: null, base: null, R: null
 
 async function carregar() {
   const params = new URLSearchParams(location.search);
+  estado.captura = params.has("captura");
   ajustarPalco();
   window.addEventListener("resize", ajustarPalco);
   const fonte = params.get("rascunho") ? "dados/rascunho.json" : "dados/base.json";
@@ -117,9 +118,9 @@ function ir(i, aoFim = false) {
   estado.podeEscolher = false; estado.escolhaAberta = false; clearTimeout(estado.auto);
   // a cena nova entra invisível e sobe em 0,25 s por cima da que sai: o primeiro quadro nunca mostra o estado
   // de montagem, antes de a linha do tempo aplicar o tempo 0
-  const c = el("div", { class: "cena", style: "opacity:0" });
+  const c = el("div", { class: "cena", style: estado.captura ? "" : "opacity:0" });
   document.getElementById("cenas").appendChild(c);
-  gsap.to(c, { opacity: 1, duration: 0.25, delay: 0.03, ease: "power1.out" });
+  if (!estado.captura) gsap.to(c, { opacity: 1, duration: 0.25, delay: 0.03, ease: "power1.out" });   // na captura sem cabeça, o tempo virtual não deixa a entrada terminar
   estado.i = i; estado.cena = c;
   const t0 = performance.now();
   const tl = def.f(c, estado);

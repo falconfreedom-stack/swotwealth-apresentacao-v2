@@ -2,9 +2,9 @@
 // câmera e luz dentro da própria linha do tempo GSAP e marca os pontos para onde o espaço salta.
 // Os gráficos são objetos do instrumento (barras de vidro, índices, linhas de luz) com rótulo direto;
 // as folhas são lâminas no espaço com o HTML colado a elas. Todo número vem do motor, via conteudo.js.
-import { F, contar, cascata, entrar, g } from "./util.js?v=202609241929";
-import { top3, HISTORIA, SOCIOS, FASES, AMOSTRA, TOP3_CODIGOS, DIAS } from "./conteudo.js?v=202609241929";
-import { FASES_N, direcao } from "./mundo.js?v=202609241929";
+import { F, contar, cascata, entrar, g } from "./util.js?v=202609241945";
+import { top3, HISTORIA, SOCIOS, FASES, AMOSTRA, TOP3_CODIGOS, DIAS } from "./conteudo.js?v=202609241945";
+import { FASES_N, direcao } from "./mundo.js?v=202609241945";
 
 const gsap = () => g();
 const marco = (tl, nome, t) => tl.addLabel(nome, t);
