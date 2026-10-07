@@ -1,10 +1,10 @@
 // Controlador: carrega base, motor e o instrumento 3D; toca as cenas em sequência, com marcos para saltar,
 // pausa, escolha do projeto (com escolha automática se ninguém escolher) e as teclas.
-import * as motor from "../motor/motor.js?v=202609241945";
-import { Mundo } from "./mundo.js?v=202609241945";
-import { ORDEM } from "./cenas.js?v=202609241945";
-import { conteudo, TOP3_CODIGOS, NOMES } from "./conteudo.js?v=202609241945";
-import { el } from "./util.js?v=202609241945";
+import * as motor from "../motor/motor.js?v=202610071930";
+import { Mundo } from "./mundo.js?v=202610071930";
+import { ORDEM } from "./cenas.js?v=202610071930";
+import { conteudo, TOP3_CODIGOS, NOMES } from "./conteudo.js?v=202610071930";
+import { el } from "./util.js?v=202610071930";
 
 window.__motor = motor;
 const gsap = window.gsap;
