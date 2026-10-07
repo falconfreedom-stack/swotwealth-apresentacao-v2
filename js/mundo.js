@@ -467,7 +467,7 @@ export class Mundo {
     this.construirMarca(mono, nome);
     this.construirPonteiros();
     this.construirLaminas();
-    this.construirBarras(64);
+    this.construirBarras(128);
     this.construirSombras();
     this.construirLinhasG(6);
     this.construirPoeira();

@@ -115,6 +115,7 @@ body.pausa #controle #c-tocar{border-color:var(--ouro)}
 .anc.total .miolo{transform:translate(0,-50%);font:400 22px var(--texto);color:var(--m2)}
 .anc.total b{font-size:36px;color:var(--marfim)}
 .anc.total b.ouro{color:var(--ouro)}
+.anc.total.nota .miolo{font:400 19px/1.4 var(--texto);color:var(--m3);white-space:normal;width:980px}
 
 /* ---------- 0 · abertura e fecho */
 .c-abre .leg{position:absolute;left:0;right:0;top:880px;text-align:center}

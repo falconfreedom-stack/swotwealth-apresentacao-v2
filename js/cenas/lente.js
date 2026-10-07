@@ -126,25 +126,24 @@ export function analise(c, ctx) {
 // Cada quadro: título (o achado), subtítulo, o gráfico construído e lido de frente.
 
 export function diagnostico(c, ctx) {
-  const M = ctx.mundo, C = ctx.C;
+  const M = ctx.mundo, C = ctx.C, QD = (ctx.compacto && C.compacto) || C.quadros;
   c.className = "cena c-diag";
-  c.innerHTML = `<div class="cabd"><span>${C.cabDiag}</span></div>${C.quadros.map((qd, i) => `<div class="qtit q${i}"><h1 class="t-titulo">${qd.titulo}</h1><p class="t-lead">${qd.sub}</p></div>`).join("")}`;
+  c.innerHTML = `<div class="cabd"><span>${C.cabDiag}</span></div>${QD.map((qd, i) => `<div class="qtit q${i}"><h1 class="t-titulo">${qd.titulo}</h1><p class="t-lead">${qd.sub}</p></div>`).join("")}`;
   const q = (s) => c.querySelector(s);
   const tl = gsap().timeline({ paused: true });
   M.base(tl, { cam: "socios", disco: { top3: 1 }, luz: { a: 6.0, expo: 1 } });
   const G = M.grafico({ origem: M.v3(0, 0.02, 0.5) });
   const specs = [], rots = [], linhas = [];
-  const Q = C.quadros.map((qd) => montarQuadro(qd, c, M, G, specs, rots, linhas));
+  const Q = QD.map((qd) => montarQuadro(qd, c, M, G, specs, rots, linhas));
   const B = M.definirBarras(G, specs);
   const Ls = M.definirLinhas(G, linhas);
   const comMatriz = Q.find((s) => s.matriz);
   const Mz = comMatriz ? M.definirMatriz(G, comMatriz.matriz) : null;
   tl.set([q(".cabd"), ...c.querySelectorAll(".qtit")], { opacity: 0 }, 0);
   cascata(tl, [q(".cabd")], 0, 0.3, 0.8, 6);
-  M.luzPara(tl, { a: 9.0 }, 70, 0, "none");
   let t = 0.2;
   Q.forEach((S, i) => {
-    const qd = C.quadros[i], tit = q(`.q${i}`);
+    const qd = QD[i], tit = q(`.q${i}`);
     const plano = M.planoGrafico(G, S.plano);
     M.irPara(tl, plano, i === 0 ? 2.6 : 1.8, t, {}, "power3.inOut");
     M.irPara(tl, { ...plano, x: plano.x + 0.12, tx: plano.tx + 0.04 }, 12, t + (i === 0 ? 2.6 : 1.8), {}, "sine.inOut");     // deriva lenta
@@ -157,7 +156,7 @@ export function diagnostico(c, ctx) {
     if (S.matriz && Mz) { tl.set(Mz, { a: 1 }, tb); tl.fromTo(Mz, { n: 0 }, { n: 1, duration: 2.2, ease: "power1.inOut" }, tb); }
     aparecer(tl, S.rots, tb + 0.9, 0.5, qd.id === "matriz" || qd.id === "pessoas" ? 0.03 : 0.08, 6);
     marco(tl, `q${i + 1}`, t);
-    const dur = qd.id === "custo" ? 15 : 17;
+    const dur = qd.dur ?? (qd.id === "custo" ? 15 : 17);
     const fim = t + dur;
     if (i < Q.length - 1) {
       sumir(tl, [tit, ...S.rots], fim - 0.6, 0.5);
@@ -167,6 +166,7 @@ export function diagnostico(c, ctx) {
     }
     t = fim;
   });
+  M.luzPara(tl, { a: 9.0 }, t, 0, "none");      // a luz gira durante o diagnóstico inteiro, e não além dele
   marco(tl, "fim", t - 10);
   tl.to({}, { duration: 0.1 }, t);
   return tl;
@@ -180,7 +180,7 @@ export function entregavel(c, ctx) {
   const M = ctx.mundo, C = ctx.C, E = C.entregavel;
   c.className = "cena c-ent";
   c.innerHTML = `<div class="topo"><h1 class="t-titulo">O que o projeto entrega.</h1><p class="t-lead">Em documento, planilha e painel, com a devolutiva no nono dia.</p></div>
-  <div class="leg-peca">${PECAS.map((p) => `<div data-p="${p.id}"><b>${LEGENDAS[p.id][0]}</b><span>${LEGENDAS[p.id][1]}</span></div>`).join("")}</div>`;
+  <div class="leg-peca">${PECAS.map((p) => { const L = (E.legendas && E.legendas[p.id]) || LEGENDAS[p.id]; return `<div data-p="${p.id}"><b>${L[0]}</b><span>${L[1]}</span></div>`; }).join("")}</div>`;
   const q = (s) => c.querySelector(s);
   const tl = gsap().timeline({ paused: true });
   M.base(tl, { cam: "socios", disco: { top3: 1, vidro: 0.4 }, luz: { a: 9.0, expo: 1 } });

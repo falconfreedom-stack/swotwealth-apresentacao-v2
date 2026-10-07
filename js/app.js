@@ -55,10 +55,11 @@ async function carregar() {
   ajustarPalco();
   window.addEventListener("resize", ajustarPalco);
   const fonte = params.get("rascunho") ? "dados/rascunho.json" : "dados/base.json";
-  const [base, fichas] = await Promise.all([fetch(fonte, { cache: "no-store" }).then((r) => r.json()), fetch("dados/fichas_208.json").then((r) => r.json())]);
+  const [base, fichas, calculado] = await Promise.all([fetch(fonte, { cache: "no-store" }).then((r) => r.json()), fetch("dados/fichas_208.json").then((r) => r.json()),
+    fetch("dados/calculado.json", { cache: "no-store" }).then((r) => (r.ok ? r.json() : null)).catch(() => null)]);
   await document.fonts.ready;
   estado.base = base;
-  estado.R = motor.calcular(base);
+  estado.R = motor.calcular(base, params.has("recalcular") ? null : calculado);
   estado.fichas = fichas.map((f) => ({ ...f, top3: !!TOP3_CODIGOS[f.codigo] }));
   estado.mundo = new Mundo(document.getElementById("mundo"), estado.fichas);
   await estado.mundo.carregar();
@@ -118,6 +119,7 @@ function aquecer() {
   document.getElementById("cenas").appendChild(caixa);
   ORDEM.forEach((def) => {
     if (def.projeto) escolher(def.projeto === true ? 1 : def.projeto);
+    estado.compacto = !!def.compacto;
     const c = el("div", { class: "cena" }); caixa.appendChild(c);
     try { const tl = def.f(c, estado); tl.kill(); } catch (e) { console.warn("aquecimento", def.id, e); }
     c.remove();
@@ -173,7 +175,7 @@ function ir(i, opc = {}) {
   const c = el("div", { class: "cena", style: estado.captura ? "" : "opacity:0" });
   document.getElementById("cenas").appendChild(c);
   if (!estado.captura) gsap.to(c, { opacity: 1, duration: 0.25, delay: 0.03, ease: "power1.out" });   // na captura sem cabeça, o tempo virtual não deixa a entrada terminar
-  estado.i = i; estado.cena = c;
+  estado.i = i; estado.cena = c; estado.compacto = !!def.compacto;
   const t0 = performance.now();
   const tl = def.f(c, estado);
   (window.__montagem || (window.__montagem = [])).push({ cena: i, ms: +(performance.now() - t0).toFixed(1) });

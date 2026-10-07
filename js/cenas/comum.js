@@ -143,18 +143,17 @@ export function montarQuadro(qd, c, M, G, specs, rots, linhas, matriz) {
     });
     S.plano = { x: 0.13, y: 0.50, dist: 4.6, fov: 20, alt: 0.3 };
   }
-  if (qd.id === "ticket") {
-    const sy = 0.66 / 160, xs = [-0.82, -0.3, 0.22];
-    // o valor da barra recebida vai dentro dela; acima fica a parte dourada que falta até a tabela.
-    // O nome de cada barra fica acima, no escuro, e não sobre o mostrador.
-    const vT = qd.barras[0][1], vR = qd.barras[2][1];
-    qd.barras.forEach(([t, v, s], i) => {
+  if (qd.id === "venda") {
+    // R$ mil por loja e mês: orçamento, pedidos no painel e receita do DRE; a parte dourada é o que separa pedido de entrega
+    const sy = 0.615 / Math.max(...qd.barras.map((b) => b[1])), xs = [-0.82, -0.3, 0.22];
+    const vT = qd.barras[1][1], vR = qd.barras[2][1];
+    qd.barras.forEach(([t, v, sb], i) => {
       bar({ x: xs[i], y0: 0, h: v * sy, w: 0.30, cor: i === 2 ? "verde" : "marfim", cheio: 0.72 });
-      lab(i === 2 ? P(xs[i], v * sy - 0.05) : P(xs[i], v * sy + 0.02), "val c", `<b class="num">R$ ${v}</b>`, 0, i === 2 ? 0 : -26);
-      lab(P(xs[i], (i === 2 ? vT : v) * sy + 0.02), "cat c", `${t}<span>${s}</span>`, 0, i === 2 ? -30 : -84);
+      lab(i === 2 ? P(xs[i], v * sy - 0.05) : P(xs[i], v * sy + 0.02), "val c", `<b class="num">R$ ${F.n(v)} mil</b>`, 0, i === 2 ? 0 : -26);
+      lab(P(xs[i], (i === 2 ? vT : v) * sy + 0.02), "cat c", `${t}<span>${sb}</span>`, 0, i === 2 ? -30 : -84);
     });
-    bar({ x: xs[2], y0: vR * sy, h: (vT - vR) * sy, w: 0.30, cor: "ouro", cheio: 0.28, topo: 0, sobre: specs.length - 1 });
-    lab(P(xs[2] + 0.17, (vR + (vT - vR) / 2) * sy), "seg", `R$ ${vT - vR} <span>por aluno, todo mês</span>`, 10, 0);
+    bar({ x: xs[2], y0: vR * sy, h: (vT - vR) * sy, w: 0.30, cor: "ouro", cheio: 0.5, topo: 0, sobre: specs.length - 1 });
+    lab(P(xs[2] + 0.17, (vR + (vT - vR) / 2) * sy), "seg", `R$ ${F.n(vT - vR)} mil <span>${qd.gapRot}</span>`, 10, 0);
     lab(P(0.80, 0.30), "grande", `<b class="num">R$ ${r1(qd.numero)} mi</b><span>${qd.numeroRot}</span>`, 0, 0);
     S.plano = { x: 0.16, y: 0.50, dist: 4.6, fov: 20, alt: 0.3 };
   }
@@ -206,7 +205,7 @@ export function montarQuadro(qd, c, M, G, specs, rots, linhas, matriz) {
     S.plano = { x: 0.1, y: 0.48, dist: 4.4, fov: 20, alt: 0.3 };
   }
   if (qd.id === "fontes") {
-    const tot = qd.fontes.reduce((s, f) => s + f.saldo, 0), L = 2.1, sx = L / tot, sy = 0.70 / 36, gap = 0.018;
+    const tot = qd.fontes.reduce((s, f) => s + f.saldo, 0), L = 2.1, sx = L / tot, sy = 0.70 / Math.max(36, ...qd.fontes.map((f) => f.taxa)), gap = 0.018;
     let x = -1.05 - gap * (qd.fontes.length - 1) / 2;
     qd.fontes.forEach((f, i) => {
       const w = f.saldo * sx;
@@ -223,7 +222,10 @@ export function montarQuadro(qd, c, M, G, specs, rots, linhas, matriz) {
   if (qd.id === "hoje" || qd.id === "depois") {
     const sy = 0.66 / 12e6, dx = 0.145, x0 = -0.96, S13 = qd.semanas;
     regua(x0, x0 + 12 * dx, { dist: qd.candidatos ? 4.9 : 4.5, fov: 20 }, 24);
-    S13.forEach((v, i) => { bar({ x: x0 + i * dx, y0: 0, h: v * sy, w: 0.100, cor: qd.id === "hoje" ? "marfim" : "verde", cheio: 0.72 }); if (i % 2 === 0) lab(P(x0 + i * dx, 0), "cat c", `sem. ${i + 1}`, 0, 24); });
+    const lado = qd.garantida || qd.estresse;      // segunda série, fina, ao lado de cada barra: garantida sacada (hoje) ou estresse (plano)
+    S13.forEach((v, i) => { bar({ x: x0 + i * dx - (lado ? 0.014 : 0), y0: 0, h: v * sy, w: lado ? 0.072 : 0.100, cor: qd.id === "hoje" ? "marfim" : "verde", cheio: 0.72 }); if (i % 2 === 0) lab(P(x0 + i * dx, 0), "cat c", `sem. ${i + 1}`, 0, 24); });
+    if (lado) lado.forEach((v, i) => { if (v > 1000) bar({ x: x0 + i * dx + 0.045, y0: 0, h: v * sy, w: 0.026, cor: qd.garantida ? "ouro" : "grafite", cheio: 0.85, topo: 0 }); });
+    if (lado) lab(P(1.12, 0.80), "leg d", qd.garantida ? `<i></i>caixa mínimo da semana<br><i class="o"></i>conta garantida sacada (máximo)` : `<i></i>com a regra<br><i style="background:#57605c"></i>${qd.estresseRot}`, 0, 0);
     // o rótulo de uma barra fica acima das vizinhas, para não encostar no vidro delas
     const acima = (i) => Math.max(...[i - 1, i, i + 1].filter((k) => k >= 0 && k < S13.length).map((k) => S13[k])) * sy + 0.02;
     lab(P(x0, acima(0)), "val c peq", `<b class="num">R$ ${r1(S13[0])} mi</b>`, 0, -18);
@@ -234,6 +236,18 @@ export function montarQuadro(qd, c, M, G, specs, rots, linhas, matriz) {
     if (qd.candidatos) lab(P(1.08, 0.78), "cand", `<h5>antecipação da agenda</h5>${qd.candidatos.map((cc) => `<div class="${cc.abaixo ? "" : "ok"}"><b>${cc.p}%</b><span>${cc.abaixo ? `${cc.abaixo} semanas abaixo do mínimo` : "nenhuma semana abaixo"}</span></div>`).join("")}`, 0, 0);
     S.plano = { x: qd.candidatos ? 0.2 : 0.05, y: 0.5, dist: qd.candidatos ? 4.9 : 4.5, fov: 20, alt: 0.3 };
   }
+  if (qd.id === "agenda") {
+    const ms = qd.meses, mx = Math.max(...ms.map((m) => m.total)), sy = 0.66 / mx, dx = 0.205, x0 = -0.92;
+    regua(x0, x0 + (ms.length - 1) * dx, { dist: 4.5, fov: 20 }, 24);
+    ms.forEach((m, i) => {
+      const x = x0 + i * dx; let y = 0;
+      [["antecipado", "ouro", 0.82], ["cedido", "grafite", 0.75], ["livre", "marfim", 0.72]].forEach(([k, cor, ch], j) => { const h = m[k] * sy; if (h <= 0) return; bar({ x, y0: y, h, w: 0.15, cor, cheio: ch, topo: j === 2 ? 1 : 0, sobre: j ? specs.length - 1 : undefined }); y += h; });
+      lab(P(x, m.total * sy + 0.02), "val c peq", `<b class="num">${r1(m.total)}</b>`, 0, -16);
+      lab(P(x, 0), "cat c", m.mes, 0, 24);
+    });
+    lab(P(1.16, 0.80), "leg d", `<i class="o"></i>já antecipado<br><i style="background:#57605c"></i>cedido ao Banco B<br><i></i>livre, chega na data`, 0, 0);
+    S.plano = { x: 0.08, y: 0.48, dist: 4.5, fov: 20, alt: 0.3 };
+  }
   if (qd.tiles) {
     const px = M.pxPorUnidade(4.4, 20), W0 = 560 / px, H0 = 220 / px, xs = [-0.44, 0.44], ys = [0.58, 0.20];
     qd.tiles.forEach((tt, i) => { const x = xs[i % 2], y = ys[Math.floor(i / 2)]; bar({ x, y0: y - H0 / 2, h: H0, w: W0, cor: "grafite", cheio: 0.0, topo: 0, escuro: 0.86, ouro: tt.d ? 0.5 : 0.15 }); lab(P(x, y), `tile c ${tt.d ? "d" : ""}`, `<b class="num">${tt.v}</b><p>${tt.t}</p><em>${tt.e}</em>`, 0, 0); });
@@ -241,8 +255,9 @@ export function montarQuadro(qd, c, M, G, specs, rots, linhas, matriz) {
   }
   if (qd.acoes) {
     const max = Math.max(...qd.acoes.map((a) => a.v)), L = 1.05, sx = L / max, esp = 0.13, x0 = -0.1;
-    qd.acoes.forEach((a, i) => { const y = 0.86 - i * esp, w = a.v * sx; bar({ x: x0 + w / 2, y0: y - 0.035, h: 0.07, w, cor: a.tipo === "certo" ? "ouro" : "marfim", cheio: 0.78, hor: true, topo: 0 }); lab(P(x0 - 0.05, y), "acao", `${a.t}<span>${a.tipo === "certo" ? "depende só da empresa" : a.nota || "depende de terceiros"}</span>`, 0, 0); lab(P(x0 + w + 0.03, y), "val e peq", `<b class="num">R$ ${F.n(Math.round(a.v / 1000))} mil</b>`, 0, 0); });
-    lab(P(x0, 0.86 - 5 * esp + 0.03), "total", `<b class="num">R$ ${r1(qd.total)} mi</b> por ano · <b class="num ouro">R$ ${r1(qd.certo)} mi</b> certos`, 0, 0);
+    qd.acoes.forEach((a, i) => { const y = 0.86 - i * esp, w = a.v * sx; bar({ x: x0 + w / 2, y0: y - 0.035, h: 0.07, w, cor: a.empresa ? "ouro" : "marfim", cheio: 0.78, hor: true, topo: 0 }); lab(P(x0 - 0.05, y), "acao", `${a.t}<span>${a.quem}</span>`, 0, 0); lab(P(x0 + w + 0.03, y), "val e peq", `<b class="num">R$ ${F.n(Math.round(a.v / 1000))} mil</b>`, 0, 0); });
+    lab(P(x0, 0.86 - qd.acoes.length * esp + 0.02), "total", `<b class="num">R$ ${F.n(qd.total / 1e6, 2)} mi</b> por ano, estimados · <b class="num ouro">R$ ${F.n(qd.empresa / 1e6, 2)} mi</b> dependem só da empresa`, 0, 0);
+    if (qd.recuperacao) lab(P(x0, 0.86 - qd.acoes.length * esp - 0.09), "total nota", `Uma vez: R$ ${F.n(Math.round(qd.recuperacao / 1000))} mil a contestar. Não é ganho: R$ ${r1(qd.divida)} mi de dívida quitada com o caixa e R$ ${r1(qd.caixaUsado)} mi de caixa médio usado.`, 0, 0);
     S.plano = { x: 0.0, y: 0.5, dist: 4.5, fov: 20, alt: 0.25 };
   }
   return S;
