@@ -2,7 +2,7 @@
 import { cascata } from "../util.js?v=202610071930";
 import { top3, FASES, AMOSTRA } from "../conteudo.js?v=202610071930";
 import { FASES_N } from "../mundo.js?v=202610071930";
-import { gsap, marco, COD, ancora, direcaoCam } from "./comum.js?v=202610071930";
+import { gsap, marco, COD, ancora, direcaoCam, cenaProvisoria } from "./comum.js?v=202610071930";
 
 // ============================================================================ 1 · os 208 projetos
 export function projetos208(c, ctx) {
@@ -69,3 +69,6 @@ export function fecho(c, ctx) {
   marco(tl, "fim", 8.6);
   return tl;
 }
+
+// ============================================================================ quem somos (provisória)
+export function socios(c, ctx) { return cenaProvisoria(c, ctx, "Quem somos.", "Cena provisória: os quatro sócios.", 6, "socios"); }

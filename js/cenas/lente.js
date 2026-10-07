@@ -1,7 +1,7 @@
 // A lente FIN3.10 em funcionamento: formulário, análise, diagnóstico, entregável e resultado.
 import { cascata } from "../util.js?v=202610071930";
 import { top3, SOCIOS, DIAS } from "../conteudo.js?v=202610071930";
-import { gsap, marco, LOGO_ESC, ancora, aparecer, sumir, folha, crescer, apagar, PLANO_FOLHA, RET_FOLHA, lamT3, poseFolha, blocoHTML, ladosDoGrafo, montarQuadro, PECAS, htmlPeca, LEGENDAS } from "./comum.js?v=202610071930";
+import { cenaProvisoria, gsap, marco, LOGO_ESC, ancora, aparecer, sumir, folha, crescer, apagar, PLANO_FOLHA, RET_FOLHA, lamT3, poseFolha, blocoHTML, ladosDoGrafo, montarQuadro, PECAS, htmlPeca, LEGENDAS } from "./comum.js?v=202610071930";
 
 // ============================================================================ 4 · o formulário se preenche
 
@@ -260,3 +260,6 @@ export function resultado(c, ctx) {
   tl.to({}, { duration: 0.4 }, 14.2);
   return tl;
 }
+
+// ============================================================================ a lente FIN3.10 (provisória)
+export function lente(c, ctx) { return cenaProvisoria(c, ctx, "FIN3.10 · Capital de giro e custo do dinheiro.", "Cena provisória: o projeto como lente; quatro insumos, cada relatório vê um pedaço.", 6, "top3"); }

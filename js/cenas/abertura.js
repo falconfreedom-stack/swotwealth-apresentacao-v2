@@ -2,7 +2,7 @@
 import { F, cascata } from "../util.js?v=202610071930";
 import { HISTORIA } from "../conteudo.js?v=202610071930";
 import { direcao } from "../mundo.js?v=202610071930";
-import { gsap, marco, TAU, r1, rot, aparecer, sumir, crescer, apagar, PLANO_RETRATO } from "./comum.js?v=202610071930";
+import { gsap, marco, TAU, r1, rot, aparecer, sumir, crescer, apagar, PLANO_RETRATO, cenaProvisoria } from "./comum.js?v=202610071930";
 
 // ============================================================================ 0 · abertura
 export function abertura(c, ctx) {
@@ -106,3 +106,8 @@ export function historia(c, ctx) {
   M.luzPara(tl, { expo: 1 }, 1.2, 64.6);
   return tl;
 }
+
+// ============================================================================ a venda que vira caixa (provisória)
+export function venda(c, ctx) { return cenaProvisoria(c, ctx, "A venda que vira caixa.", "Cena provisória: o mostrador como calendário e a antecipação das parcelas.", 6, "topo"); }
+// ============================================================================ o retrato da rede (provisória)
+export function retrato(c, ctx) { return cenaProvisoria(c, ctx, "Uma rede de óticas de R$ 150 milhões.", "Cena provisória: porte, benchmark e a rede ilustrativa.", 6); }

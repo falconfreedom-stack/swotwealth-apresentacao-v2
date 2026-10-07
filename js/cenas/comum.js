@@ -337,3 +337,16 @@ export function htmlPeca(p, E, C) {
   return `<div class="dv"><b>Devolutiva</b><span>${E.devolutiva}</span></div>`;
 }
 export const LEGENDAS = { capa: ["O documento", "Diagnóstico e direcionamento, com o índice do que foi decidido."], f0: ["As folhas", "Cada achado com a sua conta e o que fazer."], f1: ["As regras", "Prontas para aprovar em ata e colocar no sistema."], planilha: ["A planilha", "Os mesmos números, para a empresa continuar no fechamento seguinte."], painel: ["O painel", "Uma tela que se atualiza a cada fechamento."], devolutiva: ["A devolutiva", "Uma hora e meia com os sócios, no nono dia."] };
+
+// Cena provisória: um título e um subtítulo no escuro, com o instrumento ao fundo (até a cena definitiva existir).
+export function cenaProvisoria(c, ctx, titulo, sub = "", dur = 6, cam = "inteiro") {
+  const M = ctx.mundo;
+  c.className = "cena c-prov";
+  c.innerHTML = `<div class="topo" style="position:absolute;left:112px;top:120px;width:1100px"><h1 class="t-titulo">${titulo}</h1><p class="t-lead" style="margin-top:18px">${sub}</p></div>`;
+  const tl = gsap().timeline({ paused: true });
+  M.base(tl, { cam, disco: { top3: 1 }, luz: { a: 1.4 } });
+  aparecer(tl, c.querySelector(".topo"), 0.3, 0.6);
+  marco(tl, "fim", 1.0);
+  tl.to({}, { duration: 0.1 }, dur);
+  return tl;
+}

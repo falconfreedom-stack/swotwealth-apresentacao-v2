@@ -7,6 +7,8 @@ import { projeto2 } from "./conteudo/fin511.js?v=202610071930";
 import { projeto3 } from "./conteudo/fin310.js?v=202610071930";
 export { SOCIOS, DIAS, FASES, AMOSTRA, TOP3_CODIGOS, NOMES, TOP3, top3 } from "./conteudo/comum.js?v=202610071930";
 export { HISTORIA } from "./conteudo/cenario.js?v=202610071930";
+export { ABERTURA } from "./conteudo/abertura.js?v=202610071930";
+export { FIM } from "./conteudo/fim.js?v=202610071930";
 
 // ------------------------------------------------------------------------------ por projeto
 export function conteudo(base, R, n) {
