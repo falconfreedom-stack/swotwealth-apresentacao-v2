@@ -3,7 +3,7 @@
 // o desconto proporcional à distância. Serve para conferir se o instrumento sustenta a ideia.
 import { F } from "../util.js?v=202610071930";
 import { direcao } from "../mundo.js?v=202610071930";
-import { gsap, marco, rot, aparecer, sumir, crescer, apagar, TAU } from "./comum.js?v=202610071930";
+import { gsap, marco, rot, aparecer, sumir, crescer, apagar, TAU, parada } from "./comum.js?v=202610071930";
 
 const MESES = ["set", "out", "nov", "dez", "jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago"];
 
@@ -35,6 +35,7 @@ export function calendario(c, ctx) {
   // o tempo passa: o ponteiro das horas corre os dez meses
   M.correrRelogio(tl, 10, 3.2, 4.2);
   marco(tl, "tempo", 4.2);
+  parada(tl, ctx, "pergunta", 7.4, 0.6);
   // a antecipação traz cada parcela de volta ao 12; a lasca de ouro fica onde a parcela estava
   sumir(tl, [q(".topo"), ...rotVal], 7.8, 0.4);
   tl.set(lasca, { a: 1, k: 1 }, 8.2);

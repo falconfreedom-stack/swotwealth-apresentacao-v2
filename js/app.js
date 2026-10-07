@@ -6,7 +6,7 @@
 import * as motor from "../motor/motor.js?v=202610071930";
 import { Mundo } from "./mundo.js?v=202610071930";
 import { ORDEM } from "./cenas.js?v=202610071930";
-import { conteudo, TOP3_CODIGOS, NOMES } from "./conteudo.js?v=202610071930";
+import { conteudo, TOP3_CODIGOS, NOMES, TOP3 } from "./conteudo.js?v=202610071930";
 import { el } from "./util.js?v=202610071930";
 
 window.__motor = motor;
@@ -52,6 +52,8 @@ function abrirLente(n) {
 async function carregar() {
   const params = new URLSearchParams(location.search);
   estado.captura = params.has("captura");
+  // assistir: a peça corre sozinha, cada bloco no tempo de leitura; apresentar: para nos marcos e espera o →
+  estado.modo = params.has("apresentar") ? "apresentar" : "assistir";
   ajustarPalco();
   window.addEventListener("resize", ajustarPalco);
   const fonte = params.get("rascunho") ? "dados/rascunho.json" : "dados/base.json";
@@ -74,6 +76,7 @@ async function carregar() {
   estado.seguir = () => seguirPara(depois(estado.i));
   // compatível com a saída das cenas de escolha: depois da animação, abre a lente escolhida ou segue
   estado.proximaCena = () => { const n = estado.lenteEscolhida; estado.lenteEscolhida = null; if (n) abrirLente(n); else estado.seguir(); };
+  estado.esperar = esperar;
   const comecar = () => {
     ir(inicio, { aoFim: params.has("fim") });
     if (params.has("t")) { const t = Number(params.get("t")); estado.tl.pause(); estado.tl.seek(Math.min(t, estado.tl.duration()), false); }
@@ -83,8 +86,15 @@ async function carregar() {
   document.getElementById("carregando").remove();
   if (params.has("captura") || params.has("cena")) comecar();
   else {
-    // tela de início: logo e um botão; clique, espaço ou Enter começa
+    // tela de início: logo, o botão e os dois modos; clique, espaço ou Enter começa; A troca o modo
     const ini = document.getElementById("inicio");
+    ini.insertAdjacentHTML("beforeend", `<div class="modos"><button data-modo="assistir">Assistir</button><button data-modo="apresentar">Apresentar ao vivo</button></div><p class="nota-modo"></p>`);
+    const marcarModo = () => {
+      ini.querySelectorAll(".modos button").forEach((b) => b.classList.toggle("sel", b.dataset.modo === estado.modo));
+      ini.querySelector(".nota-modo").textContent = estado.modo === "apresentar" ? "A peça para nos marcos e espera o → (ou o espaço) para seguir." : "A peça corre sozinha; espaço pausa, as setas vão de marco em marco.";
+    };
+    ini.querySelectorAll(".modos button").forEach((b) => b.addEventListener("click", (e) => { e.stopPropagation(); estado.modo = b.dataset.modo; marcarModo(); }));
+    estado.marcarModo = marcarModo; marcarModo();
     ini.classList.add("visivel");
     gsap.fromTo(ini.children, { opacity: 0, y: 10 }, { opacity: 1, y: 0, duration: 1.0, stagger: 0.2, ease: "power2.out" });
     const dar = () => { if (estado.iniciado) return; estado.iniciado = true; gsap.to(ini, { opacity: 0, duration: 0.9, ease: "power2.inOut", onComplete: () => ini.remove() }); comecar(); };
@@ -169,7 +179,7 @@ function ir(i, opc = {}) {
   const anterior = estado.cena;
   if (estado.tl) estado.tl.kill();
   if (estado.saidaTl) { estado.saidaTl.kill(); estado.saidaTl = null; }
-  estado.podeEscolher = false; estado.escolhaAberta = false; clearTimeout(estado.auto);
+  estado.podeEscolher = false; estado.escolhaAberta = false; clearTimeout(estado.auto); soltarParada();
   // a cena nova entra invisível e sobe em 0,25 s por cima da que sai: o primeiro quadro nunca mostra o estado
   // de montagem, antes de a linha do tempo aplicar o tempo 0
   const c = el("div", { class: "cena", style: estado.captura ? "" : "opacity:0" });
@@ -194,27 +204,30 @@ function ir(i, opc = {}) {
 // →: salta ao próximo marco da cena (ou à próxima cena); se estiver tocando, segue tocando. Na escolha, segue.
 function avancar() {
   const tl = estado.tl; if (!tl) return;
+  if (estado.parada) { continuarParada(); return; }
   if (estado.escolhaAberta) { escolhaFeita(0); return; }
   const t = tl.time();
   const proximos = Object.values(tl.labels).filter((tt) => tt > t + 0.05).sort((a, b) => a - b);
-  if (proximos.length) { tl.seek(proximos[0], false); if (!estado.pausado && !estado.escolhaAberta) tl.play(); }
+  if (proximos.length) { tl.seek(proximos[0], false); if (!estado.pausado && !estado.escolhaAberta && !estado.parada) tl.play(); }
   else seguirPara(depois(estado.i));
 }
 function voltar() {
   const tl = estado.tl; if (!tl) return;
+  soltarParada();
   const t = tl.time();
   const anteriores = Object.values(tl.labels).filter((tt) => tt < t - 0.6).sort((a, b) => b - a);
-  if (anteriores.length) { estado.escolhaAberta = false; clearTimeout(estado.auto); tl.seek(anteriores[0], false); if (!estado.pausado) tl.play(); }
+  if (anteriores.length) { estado.escolhaAberta = false; clearTimeout(estado.auto); tl.seek(anteriores[0], false); if (!estado.pausado && !estado.parada) tl.play(); }
   else if (t > 1) { tl.seek(0); if (!estado.pausado) tl.play(); }
   else seguirPara(antes(estado.i));
 }
 // espaço, P ou o botão do meio: pausa e continua (o relógio do instrumento para junto)
 function pausar() {
   const tl = estado.tl; if (!tl) return;
+  if (estado.parada && !estado.pausado) { continuarParada(); return; }   // numa parada, o espaço segue
   estado.pausado = !estado.pausado;
   if (estado.escolhaAberta) {       // na escolha a cena já espera; a pausa só segura a saída automática
     clearTimeout(estado.auto);
-    if (!estado.pausado) estado.auto = setTimeout(() => escolhaFeita(0), ESPERA_ESCOLHA);
+    if (!estado.pausado && estado.modo !== "apresentar") estado.auto = setTimeout(() => escolhaFeita(0), ESPERA_ESCOLHA);
   } else if (estado.pausado) tl.pause(); else tl.play();
   marcarPausa();
 }
@@ -238,7 +251,34 @@ function abrirEscolha() {
   estado.escolhaAberta = true;
   estado.tl.pause();
   clearTimeout(estado.auto);
-  if (!estado.pausado) estado.auto = setTimeout(() => escolhaFeita(0), ESPERA_ESCOLHA);
+  if (!estado.pausado && estado.modo !== "apresentar") estado.auto = setTimeout(() => escolhaFeita(0), ESPERA_ESCOLHA);
+}
+
+// ------------------------------------------------------------------ paradas do apresentador (modo apresentar)
+// A cena marca a parada com `parada(tl, ctx, nome, t, hold)` (js/cenas/comum.js). Aqui a linha do tempo para no
+// marco; o → (ou o espaço) segue a partir de t + hold, porque a fala já ocupou o tempo de leitura.
+function esperar(tl, t, ate) {
+  if (estado.modo !== "apresentar" || estado.captura || estado.tl !== tl) return;
+  if (Math.abs(tl.time() - t) > 0.3) return;          // busca para trás ou salto por cima: não para
+  tl.pause();
+  estado.parada = { tl, t, ate };
+  document.body.classList.add("esperando");
+}
+function soltarParada() { estado.parada = null; document.body.classList.remove("esperando"); }
+function continuarParada() {
+  const p = estado.parada; soltarParada();
+  if (!p || p.tl !== estado.tl) return;
+  p.tl.seek(p.ate);
+  // se outra parada começa exatamente onde esta termina, ela vale
+  const prox = (p.tl.paradas || []).find((x) => Math.abs(x.t - p.ate) < 0.002);
+  if (prox) { esperar(p.tl, prox.t, prox.ate); if (estado.parada) return; }
+  if (!estado.pausado) p.tl.play();
+}
+function trocarModo() {
+  estado.modo = estado.modo === "apresentar" ? "assistir" : "apresentar";
+  if (estado.marcarModo) estado.marcarModo();
+  if (estado.modo === "assistir" && estado.parada) continuarParada();
+  if (estado.iniciado || !estado.dar) dica(estado.modo === "apresentar" ? "modo apresentar: a peça para nos marcos e espera o →" : "modo assistir: a peça segue sozinha");
 }
 // n = projeto escolhido (1, 2 ou 3); 0 = seguir sem abrir lente
 function escolhaFeita(n) {
@@ -254,12 +294,13 @@ function escolhaFeita(n) {
 function teclas() {
   document.addEventListener("keydown", (e) => {
     if (document.getElementById("material")?.classList.contains("aberto")) { if (e.key === "Escape" || e.key.toLowerCase() === "m") material(false); return; }
-    if (estado.dar && !estado.iniciado) { if (e.key === " " || e.key === "Enter") { e.preventDefault(); estado.dar(); } return; }
+    if (estado.dar && !estado.iniciado) { if (e.key === " " || e.key === "Enter") { e.preventDefault(); estado.dar(); } else if (e.key.toLowerCase() === "a") trocarModo(); return; }
     if (e.key === " " || e.key.toLowerCase() === "p" || e.key.toLowerCase() === "k") { e.preventDefault(); if (!e.repeat) pausar(); }
     else if (e.key === "ArrowRight" || e.key === "PageDown") { e.preventDefault(); avancar(); }
     else if (e.key === "ArrowLeft" || e.key === "PageUp") { e.preventDefault(); voltar(); }
     else if (e.key.toLowerCase() === "r") { estado.pausado = false; marcarPausa(); ir(0); }
     else if (e.key.toLowerCase() === "m") material(true);
+    else if (e.key.toLowerCase() === "a") trocarModo();
     else if (["1", "2", "3"].includes(e.key)) {
       const n = PROJETO_DA_TECLA[e.key], def = ORDEM[estado.i] || {};
       if (estado.escolhaAberta || estado.podeEscolher) escolhaFeita(n);
@@ -286,7 +327,7 @@ function material(abrir) {
   m.classList.toggle("aberto", abrir);
   if (!abrir) return;
   const n = estado.projeto || 3;
-  document.getElementById("material-sub").textContent = `Projeto ${n} · ${NOMES[n - 1]}. Documento, checklist e tabelas para envio.`;
+  document.getElementById("material-sub").textContent = `${TOP3[n - 1].codigo} · ${NOMES[n - 1]}. Documento, checklist e tabelas para envio.`;
   document.getElementById("m-doc").href = `material.html?projeto=${n}`;
   document.getElementById("m-check").href = `material.html?projeto=${n}&baixar=checklist`;
   document.getElementById("m-tab").href = `material.html?projeto=${n}&baixar=tabelas`;

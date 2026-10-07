@@ -57,6 +57,18 @@ body.pausa #controle #c-tocar{border-color:var(--ouro)}
 .t-leg{font:400 19px/1.5 var(--texto);color:var(--m3)}
 .rotulo{font:500 19px/1.3 var(--texto);color:var(--ouro)}
 .num{font-family:var(--disp);font-weight:600;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+/* revelação por linha: cada linha sobe de dentro da própria máscara (js/cenas/comum.js: linhas, revelar) */
+.l{display:block;overflow:hidden;padding-bottom:.14em;margin-bottom:-.14em}
+.l > span{display:block;will-change:transform}
+/* modo apresentar: numa parada, o botão de seguir acende devagar (a peça espera o →) */
+body.esperando #c-avancar{border-color:var(--ouro);background:rgba(200,164,90,.16);animation:espera 2.4s ease-in-out infinite}
+body.esperando #controle{opacity:1}
+@keyframes espera{0%,100%{box-shadow:0 0 0 0 rgba(200,164,90,0)}50%{box-shadow:0 0 0 7px rgba(200,164,90,.16)}}
+#inicio .modos{display:flex;gap:14px;margin-top:-20px}
+#inicio .modos button{width:auto;height:auto;border-radius:999px;padding:12px 22px;font:500 19px/1 var(--texto);color:var(--m2);background:none;border:1px solid rgba(243,238,225,.18);cursor:pointer;transition:border-color .3s,color .3s}
+#inicio .modos button:hover,#inicio .modos button.sel{color:var(--marfim);border-color:var(--ouro)}
+#inicio .modos button svg{display:none}
+#inicio .nota-modo{margin-top:-34px;font:400 18px/1.4 var(--texto);color:var(--m3);text-align:center;max-width:720px}
 .ouro{color:var(--ouro)}
 
 /* textos que entram e saem com movimento ficam em camada própria: a animação vira só composição, sem redesenhar o texto */

@@ -51,7 +51,7 @@ import { conteudo } from "./js/conteudo.js?v=202610071930";
 import { F } from "./js/util.js?v=202610071930";
 window.__motor = motor;
 const p = new URLSearchParams(location.search);
-const n = Number(p.get("projeto") || 1);
+const n = Number(p.get("projeto") || 3);
 const base = await fetch("dados/base.json", { cache: "no-store" }).then((r) => r.json());
 const calculado = await fetch("dados/calculado.json", { cache: "no-store" }).then((r) => (r.ok ? r.json() : null)).catch(() => null);
 const R = motor.calcular(base, calculado);
@@ -63,15 +63,17 @@ const semTag = (x) => String(x ?? "").replace(/<[^>]+>/g, " ").replace(/\s+/g, "
 // Cada quadro do diagnóstico vira uma tabela com os mesmos números do gráfico.
 function tabelaDoQuadro(qd) {
   if (qd.id === "ebitda") return { cab: ["documento", "base", "ajustes", "EBITDA de 12 meses"], linhas: qd.barras.map((b) => [b.rot, mi(b.base), b.partes.map((x) => `+ ${mi(x.v)} ${x.t}`).join("; ") || "—", mi(b.base + b.partes.reduce((s, x) => s + x.v, 0))]) };
-  if (qd.id === "ticket") return { cab: ["ticket", "valor", "o que é"], linhas: [...qd.barras.map(([t, v, d]) => [t, F.brl(v), d]), ["desvio no orçamento, jan a ago", mi(qd.numero), ""]] };
+  if (qd.id === "venda") return { cab: ["definição", "por loja, por mês", "o que conta"], linhas: [...qd.barras.map(([t, v, d]) => [t, `R$ ${F.n(v)} mil`, d]), ["desvio no orçamento, jan a ago", mi(qd.numero), "só da definição de venda"]] };
+  if (qd.id === "agenda") return { cab: ["vence em", "total", "já antecipado", "cedido ao Banco B", "livre"], linhas: qd.meses.map((m) => [m.mes, mi(m.total), mi(m.antecipado), mi(m.cedido), mi(m.livre)]) };
   if (qd.id === "matriz") return { cab: ["indicador", ...qd.docs, "dono", "fonte"], linhas: qd.linhas.map((l) => [l.nome, ...l.usos.map((u) => (u === "d" ? "diverge" : u ? "igual" : "")), l.dono ? "sim" : "não", l.fonte ? "sim" : "não"]) };
   if (qd.id === "pessoas") return { cab: ["pessoa", ...qd.passos, "caminho inteiro"], linhas: qd.pessoas.map((x) => [x.cargo, ..."CBLAPQ".split("").map((id) => (x.acessos.includes(id) ? "●" : "")), x.caminho ? "sim" : ""]) };
   if (qd.id === "fluxo") return { cab: ["fluxo", "valor pago em 12 meses"], linhas: qd.partes.map(([t, v]) => [t, mi(v)]) };
   if (qd.id === "meses") return { cab: ["mês", "trocas", "confirmadas", "sem confirmação"], linhas: qd.meses.map((m, i) => [m, qd.total[i], qd.conf[i], qd.total[i] - qd.conf[i]]) };
   if (qd.id === "fontes") return { cab: ["fonte", "saldo", "taxa ao ano", "custo ao ano"], linhas: qd.fontes.map((x) => [x.rot, mi(x.saldo), F.pct(x.taxa), mi(x.custo)]) };
-  if (qd.id === "hoje" || qd.id === "depois") return { cab: ["semana", "menor saldo"], linhas: qd.semanas.map((v, i) => [i + 1, mi(v)]) };
+  if (qd.id === "hoje") return { cab: ["semana", "menor saldo de caixa", "conta garantida (máximo)"], linhas: qd.semanas.map((v, i) => [i + 1, mi(v), qd.garantida ? mi(qd.garantida[i]) : ""]) };
+  if (qd.id === "depois") return { cab: ["semana", "menor saldo com a regra", qd.estresseRot || ""], linhas: qd.semanas.map((v, i) => [i + 1, mi(v), qd.estresse ? mi(qd.estresse[i]) : ""]) };
   if (qd.tiles) return { cab: ["valor", "o que é", "natureza"], linhas: qd.tiles.map((t) => [t.v, t.t, t.e]) };
-  if (qd.acoes) return { cab: ["ação", "valor ao ano", "natureza", "quando"], linhas: [...qd.acoes.map((a) => [a.t, F.brl(Math.round(a.v)), a.tipo === "certo" ? "depende só da empresa" : "depende de terceiros", a.quando]), ["total", F.brl(Math.round(qd.total)), `${F.brl(Math.round(qd.certo))} certos`, ""]] };
+  if (qd.acoes) return { cab: ["ação", "economia anual estimada", "de quem depende", "quando", "memória de cálculo"], linhas: [...qd.acoes.map((a) => [a.longo || a.t, F.brl(Math.round(a.v)), a.quem, a.prazo, a.memoria || ""]), ["total (cascata, sem dupla contagem)", F.brl(Math.round(qd.total)), `${F.brl(Math.round(qd.empresa))} dependem só da empresa`, "", ""], ...(qd.recuperacao ? [["recuperação única estimada: MDR cobrado acima do contrato, mar a ago/2026", F.brl(Math.round(qd.recuperacao)), "depende da credenciadora", "60 a 120 dias", ""], ["não é ganho: conta garantida quitada com o caixa (principal)", F.brl(Math.round(qd.divida)), "", "", ""], ["não é ganho: caixa médio usado no lugar de antecipação", F.brl(Math.round(qd.caixaUsado)), "", "", ""]] : [])] };
   return { cab: [], linhas: [] };
 }
 const tabHTML = (t) => `<table class="mini"><thead><tr>${t.cab.map((h) => `<th>${h}</th>`).join("")}</tr></thead><tbody>${t.linhas.map((l) => `<tr>${l.map((v, i) => `<td class="${i ? "" : "e"}">${v}</td>`).join("")}</tr>`).join("")}</tbody></table>`;
@@ -94,14 +96,14 @@ if (p.get("baixar") === "checklist") {
 }
 
 document.getElementById("doc").innerHTML = `
-<header><img src="midia/marca/logo_horizontal.svg" alt="SWOT WEALTH"><span>Projeto ${n} · ${C.proj.nome} · ${E.capa.sub}</span></header>
+<header><img src="midia/marca/logo_horizontal.svg" alt="SWOT WEALTH"><span>${C.proj.codigo} · ${C.proj.nome} · ${E.capa.sub}</span></header>
 <h1>${C.proj.nome}<small>${C.proj.pergunta}</small></h1>
 <section><h2>Sumário</h2><ol style="padding-left:22px;line-height:1.7;font-size:15px">${E.capa.indice.map((i) => `<li>${i}</li>`).join("")}</ol></section>
 <section><h2>1 · Diagnóstico</h2>${C.quadros.map((qd) => `<h3 class="qd">${qd.titulo}</h3><p class="qs">${qd.sub}</p>${tabHTML(tabelaDoQuadro(qd))}`).join("")}</section>
 ${E.folhas.map((fo, i) => `<section><h2>${i + 2} · ${fo.titulo} <span>${fo.sub}</span></h2>${fo.itens ? `<ol class="itens">${fo.itens.map((x) => `<li>${x}</li>`).join("")}</ol>` : tabHTML({ cab: [], linhas: fo.linhas })}</section>`).join("")}
 <section><h2>${E.folhas.length + 2} · ${E.planilha.titulo}</h2>${tabHTML({ cab: E.planilha.cab, linhas: E.planilha.linhas })}</section>
 <section><h2>Insumos recebidos</h2>${C.formulario.blocos.map((b) => `<h3 class="qd">${b.titulo} <span>· ${b.origem}</span></h3>${b.tabela ? tabHTML(b.tabela) : b.matriz ? tabHTML({ cab: ["pessoa", ...b.matriz.passos], linhas: b.matriz.pessoas.map((x) => [x.cargo, ...x.acessos.map((a) => (a ? "●" : ""))]) }) : tabHTML({ cab: [], linhas: b.campos.map((c) => [c.l, c.v]) })}`).join("")}<p class="qs">${C.formulario.selo}</p></section>
-<div class="rodape-doc">A rede é um exemplo montado com números públicos do setor (fontes na base de dados). Os valores de oportunidade são estimativas com memória de cálculo; o que depende só da empresa e o que depende de terceiros estão separados. Este documento não promete retorno financeiro. Base de dados versão ${base.versao}, gerada em ${base.gerado_em}.</div>`;
+<div class="rodape-doc">A rede é ilustrativa, montada com premissas explícitas; nenhum valor vem de empresa real e nada aqui é caso realizado. Parâmetros de mercado têm fonte na base de dados. Os valores de oportunidade são estimativas com memória de cálculo, antes de IR/CSLL; o que depende só da empresa e o que depende de terceiros estão separados, e dívida paga ou caixa usado não são contados como ganho. Este documento não promete retorno financeiro. Base de dados versão ${base.versao}, gerada em ${base.gerado_em}.</div>`;
 </script>
 </body>
 </html>

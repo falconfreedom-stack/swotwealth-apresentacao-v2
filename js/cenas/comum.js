@@ -40,6 +40,48 @@ export const crescer = (tl, bs, t, dur = 1.0, cada = 0.08, ease = "power3.out") 
 export const apagar = (tl, bs, t, dur = 0.6) => bs.forEach((b) => tl.to(b, { a: 0, duration: dur, ease: "power1.in" }, t));
 
 // ---------------------------------------------------------------------------------------------
+// Ritmo: tempos de leitura, paradas do apresentador, revelação por linha e foco por atenuação
+// (estudo/pesquisa/20-pitch-e-motion.md, tabela B.3 e regras C.2).
+//
+// Leitura mínima de um bloco: orientação (0,5 s; 1,0 s logo depois de câmera ou corte) + caracteres ÷ 12,5 +
+// 0,5 s por número com unidade; piso de 1,5 s (2,0 s com número).
+export function leitura(texto, opc = {}) {
+  const t = String(texto || "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+  const nums = (t.match(/(R\$\s?[\d.,]+(\s?(mi|mil|bi))?|[\d.,]+\s?%|\d+[.,]?\d*\s?(dias|semanas|meses|lojas|vezes|×|x)\b)/gi) || []).length;
+  const base = (opc.depoisDeCamera ? 1.0 : 0.5) + t.length / (opc.v || 12.5) + 0.5 * nums;
+  return Math.max(nums ? 2.0 : 1.5, base);
+}
+// Parada do apresentador: marco `nome` no tempo t. No modo assistir, a peça segue sozinha e a próxima batida
+// começa em t + hold (o tempo de leitura ou de pensar). No modo apresentar, a linha do tempo espera ali o →
+// (ou o espaço) e, ao seguir, pula direto para t + hold: a fala já ocupou esse tempo.
+export function parada(tl, ctx, nome, t, hold) {
+  tl.addLabel(nome, t);
+  (tl.paradas || (tl.paradas = [])).push({ nome, t, ate: t + hold });
+  tl.call(() => { if (ctx && ctx.esperar) ctx.esperar(tl, t, t + hold); }, null, t);
+}
+// Texto com quebras autorais (" / " ou "\n") em linhas com máscara: cada linha sobe de dentro de si mesma.
+export const linhas = (texto) => String(texto).split(/\s\/\s|\n/).map((l) => `<span class="l"><span>${l}</span></span>`).join("");
+// Revela as linhas de um ou mais elementos (montados com `linhas`): 0,6 s expo.out, 0,1 s entre linhas.
+// O elemento continua visível; cada linha fica escondida dentro da própria máscara (.l) até a sua vez.
+export function revelar(tl, els, t, dur = 0.6, cada = 0.1) {
+  const l = (els instanceof Element ? [els] : Array.from(els || [])).filter(Boolean);
+  const spans = l.flatMap((e) => Array.from(e.querySelectorAll(".l > span")));
+  if (!spans.length) { aparecer(tl, l, t, dur); return; }
+  tl.set(spans, { yPercent: 108 }, 0);
+  tl.fromTo(spans, { yPercent: 108 }, { yPercent: 0, duration: dur, ease: "expo.out", stagger: cada, immediateRender: false }, t);
+}
+// Esconde as linhas de volta (saída curta, 60% da entrada), para a mesma região receber outro texto.
+export function recolher(tl, els, t, dur = 0.35) {
+  const l = (els instanceof Element ? [els] : Array.from(els || [])).filter(Boolean);
+  const spans = l.flatMap((e) => Array.from(e.querySelectorAll(".l > span")));
+  if (!spans.length) { sumir(tl, l, t, dur); return; }
+  tl.to(spans, { yPercent: -108, duration: dur, ease: "power2.in", stagger: 0.04 }, t);
+}
+// Foco por atenuação: o que não é o assunto cai para `nivel` de opacidade; `focar` devolve ao normal.
+export const atenuar = (tl, els, t, nivel = 0.32, dur = 0.5) => { const l = [].concat(els).filter(Boolean); if (l.length) tl.to(l, { opacity: nivel, duration: dur, ease: "power2.out" }, t); };
+export const focar = (tl, els, t, dur = 0.4) => { const l = [].concat(els).filter(Boolean); if (l.length) tl.to(l, { opacity: 1, duration: dur, ease: "power2.out" }, t); };
+
+// ---------------------------------------------------------------------------------------------
 // Planos fixos da v2
 export const PLANO_FOLHA = { x: 0, y: 1.0, z: 3.35, tx: 0, ty: 0.80, tz: 0, fov: 30 };
 export const RET_FOLHA = { left: 190, top: 112, width: 1540, height: 880 };
