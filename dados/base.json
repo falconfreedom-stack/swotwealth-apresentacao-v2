@@ -916,10 +916,10 @@
  },
  "fin310": {
   "natureza": "Rede ILUSTRATIVA e independente de óticas em SP. Não é empresa real, não é case realizado. Valores provisórios; cada um marcado em 'origem' como F (fonte pública), E (estimativa) ou H (hipótese).",
-  "fonte_unica_pl": "Receita mensal, lojas, colaboradores e grandes linhas de custo vêm de estudo/modelo/top3_oticas.json (rede_p_l, A5), para que FIN8.2, FIN5.11 e FIN3.10 falem da mesma rede. Prazos, meios de pagamento, dívidas e caixa são deste arquivo.",
+  "fonte_unica_pl": "Lojas, colaboradores e grandes linhas de custo vêm de estudo/modelo/top3_oticas.json (rede_p_l, A5). A série mensal de vendas deste bloco segue, desde a versão 1.1.0, o índice da Abióptica levantado pelo A1 (soma de R$ 150,0 mi); o bloco rede_p_l ainda usa a série do A5 (dezembro R$ 15,6 mi), o que só importa se as duas séries aparecerem juntas. Prazos, meios de pagamento, dívidas e caixa são deste arquivo.",
   "parametros_externos": {
    "arquivo": "estudo/pesquisa/12-parametros.json",
-   "situacao": "não existia em 07/10/2026 durante a calibração; parâmetros de setor ficam nos blocos 'rede', 'cartao' e 'mercado' para o integrador reconciliar"
+   "situacao": "lido em 07/10/2026 na recalibração 1.1.0: parcelas, sazonalidade, compras por categoria e Res. BCB 562/2026; as demais premissas foram conferidas pelo A1 (10-setor-optico.md, seção 7) como confirmadas ou compatíveis"
   },
   "data_base": "2026-08-31",
   "dias_historico": 365,
@@ -987,18 +987,18 @@
    "colaboradores": 420,
    "ticket_medio_pedido": 760,
    "vendas_mensais": {
-    "01": 12200000,
-    "02": 11400000,
-    "03": 12300000,
-    "04": 11800000,
-    "05": 13000000,
-    "06": 11900000,
-    "07": 12000000,
-    "08": 12800000,
-    "09": 11600000,
-    "10": 12000000,
-    "11": 13400000,
-    "12": 15600000
+    "01": 13250000,
+    "02": 12125000,
+    "03": 12125000,
+    "04": 12250000,
+    "05": 12500000,
+    "06": 11750000,
+    "07": 12875000,
+    "08": 12250000,
+    "09": 12500000,
+    "10": 12125000,
+    "11": 12750000,
+    "12": 13500000
    },
    "crescimento_aa_pct": 0,
    "peso_dia_semana": [
@@ -1024,13 +1024,13 @@
    "parcelas_pct": {
     "2": 4,
     "3": 7,
-    "4": 5,
+    "4": 6,
     "5": 7,
-    "6": 10,
-    "7": 3,
-    "8": 6,
-    "9": 3,
-    "10": 55
+    "6": 15,
+    "7": 4,
+    "8": 8,
+    "9": 9,
+    "10": 40
    },
    "devolucoes_pct": 2.0
   },
@@ -1133,11 +1133,13 @@
    "folga_minima": 100000,
    "desconto_previsao_vendas_pct": 10,
    "movimento_alvo": 500000,
-   "descricao": "caixa único (conta e aplicação) com saldo mínimo; antecipação automática desligada; toda semana, no primeiro dia útil, a projeção dos 7 dias mostra o menor saldo; se ficar abaixo do mínimo, antecipa-se a diferença mais a folga, começando pelas parcelas livres que vencem primeiro depois da semana; se o saldo do dia ainda ficar abaixo do mínimo, antecipa-se no mesmo dia; recebíveis cedidos ao Banco B nunca são antecipados; a garantida é quitada no dia 1 e só volta a ser usada se não houver recebível livre"
+   "descricao": "caixa único (conta e aplicação) com saldo mínimo; pedido de cancelamento da antecipação automática no dia 1, efetivo em até 4 dias úteis e só para vendas novas (Res. BCB 562/2026); toda semana, no primeiro dia útil, a projeção dos 7 dias mostra o menor saldo; se ficar abaixo do mínimo, antecipa-se a diferença mais a folga, começando pelas parcelas livres que vencem primeiro depois da semana; se o saldo do dia ainda ficar abaixo do mínimo, antecipa-se no mesmo dia; recebíveis cedidos ao Banco B nunca são antecipados; a garantida é quitada no dia 1 e só volta a ser usada se não houver recebível livre",
+   "cancelamento_automatica_dias_uteis": 4
   },
   "saidas": {
    "armacoes": {
-    "pct_vendas": 9.6,
+    "descricao": "armações de grau e óculos de sol (mesmos distribuidores e importadores)",
+    "pct_vendas": 11.5,
     "compra_meses_antes": 1,
     "dia_compra": 10,
     "parcelas_meses": [
@@ -1147,7 +1149,8 @@
     ]
    },
    "lentes_blocos": {
-    "pct_vendas": 11.1,
+    "descricao": "lentes oftálmicas e blocos para o laboratório (fabricantes)",
+    "pct_vendas": 7.9,
     "dia": 15,
     "parcelas_meses": [
      1,
@@ -1155,14 +1158,16 @@
     ]
    },
    "laboratorios_terceiros": {
+    "descricao": "laboratórios terceiros (surfaçagem e montagem de lentes especiais)",
     "pct_vendas": 2.95,
     "dia": 10,
     "parcelas_meses": [
      1
     ]
    },
-   "lc_solares_acessorios": {
-    "pct_vendas": 2.5,
+   "lentes_contato_acessorios": {
+    "descricao": "lentes de contato e acessórios (distribuidores)",
+    "pct_vendas": 3.8,
     "dia": 28,
     "parcelas_meses": [
      1
@@ -1227,7 +1232,7 @@
     "queda_pct": 15
    },
    "parcelas": {
-    "titulo": "mais parcelas: +15 pontos de venda parcelada em 10x nas 13 semanas",
+    "titulo": "mais parcelas: 10x passa de 40% para 55% do valor parcelado nas 13 semanas",
     "pp_para_10x": 15
    },
    "concentrados": {
@@ -1300,7 +1305,8 @@
    },
    "rede.vendas_mensais": {
     "o": "E",
-    "fonte": "série mensal da rede ilustrativa do A5 (top3_oticas.json, rede_p_l), set/2025 a ago/2026; repetida sem crescimento para set/2026 a ago/2027"
+    "fonte": "índice mensal do A1 (12-parametros.json, sazonalidade_indice_mensal: série nacional da Abióptica 2025 com ajuste para shopping) × R$ 12,5 mi; soma R$ 150,0 mi; repetida de set/2026 a ago/2027",
+    "nota": "substitui a série do A5 (dezembro 1,25; janeiro 0,98): janeiro foi o mês mais forte em 2025 e 2026 e o 4º trimestre ficou na média"
    },
    "rede.lojas": {
     "o": "E",
@@ -1316,11 +1322,11 @@
    },
    "rede.mix_pct": {
     "o": "H",
-    "nota": "crédito parcelado dominante (até 10x sem juros); a confirmar com A1 e com a agenda real"
+    "nota": "crédito parcelado dominante (até 10x sem juros). O A1 propõe 55/10/7/20/3 + 5% de crediário e convênios e julga o 58/12/8/18/4 do modelo compatível; crediário próprio fica como variante não modelada"
    },
    "rede.parcelas_pct": {
     "o": "H",
-    "nota": "por valor; 10x concentra a venda de lentes multifocais e armações de grife"
+    "nota": "central do A1: 40% em 10x, média 7,51 (antes 55% e 7,90); ancorado em ABECS 1T26 (7–12x = 35,4% do parcelado sem juros) e BCB 1T26 (segmento 421: 7+ = 48,9% do parcelado). A cauda de 11x e 12x do A1 (5%) foi redistribuída em 7x a 9x porque a rede anuncia até 10x sem juros. Sensibilidade de 6,5 a 7,9 parcelas na memória"
    },
    "rede.devolucoes_pct": {
     "o": "E",
@@ -1377,20 +1383,16 @@
     "o": "H"
    },
    "saidas.armacoes": {
-    "o": "E",
-    "nota": "A5 pagou R$ 15,2 mi em armações em 12 meses (com estoque de lojas novas); prazos 30/60/90 (H)"
+    "o": "E/H",
+    "nota": "armações de grau (25% da receita, A1) e óculos de sol (18%) compram-se dos mesmos distribuidores: 11,5% da venda, custo ≈ 27% da receita das duas categorias; compra um mês antes; 30/60/90 (H)"
    },
    "saidas.lentes_blocos": {
-    "o": "E",
-    "nota": "A5: R$ 17,4 mi em 12 meses; prazo 30/60 (H)"
+    "o": "E/H",
+    "nota": "lentes oftálmicas = 45% da receita (A1): blocos e lentes de fabricantes 7,9% + laboratórios terceiros 2,95% = 24% da receita de lentes (markup ≈ 4×; o A1 cita até 6× em lentes, P); 30/60 (H)"
    },
    "saidas.laboratorios_terceiros": {
     "o": "E",
     "nota": "A5: R$ 4,6 mi; fatura mensal (H)"
-   },
-   "saidas.lc_solares_acessorios": {
-    "o": "E",
-    "nota": "A5: R$ 3,9 mi"
    },
    "saidas.folha": {
     "o": "E",
@@ -1410,7 +1412,7 @@
    },
    "saidas.tributos_vendas": {
     "o": "H",
-    "nota": "21% da receita bruta (ICMS e PIS/COFINS líquidos de créditos), dentro dos 23% de deduções do A5"
+    "nota": "21% da receita bruta (ICMS 14,5% e PIS/COFINS 6,5% líquidos de créditos), dentro dos 23% de deduções do A5; o A1 estima 19% (faixa 14–22%) e julga 21% compatível com a ponta alta"
    },
    "saidas.ir_cs_pct_vendas": {
     "o": "H",
@@ -1429,8 +1431,22 @@
    "exemplo_venda": {
     "o": "H",
     "nota": "preço ilustrativo de um par com lentes multifocais"
+   },
+   "saidas.lentes_contato_acessorios": {
+    "o": "E/H",
+    "nota": "lentes de contato = 8% da receita (A1) a custo ≈ 44%, mais acessórios: 3,8% da venda; 30 dias (H). Total de compras mantido em 26,15% da venda (A1: CMV ≈ 27%, confirma). O A5 classificou R$ 3,9 mi como 'LC, solares e acessórios' nos pagamentos do FIN5.11; com o mix do A1 essa linha ficaria em ~R$ 5,7 mi e os solares migram para armações"
+   },
+   "plano.cancelamento_automatica_dias_uteis": {
+    "o": "F",
+    "fonte": "Res. BCB 264/2022, art. 7º, na redação da Res. BCB 562 de 30/04/2026 (vigência 11/05/2026): cancelamento da antecipação pré-contratada em até 4 dias úteis após o pedido, só para recebíveis de transações posteriores; antes, Res. BCB 514/2025 (2 dias úteis) e 349/2023 (A1, 10-setor-optico.md, seção 5.1)"
    }
-  }
+  },
+  "recalibracao_1_1_0": [
+   "parcelas: central com 40% do valor parcelado em 10x e média de 7,51 parcelas (antes 55% e 7,90), ancorado em ABECS e BCB via A1",
+   "sazonalidade: índice mensal da Abióptica levantado pelo A1 (janeiro 1,06; dezembro 1,08; quarto trimestre perto da média), R$ 150 mi no ano; datas comerciais mantidas",
+   "compras por categoria: solares junto com armações (mesmos fornecedores) e lentes de contato com peso coerente com 8% da receita; total de compras mantido em 26,15% da venda",
+   "antecipação automática: cancelamento em até 4 dias úteis e só para vendas novas (Res. BCB 562/2026)"
+  ]
  },
  "conferencia": {
   "origem": "C",

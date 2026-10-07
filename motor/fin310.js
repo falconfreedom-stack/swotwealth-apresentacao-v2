@@ -12,9 +12,11 @@
 //  · Aplicação: rende X% do CDI por dia útil sobre o saldo de abertura.
 //  · Todo valor anual sai da simulação diária de 365 dias (01/09/2026 a 31/08/2027). As 13 semanas são os 91 primeiros dias
 //    da mesma simulação. Nenhum valor anual é obtido multiplicando 13 semanas.
+//  · Desligar a antecipação automática (Res. BCB 264/2022, art. 7º, na redação da Res. BCB 562/2026): a credenciadora tem até
+//    4 dias úteis após o pedido, e o cancelamento vale só para vendas posteriores; as vendas até lá seguem antecipadas.
 //  · R$ nominais, antes de IR/CSLL.
 
-export const VERSAO = "1.0.0";
+export const VERSAO = "1.1.0";
 
 // ================================================================================================ números e datas
 const DIA_MS = 86400000;
@@ -133,7 +135,10 @@ export function prepararContexto(base) {
     for (const d of dias) plano.set(d.n, d.total);
     mensalPlano.set(chaveMes(x.a, x.m), soma(dias, (d) => d.total));
   }
-  return { base, cal, nDB, n0, n1, nh0, nP, nFimProj: n0 + base.dias_projecao - 1, plano, mensalPlano, nMdrDesde: serial(base.cartao.mdr_divergencia_desde) };
+  // última venda ainda antecipada automaticamente depois do pedido de cancelamento feito em nP (Res. BCB 562/2026: até 4 dias úteis)
+  let nFimAuto = nP - 1;
+  for (let k = 0, n = nP; k < (base.plano.cancelamento_automatica_dias_uteis || 0); ) { n++; if (cal.util(n)) { k++; nFimAuto = n; } }
+  return { base, cal, nDB, n0, n1, nh0, nP, nFimAuto, nFimProj: n0 + base.dias_projecao - 1, plano, mensalPlano, nMdrDesde: serial(base.cartao.mdr_divergencia_desde) };
 }
 
 // Venda real do cenário (com estresse), dividida por meio de pagamento.
@@ -180,7 +185,7 @@ function gerarURs(ctx, cen, vendas) {
 
 // ================================================================================================ contas a pagar
 const GRUPO = {
-  armacoes: "fornecedores", lentes_blocos: "fornecedores", laboratorios_terceiros: "fornecedores", lc_solares_acessorios: "fornecedores",
+  armacoes: "fornecedores", lentes_blocos: "fornecedores", laboratorios_terceiros: "fornecedores", lentes_contato_acessorios: "fornecedores",
   salarios: "folha", decimo_terceiro: "folha", encargos: "folha", beneficios: "folha",
   ocupacao: "ocupacao", marketing: "outras", servicos: "outras", capex: "outras",
   icms: "impostos", pis_cofins: "impostos", ir_cs: "impostos", tarifas: "financeiro",
@@ -204,7 +209,7 @@ function gerarObrigacoes(ctx, cen, vendas) {
     const compra = S.armacoes.pct_vendas / 100 * planoM(a, m + S.armacoes.compra_meses_antes) * (conc ? e.fator_compras : 1);
     const parcA = conc ? e.parcelas_meses : S.armacoes.parcelas_meses;
     for (const j of parcA) add(cal.prox(dataDe(a, m + j, S.armacoes.dia_compra)), compra / parcA.length, "armacoes");
-    for (const nat of ["lentes_blocos", "laboratorios_terceiros", "lc_solares_acessorios"]) {
+    for (const nat of ["lentes_blocos", "laboratorios_terceiros", "lentes_contato_acessorios"]) {
       const it = S[nat], tot = it.pct_vendas / 100 * vReal;
       for (const j of it.parcelas_meses) add(cal.prox(dataDe(a, m + j, it.dia)), tot / it.parcelas_meses.length, nat);
     }
@@ -280,7 +285,8 @@ export function simular(base, cen, ctxIn, janela) {
   for (const d of dividas) for (const p of d.parcelas) if (p.vence >= n0 && p.vence <= n1) { if (!parcDiv.has(p.vence)) parcDiv.set(p.vence, []); parcDiv.get(p.vence).push({ ...p, id: d.id }); }
   const fAuto = C.antecipacao_automatica, Y = fAuto.pct_da_parte_livre / 100;
   const fPedido = cen.fontePedido === "cotada" ? C.antecipacao_cotada : cen.fontePedido === "banco_iof" ? C.antecipacao_cotada_banco_com_iof : C.antecipacao_por_pedido_credenciadora;
-  const planoTes = cen.tesouraria === "plano", autoLigada = (t) => cen.antecipacao === "automatica" || t < nP;
+  // a automática vale para a venda s se o cenário a mantém ou se a venda é anterior à efetivação do cancelamento
+  const planoTes = cen.tesouraria === "plano", autoLigada = (s) => cen.antecipacao === "automatica" || s <= ctx.nFimAuto;
   const rendDia = (Math.pow(1 + base.mercado.cdi_aa / 100, 1 / 252) - 1) * Cx.aplicacao_pct_cdi / 100;
   const gJ = G.taxa_am / 100 / 30, gIofD = G.iof ? iofP.diario_pct / 100 : 0, gIofA = G.iof ? iofP.adicional_pct / 100 : 0;
   const des = P.desconto_previsao_vendas_pct / 100, mx = base.rede.mix_pct, devol = base.rede.devolucoes_pct / 100;
@@ -356,7 +362,7 @@ export function simular(base, cen, ctxIn, janela) {
       if (t === cal.nUtil(pt.a, pt.m, 1)) { sai.garantida_juros += acJ; sai.garantida_iof += acI; acJ = 0; acI = 0; }
       // antecipação automática (D+1 útil) das vendas até ontem
       for (; sAuto < t; sAuto++) {
-        if (!autoLigada(t)) continue;
+        if (!autoLigada(sAuto)) continue;
         for (const i of porVenda.get(sAuto) || []) {
           const u = urs[i], x = Y * u.livre - u.ant; if (x <= 0.005) continue;
           const dias = u.vence - t, fJ = fAuto.taxa_am / 100 * dias / 30;
@@ -623,15 +629,15 @@ export function calcularFin310(base) {
     { id: "garantida", ordem: 1, titulo: "Juntar conta e aplicação num caixa só e quitar a conta garantida com o caixa parado",
       tipo: "economia anual estimada de custo financeiro", valor_anual: v(0), decomposicao: dCG,
       quem_decide: "empresa", quem_executa: "tesouraria (resgate da aplicação e amortização no Banco A)", prazo: "semana 1",
-      condicao: "o contrato da garantida não cobra multa nem tarifa por não uso; o limite continua aberto para emergência",
+      condicao: "a aplicação não está presa (garantia, covenant de caixa mínimo ou outro CNPJ); o contrato da garantida não cobra multa nem tarifa por não uso; o limite continua aberto para emergência",
       efeitos_balanco: [{ tipo: "redução de dívida (principal não é ganho)", valor: G.sacado_data_base }],
       memoria: `Hoje a garantida do Banco A fica sacada em média ${f.mi(H.caixa.garantida_media, 2)} (máximo ${f.mi(H.caixa.garantida_max, 2)}), a ${f.pct(G.taxa_am)} a.m. mais IOF de 0,0082% ao dia e 0,38% sobre cada novo saque: ${f.mil(H.rf.juros_garantida)} de juros e ${f.mil(H.rf.iof_garantida)} de IOF em 12 meses. Na mesma época a aplicação tem saldo médio de ${f.mi(H.caixa.aplicacao_media)} a ${base.caixa.aplicacao_pct_cdi}% do CDI; em ${H.caixa.dias_com_aplicacao_e_garantida} dos 365 dias havia dinheiro aplicado e garantida sacada ao mesmo tempo. Com caixa único e a garantida quitada em 1º/09 (${f.mi(G.sacado_data_base, 1)} de principal, pago com caixa que já era da rede), juros e IOF caem ${f.mil(dCG.juros_garantida + dCG.iof_garantida)} e o rendimento cai ${f.mil(-dCG.rendimento_perdido)}. Economia = ${f.mil(v(0))} por ano.` },
     { id: "pedido", ordem: 2, titulo: "Desligar a antecipação automática e antecipar só por pedido, pela regra do saldo mínimo",
       tipo: "economia anual estimada de custo financeiro", valor_anual: v(1), decomposicao: dPed,
-      quem_decide: "empresa", quem_executa: "tesouraria; a credenciadora processa o desligamento (Res. BCB 264/2022, alterada pela 349/2023)", prazo: "semanas 1 e 2",
-      condicao: "o contrato não amarra a taxa de MDR à antecipação automática; a tesouraria roda a projeção toda semana",
+      quem_decide: "empresa", quem_executa: `tesouraria pede o cancelamento à credenciadora (ou pela registradora, por outro participante autorizado); a credenciadora tem até ${P.cancelamento_automatica_dias_uteis || 0} dias úteis (Res. BCB 264/2022, art. 7º, na redação da Res. BCB 562/2026; antes, Res. 349/2023 e 514/2025)`, prazo: "semanas 1 e 2",
+      condicao: `pedido na semana 1; o cancelamento só alcança vendas novas (as feitas até ${dataBR(iso(ctx.nFimAuto))} seguem antecipadas); o contrato não amarra a taxa de MDR à antecipação automática; a tesouraria roda a projeção toda semana`,
       efeitos_balanco: [{ tipo: "caixa médio usado no lugar de antecipação (não é ganho)", valor: S.s1.caixa.medio - S.s2.caixa.medio }, { tipo: "recebíveis que deixam de ser vendidos, em média (chegam na data original)", valor: S.s1.antecipacao.estoque_medio_face - S.s2.antecipacao.estoque_medio_face }],
-      memoria: `Hoje a credenciadora antecipa ${C.antecipacao_automatica.pct_da_parte_livre}% da parte livre de toda venda no crédito no dia útil seguinte, inclusive a 10ª parcela: ${f.mi(S.s1.antecipacao.face)} de agenda vendida em 12 meses, com prazo médio de ${f.n(S.s1.antecipacao.prazo_medio_dias)} dias e ${f.mi(S.s1.antecipacao.custo, 2)} de desconto a ${f.pct(C.antecipacao_automatica.taxa_am)} a.m. Com a regra (saldo mínimo de ${f.mi(P.saldo_minimo)}; antecipar só na semana em que a projeção mostra falta, a diferença mais ${P.folga_pct}%, começando pelas parcelas livres que vencem primeiro), a rede antecipa ${f.mi(S.s2.antecipacao.face)} com prazo médio de ${f.n(S.s2.antecipacao.prazo_medio_dias)} dias e paga ${f.mi(S.s2.antecipacao.custo, 2)}. O caixa médio desce de ${f.mi(S.s1.caixa.medio)} para ${f.mi(S.s2.caixa.medio)} e o rendimento cai ${f.mil(-dPed.rendimento_perdido)}. Economia = ${f.mil(dPed.antecipacao)} − ${f.mil(-dPed.rendimento_perdido)}${Math.abs(dPed.juros_garantida + dPed.iof_garantida) > 500 ? ` ${dPed.juros_garantida + dPed.iof_garantida >= 0 ? "+" : "−"} ${f.mil(Math.abs(dPed.juros_garantida + dPed.iof_garantida))} de garantida` : ""} = ${f.mil(v(1))} por ano.` },
+      memoria: `Hoje a credenciadora antecipa ${C.antecipacao_automatica.pct_da_parte_livre}% da parte livre de toda venda no crédito no dia útil seguinte, inclusive a última parcela: ${f.mi(S.s1.antecipacao.face)} de agenda vendida em 12 meses, com prazo médio de ${f.n(S.s1.antecipacao.prazo_medio_dias)} dias e ${f.mi(S.s1.antecipacao.custo, 2)} de desconto a ${f.pct(C.antecipacao_automatica.taxa_am)} a.m. Pedido o cancelamento em ${dataBR(iso(ctx.nP))}, as vendas até ${dataBR(iso(ctx.nFimAuto))} ainda são antecipadas (Res. BCB 562/2026). Daí em diante, com a regra (saldo mínimo de ${f.mi(P.saldo_minimo)}; antecipar só na semana em que a projeção mostra falta, a diferença mais ${P.folga_pct}%, começando pelas parcelas livres que vencem primeiro), a rede antecipa ${f.mi(S.s2.antecipacao.face)} com prazo médio de ${f.n(S.s2.antecipacao.prazo_medio_dias)} dias e paga ${f.mi(S.s2.antecipacao.custo, 2)}. O caixa médio desce de ${f.mi(S.s1.caixa.medio)} para ${f.mi(S.s2.caixa.medio)} e o rendimento cai ${f.mil(-dPed.rendimento_perdido)}. Economia = ${f.mil(dPed.antecipacao)} − ${f.mil(-dPed.rendimento_perdido)}${Math.abs(dPed.juros_garantida + dPed.iof_garantida) > 500 ? ` ${dPed.juros_garantida + dPed.iof_garantida >= 0 ? "+" : "−"} ${f.mil(Math.abs(dPed.juros_garantida + dPed.iof_garantida))} de garantida` : ""} = ${f.mil(v(1))} por ano.` },
     { id: "cotar", ordem: 3, titulo: "Cotar a antecipação que continua necessária com outros financiadores pela registradora",
       tipo: "economia anual estimada de custo financeiro", valor_anual: v(2), decomposicao: dCot,
       quem_decide: "financiadores (bancos, FIDCs) ou a credenciadora, ao cobrir a cotação", quem_executa: "tesouraria, com as cotações", prazo: "semanas 2 a 6",

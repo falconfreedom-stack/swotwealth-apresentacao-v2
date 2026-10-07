@@ -6,7 +6,7 @@
 :root{
   --noite:#040A07; --verde:#1F3A2F; --verde-c:#2E5A48; --ouro:#C8A45A; --ouro-e:#9C7B38; --marfim:#F3EEE1;
   --papel:#FAFAF8; --grafite:#111; --cinza:#6B6B6B; --fio:rgba(17,17,17,.09); --risco:#9A3B2E;
-  --m2:rgba(243,238,225,.70); --m3:rgba(243,238,225,.48);
+  --m2:rgba(243,238,225,.70); --m3:rgba(243,238,225,.56);
   --disp:'Inter Tight','Inter',system-ui,sans-serif; --texto:'Inter',system-ui,sans-serif;
 }
 *{box-sizing:border-box;margin:0;padding:0}

@@ -89,7 +89,8 @@ export function segregacao(base) {
 }
 
 // ------------------------------------------------------------------------------------------ impressão digital
-// FNV-1a de 32 bits sobre a base em JSON canônico (a mesma conta no Node e no navegador).
+// FNV-1a de 32 bits sobre o bloco do FIN3.10 em JSON canônico (a mesma conta no Node e no navegador): só ele
+// alimenta dados/calculado.json, então mudanças nos outros blocos da base não invalidam o cálculo gravado.
 export function impressao(base) {
   const s = JSON.stringify(base);
   let h = 0x811c9dc5;
@@ -101,7 +102,7 @@ export function impressao(base) {
 // `calculado` (opcional) = conteúdo de dados/calculado.json; vale se a impressão digital bater com a base.
 export function calcular(base, calculado) {
   let fin310;
-  if (calculado && calculado.impressao === impressao(base) && calculado.fin310) fin310 = calculado.fin310;
+  if (calculado && calculado.impressao === impressao(base.fin310) && calculado.fin310) fin310 = calculado.fin310;
   else {
     if (calculado) console.warn("dados/calculado.json não corresponde à base: o FIN3.10 foi calculado agora (rode `node motor/gerar.mjs`).");
     fin310 = JSON.parse(JSON.stringify(calcularFin310(base.fin310)));
