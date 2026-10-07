@@ -53,9 +53,9 @@ export function top3Cena(c, ctx) {
   // à fila e a peça segue para o formulário do projeto escolhido
   tl.saida = (n) => {
     tl.pause();
-    const s = gsap().timeline(), k = n - 1;
+    const s = gsap().timeline(), k = n ? n - 1 : -1;
     s.to(cartoes.filter((_, j) => j !== k), { opacity: 0, duration: 0.5 }, 0);
-    s.to(cartoes[k], { opacity: 1, duration: 0.4 }, 0);
+    if (cartoes[k]) s.to(cartoes[k], { opacity: 1, duration: 0.4 }, 0);
     [0, 1, 2].forEach((j) => s.to(M.laminas[j], { a: j === k ? 1 : 0, duration: 0.6 }, 0));
     s.to([...c.querySelectorAll(".topo"), q(".dica-escolha")], { opacity: 0, duration: 0.4 }, 0);
     M.irPara(s, "top3", 1.2, 0.05, {}, "power3.inOut");
