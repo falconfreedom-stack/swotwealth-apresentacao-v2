@@ -60,7 +60,7 @@ export function projeto3(base, R, proj, dataBase) {
         { l: `Aplicação em ${dm(dataBaseIso)}`, v: mi(B.caixa.aplicacao_data_base) }, { l: "Rendimento da aplicação", v: `${B.caixa.aplicacao_pct_cdi}% do CDI` },
         { l: "Conta garantida sacada", v: mi(G.sacado_data_base) }, { l: "Limite da conta garantida", v: mi(G.limite) } ] },
       { titulo: "Agenda da credenciadora", origem: "portal da credenciadora", campos: [
-        { l: "Vendas no crédito por mês", v: mi(Z.rede.venda_credito_ano / 12) },
+        { l: "Vendas no crédito por mês", v: mi(Math.round(Z.rede.venda_credito_ano / 12), 2) },
         { l: "Antecipação automática", v: `${cart.antecipacao_automatica.pct_da_parte_livre}% da agenda livre` },
         { l: "Taxa de antecipação", v: `${pc(cart.antecipacao_automatica.taxa_am, 2)} ao mês` }, { l: "Cedido ao Banco B (trava)", v: `${cart.trava_banco_b_pct}%`, t: "texto" },
         { l: "MDR em 7 a 10x, no contrato", v: pc(cart.mdr_contratado_pct.credito_7_10x, 2) }, { l: "MDR em 7 a 10x, no extrato", v: pc(cart.mdr_cobrado_pct.credito_7_10x, 2) } ] },
@@ -110,7 +110,7 @@ export function projeto3(base, R, proj, dataBase) {
     antecipacao: { rotulo: `${pc(cart.antecipacao_automatica.taxa_am, 2)} ao mês de desconto = ${pc(an.hoje.taxa_efetiva_aa)} ao ano efetivos`,
       legenda: `${maiorCusto.id === "antecipacao" ? "A maior fonte" : "Uma das maiores fontes"}: a agenda antecipada / no dia seguinte a cada venda.` },
     sobreposicao: { valida: cp.dias_com_aplicacao_e_garantida >= 30,
-      garantida: `garantida · ${pc(fGar.taxa_efetiva_aa)} ao ano`, aplicacao: `aplicação · ${pc(H.aplicacao.taxa_aa)} ao ano`,
+      garantida: `garantida · ${pc(fGar.taxa_efetiva_aa)} ao ano, com IOF`, aplicacao: `aplicação · ${pc(H.aplicacao.taxa_aa)} ao ano`,
       titulo: `${cp.dias_com_aplicacao_e_garantida} dias: / aplicação e garantida juntas.`,
       // a ressalva é obrigatória (persona, cena 6, risco alto): fica na tela nos dois modos
       ressalva: "Pode haver razão: reserva, covenant, CNPJs. / O cruzamento mostra o custo." },
@@ -129,19 +129,19 @@ export function projeto3(base, R, proj, dataBase) {
   const mdrDesde = MES_LONGO[Number(String(cart.mdr_divergencia_desde || "2026-03").slice(5, 7)) - 1];
   const conta = {
     revela: "O que a lente revela",
-    origem: `${mi(somaAcoes(["pedido", "cotar", "mdr"]), 2)} saem dos ${mi(H.custo_converter_vendas_anual, 2)} · ${mi(somaAcoes(["garantida"]), 2)}, dos juros da garantida`,
+    origem: `${mi(somaAcoes(["pedido", "cotar", "mdr"]), 2)} vêm dos ${mi(H.custo_converter_vendas_anual, 2)}, já descontado o rendimento menor · ${mi(somaAcoes(["garantida"]), 2)}, da garantida (juros e IOF)`,
     condicaoGarantida: "se contratos, covenants e CNPJs permitirem",
     notaCotar: `referência: bancos, ${pc(B.mercado.bcb_antecipacao_cartao_am, 2)} ao mês em média (BCB, ago/26); ofertas comerciais de ~${pc(ofertas.min, 1)} a ~${pc(ofertas.max, 1)} ao mês; não é cotação`,
     numero: tot.economia_anual_estimada, numeroFmt: (v) => mi(v, 2), porAno: "por ano",
     natureza: "economia estimada, se o plano for executado",
     decisoes: "Quatro decisões. / De quem depende cada uma.",
     acoes: Z.acoes.map((a) => ({ id: a.id, t: DECISAO[a.id] || a.titulo, v: a.valor_anual, grupo: a.quem_decide === "empresa" ? "empresa" : a.quem_decide === "credenciadora" ? "credenciadora" : "financiadores" })),
-    grupos: [["empresa", `só da empresa · ${mi(qd.empresa, 2)}`], ["financiadores", `de financiadores · ${mi(qd.financiadores, 2)}`], ["credenciadora", `da credenciadora · ${mi(qd.credenciadora, 2)}`]],
+    grupos: [["empresa", `só da empresa · ${mil(qd.empresa)}`], ["financiadores", `de financiadores · ${mil(qd.financiadores)}`], ["credenciadora", `da credenciadora · ${mil(qd.credenciadora)}`]],
     totalRot: `${mi(tot.economia_anual_estimada, 2)} · por ano, estimada`,
     ladrilhos: [
       { tipo: "estimada", v: `${mi(tot.economia_anual_estimada, 2)} por ano`, t: "economia estimada" },
       { tipo: "uma-vez", v: `${mil(Z.recuperacaoMdr.valor)}, uma vez`, t: `diferença de MDR desde ${mdrDesde}, a contestar` },
-      { tipo: "nao-ganho", v: `${mi(tot.por_tipo["caixa liberado / redução de dívida"].garantida_quitada, 1)} + ${mi(tot.por_tipo["caixa liberado / redução de dívida"].caixa_medio_usado, 1)}`, t: "não são ganho: dívida quitada e caixa médio menor" },
+      { tipo: "nao-ganho", v: `${mi(tot.por_tipo["caixa liberado / redução de dívida"].garantida_quitada, 1)} · ${F.n(tot.por_tipo["caixa liberado / redução de dívida"].caixa_medio_usado / 1e6, 1)} mi`, t: "não são ganho: dívida quitada · caixa médio menor (já inclui a quitação)" },
     ],
   };
 
@@ -162,7 +162,7 @@ export function projeto3(base, R, proj, dataBase) {
       leg: ev.respeita_minimo && !(ev.garantida_max_13s > 0) ? "O caixa segue acima do mínimo, sem conta garantida." : "O caixa fica perto do mínimo." },
     natal: { serie: ec.semanas_min, minimo: ec.minimo_13s, legenda: "13º e Natal juntos",
       titulo: `13º e Natal juntos: / + ${mi(ec.antecipado_a_mais_13s, 2)} antecipados.`,
-      leg: ec.respeita_minimo ? "O mínimo se mantém." : "O mínimo fica no limite." },
+      leg: ec.respeita_minimo ? "13º inteiro em novembro e compras de Natal à vista: o mínimo se mantém." : "13º inteiro em novembro e compras de Natal à vista: o mínimo fica no limite." },
     serieRot: "com a regra", regra,
   };
 
@@ -176,7 +176,7 @@ export function projeto3(base, R, proj, dataBase) {
     { id: "fontes", titulo: `A rede paga ${mi(H.custo_dinheiro_anual, 2)} por ano pelo dinheiro que usa.`, tituloL: `A rede paga ${mi(H.custo_dinheiro_anual, 2)} por ano / pelo dinheiro que usa.`,
       sub: `Largura: saldo médio. Altura: taxa efetiva ao ano. A maior fonte é a antecipação automática: ${mi(an.custo_anual_hoje, 2)} por ano.`,
       fontes: fontesGraf, rendimento: H.aplicacao.taxa_aa, rendimentoRot: "rende a aplicação", destaque: "antecipacao", custoRot: (v) => mi(v, 2) },
-    { id: "hoje", titulo: `Em ${cp.dias_com_aplicacao_e_garantida} dias do ano, havia dinheiro aplicado e conta garantida sacada ao mesmo tempo.`, tituloL: `Aplicação a ${pc(H.aplicacao.taxa_aa)}, / garantida a ${pc(fGar.taxa_efetiva_aa)}.`,
+    { id: "hoje", titulo: `Em ${cp.dias_com_aplicacao_e_garantida} dias do ano, havia dinheiro aplicado e conta garantida sacada ao mesmo tempo.`, tituloL: `Aplicação a ${pc(H.aplicacao.taxa_aa)}, / garantida a ${pc(fGar.taxa_efetiva_aa)} com IOF.`,
       sub: `Nas 13 semanas, o caixa nunca desce de ${miA(minHoje)} e a garantida chega a ${miA(P13.hoje.garantida_max)}. Pode haver razão: reserva mínima, covenant, CNPJs separados.`,
       semanas: P13.hoje.semanas.map((w) => w.saldo_minimo), garantida: P13.hoje.semanas.map((w) => w.garantida_max),
       linha: regra, linhaRot: `saldo mínimo de referência · ${mi(regra, 0)}`, semanaRot: "sem.", serieRot: "caixa mínimo da semana", ladoRot: "garantida sacada (máximo)",
@@ -236,7 +236,7 @@ export function projeto3(base, R, proj, dataBase) {
         linhas: [...linhasMapa, ["total", mi(H.saldo_medio_total, 1), pc(H.taxa_media_ponderada_aa), mi(H.custo_dinheiro_anual, 2)]] },
     ],
     planilha: { titulo: "projecao_13_semanas.xlsx", cab: ["semana", "hoje", "com a regra", `vendas −${quedaVendas}%`],
-      linhas: P13.hoje.semanas.map((w, i) => [`${i + 1}`, mi(w.saldo_minimo), mi(P13.plano.semanas[i].saldo_minimo), mi(ev.semanas_min[i])]) },
+      linhas: P13.hoje.semanas.map((w, i) => [`${i + 1}`, mi(w.saldo_minimo, 2), mi(P13.plano.semanas[i].saldo_minimo, 2), mi(ev.semanas_min[i], 2)]) },
     // compatibilidade com as peças antigas de js/cenas/comum.js (PECAS, htmlPeca, LEGENDAS)
     legendas: { f0: ["O plano", "Cada ação com o valor estimado, de quem depende e quando."], f1: ["A regra", "Saldo mínimo e antecipação por pedido, prontos para aprovar."] },
     painel: { titulo: "Saldo semanal", tipo: "semanas", valores: P13.plano.semanas.map((w) => w.saldo_minimo), linha: regra },

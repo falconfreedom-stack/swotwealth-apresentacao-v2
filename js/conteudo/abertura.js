@@ -37,7 +37,7 @@ export function ABERTURA(base, R) {
       // 1.2
       ciclo: `Paga em ${mesesLente === 1 ? "um mês" : `${EXTENSO[mesesLente]} meses`}. / Recebe em ${EXTENSO[n] || n}.`,
       mesLente: mesesLente, rotLente: "lente paga", rotUltima: "última parcela",
-      legCiclo: `A lente é paga em cerca de ${30 * mesesLente} dias; / a última parcela chega em ${diasUltima}.`,
+      legCiclo: `A lente é paga em 30 e 60 dias; / a última parcela chega em ${diasUltima}.`,
       // 1.3
       antecipa: "Para ter hoje, / a rede antecipa.",
       legAntecipa: "Cada parcela volta do futuro com desconto: / quanto mais longe, maior.",

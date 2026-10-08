@@ -293,7 +293,7 @@ export function montarQuadro(qd, c, M, G, specs, rots, linhas, matriz) {
     const tot = qd.partes.reduce((s, p) => s + p[1], 0), L = 2.1, sx = L / tot;
     let x = -1.05;
     qd.partes.forEach(([t, v], i) => { const w = v * sx; bar({ x: x + w / 2, y0: 0.34, h: 0.2, w, cor: i ? "ouro" : "marfim", cheio: 0.75, hor: true, topo: 0 }); lab(P(x + (i ? w - 0.02 : 0.02), 0.6), `val ${i ? "d ouro" : "e"}`, `<b class="num">R$ ${r1(v)} mi</b><span>${t}</span>`, 0, -10); x += w; });
-    lab(P(-1.05, 0.26), "cat e", `${F.n(tot / 1e6, 1)} milhões pagos a fornecedores em doze meses`, 0, 10);
+    lab(P(-1.05, 0.26), "cat e", `R$ ${F.n(tot / 1e6, 1)} milhões pagos a fornecedores em doze meses`, 0, 10);
     S.plano = { x: 0.0, y: 0.5, dist: 4.4, fov: 20, alt: 0.3 };
   }
   const regua = (xa, xb, plano, dy) => { const m = lab(P((xa + xb) / 2, 0), "regua c", "", 0, dy); m.style.width = `${Math.round((xb - xa + 0.12) * M.pxPorUnidade(plano.dist, plano.fov))}px`; };

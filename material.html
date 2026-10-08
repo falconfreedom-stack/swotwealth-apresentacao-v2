@@ -57,7 +57,7 @@ const calculado = await fetch("dados/calculado.json", { cache: "no-store" }).the
 const R = motor.calcular(base, calculado);
 const C = conteudo(base, R, n);
 const E = C.entregavel;
-const mi = (v) => `R$ ${F.n(v / 1e6, 1)} mi`;
+const mi = (v) => `R$ ${F.n(v / 1e6, Math.abs(v) >= 10e6 ? 1 : 2)} mi`;          // duas casas abaixo de R$ 10 mi, como na tela
 const semTag = (x) => String(x ?? "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
 
 // Cada quadro do diagnóstico vira uma tabela com os mesmos números do gráfico.
@@ -73,7 +73,7 @@ function tabelaDoQuadro(qd) {
   if (qd.id === "hoje") return { cab: ["semana", "menor saldo de caixa", "conta garantida (máximo)"], linhas: qd.semanas.map((v, i) => [i + 1, mi(v), qd.garantida ? mi(qd.garantida[i]) : ""]) };
   if (qd.id === "depois") return { cab: ["semana", "menor saldo com a regra", qd.estresseRot || ""], linhas: qd.semanas.map((v, i) => [i + 1, mi(v), qd.estresse ? mi(qd.estresse[i]) : ""]) };
   if (qd.tiles) return { cab: ["valor", "o que é", "natureza"], linhas: qd.tiles.map((t) => [t.v, t.t, t.e]) };
-  if (qd.acoes) return { cab: ["ação", "economia anual estimada", "de quem depende", "quando", "memória de cálculo"], linhas: [...qd.acoes.map((a) => [a.longo || a.t, F.brl(Math.round(a.v)), a.quem, a.prazo, a.memoria || ""]), ["total (cascata, sem dupla contagem)", F.brl(Math.round(qd.total)), `${F.brl(Math.round(qd.empresa))} dependem só da empresa`, "", ""], ...(qd.recuperacao ? [["recuperação única estimada: MDR cobrado acima do contrato, mar a ago/2026", F.brl(Math.round(qd.recuperacao)), "depende da credenciadora", "60 a 120 dias", ""], ["não é ganho: conta garantida quitada com o caixa (principal)", F.brl(Math.round(qd.divida)), "", "", ""], ["não é ganho: caixa médio usado no lugar de antecipação", F.brl(Math.round(qd.caixaUsado)), "", "", ""]] : [])] };
+  if (qd.acoes) return { cab: ["ação", "economia anual estimada", "de quem depende", "quando", "memória de cálculo"], linhas: [...qd.acoes.map((a) => [a.longo || a.t, F.brl(Math.round(a.v)), a.quem, a.prazo, a.memoria || ""]), ["total (cascata, sem dupla contagem)", F.brl(Math.round(qd.total)), `${F.brl(Math.round(qd.empresa))} dependem só da empresa`, "", ""], ...(qd.recuperacao ? [["recuperação única estimada: MDR cobrado acima do contrato, mar a ago/2026", F.brl(Math.round(qd.recuperacao)), "depende da credenciadora", "60 a 120 dias", ""], ["não é ganho: conta garantida quitada com o caixa (principal)", F.brl(Math.round(qd.divida)), "", "", ""], ["não é ganho: caixa médio menor no ano (inclui a quitação)", F.brl(Math.round(qd.caixaUsado)), "", "", ""]] : [])] };
   return { cab: [], linhas: [] };
 }
 const tabHTML = (t) => `<table class="mini"><thead><tr>${t.cab.map((h) => `<th>${h}</th>`).join("")}</tr></thead><tbody>${t.linhas.map((l) => `<tr>${l.map((v, i) => `<td class="${i ? "" : "e"}">${v}</td>`).join("")}</tr>`).join("")}</tbody></table>`;
