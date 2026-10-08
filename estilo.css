@@ -83,7 +83,7 @@ body.esperando #controle{opacity:1}
 .anc .miolo,.c-analise .no .miolo{text-shadow:0 0 2px rgba(3,8,6,.95),0 0 7px rgba(3,8,6,.85),0 0 16px rgba(3,8,6,.6)}
 /* cada rótulo em camada própria: entrar e sair vira só composição, sem redesenhar o texto e o halo */
 .anc .miolo{will-change:transform,opacity}
-.anc.dentro .miolo,.c-208 .t3tag .miolo{text-shadow:none}
+.anc.dentro .miolo{text-shadow:none}
 /* folhas coladas às lâminas (o transform vem da homografia) */
 .folha3d{position:absolute;left:0;top:0;transform-origin:0 0;will-change:transform;backface-visibility:hidden;overflow:hidden}
 
@@ -135,52 +135,6 @@ body.esperando #controle{opacity:1}
 .c-abre .leg{position:absolute;left:0;right:0;top:880px;text-align:center}
 .c-abre .leg .l1{font:500 34px/1.25 var(--disp);letter-spacing:-.015em;color:var(--marfim)}
 .c-abre .leg .l2{margin-top:16px;font:400 20px/1 var(--texto);color:var(--m3)}
-.c-fecho .leg{top:940px}
-.c-fecho .leg .l1{font-size:30px;color:var(--m2)}
-
-/* ---------- 1 · os 208 */
-.c-208 .topo{position:absolute;left:104px;top:118px;width:600px}
-.c-208 .topo .t-display{font-size:74px}
-.c-208 .topo .t-lead{margin-top:26px;font-size:23px}
-.c-208 .fase .miolo{transform:translate(-50%,-50%);text-align:center}
-.c-208 .fase.dir .miolo{transform:translate(0,-50%);text-align:left}
-.c-208 .fase.esq .miolo{transform:translate(-100%,-50%);text-align:right}
-.c-208 .fase b{display:block;font:600 22px/1.1 var(--disp);letter-spacing:-.01em;color:var(--marfim)}
-.c-208 .fase span{display:block;font:400 18px/1.3 var(--texto);color:var(--ouro);margin-top:3px}
-.c-208 .amostra{position:absolute;left:0;right:0;top:72px;text-align:center}
-.c-208 .amostra em{display:block;font:500 19px/1 var(--texto);font-style:normal;color:var(--ouro);margin-bottom:14px}
-.c-208 .amostra span{display:block;font:600 36px/1.22 var(--disp);letter-spacing:-.02em;color:var(--marfim)}
-.c-208 .t3tag .miolo{transform:translate(-50%,-50%);font:600 18px/1 var(--texto);color:#1b1305;background:var(--ouro);padding:8px 12px;border-radius:999px}
-.c-208 .areas{position:absolute;left:104px;top:736px;width:560px;font-size:19px;line-height:1.55}
-
-/* ---------- 2 · o cenário e a história */
-.c-hist .quadro{position:absolute;left:112px;top:92px;width:1320px}
-.c-hist .qa{width:980px}
-.c-hist .qa .rotulo{margin-bottom:14px}
-.c-hist .qa .fatos{position:absolute;left:0;top:628px;display:grid;grid-template-columns:repeat(3,272px);gap:36px}
-.c-hist .qa .fatos div{border-top:1px solid rgba(200,164,90,.5);padding-top:16px}
-.c-hist .qa .fatos b{display:block;font-size:52px;line-height:1;color:var(--marfim)}
-.c-hist .qa .fatos span{display:block;font:400 18px/1.4 var(--texto);color:var(--m2);margin-top:10px}
-.c-hist .qa .fonte{position:absolute;left:0;top:880px;width:1100px;font:400 18px/1.4 var(--texto);color:var(--m3)}
-.c-hist .qc .t-leg{margin-top:14px}
-.c-hist .qe{top:150px;width:920px}
-.c-hist .qe .faixa{margin-top:150px;display:grid;grid-template-columns:repeat(3,1fr);gap:44px;border-top:1px solid rgba(243,238,225,.16);padding-top:30px}
-.c-hist .qe .faixa b{display:block;font-size:54px;line-height:1;color:var(--marfim);margin-bottom:12px}
-.c-hist .qe .faixa div{font:400 20px/1.4 var(--texto);color:var(--m2)}
-
-/* ---------- 3 · Top 3 e escolha */
-.c-top3 .topo{position:absolute;left:150px;top:92px;width:1600px}
-.c-top3 .topo .t-lead{margin-top:18px;max-width:1240px}
-.c-top3 .topo.escolha .t-leg{margin-top:14px}
-.c-top3 .dica-escolha{position:absolute;left:50%;top:996px;transform:translateX(-50%);white-space:nowrap;padding:12px 22px;border-radius:999px;background:rgba(4,10,7,.86);border:1px solid rgba(200,164,90,.45);font:500 20px/1 var(--texto);color:var(--ouro)}
-.c-top3 .cartao{padding:48px 48px 36px;display:flex;flex-direction:column;pointer-events:auto;cursor:pointer}
-.c-top3 .cartao .n{font:500 22px/1 var(--texto);color:var(--ouro)}
-.c-top3 .cartao h3{font:600 42px/1.06 var(--disp);letter-spacing:-.02em;color:var(--marfim);margin:14px 0 18px}
-.c-top3 .cartao .perg{font:400 24px/1.4 var(--texto);color:var(--marfim)}
-.c-top3 .cartao h4{font:500 22px/1 var(--texto);color:var(--ouro);margin:26px 0 8px}
-.c-top3 .cartao ul{list-style:none}
-.c-top3 .cartao li{font:400 22px/1.34 var(--texto);color:var(--m2);padding:4px 0 4px 20px;position:relative}
-.c-top3 .cartao li:before{content:"";position:absolute;left:0;top:19px;width:8px;height:1px;background:var(--ouro)}
 
 /* ---------- papel (formulário e peças do entregável) */
 .papel{color:var(--grafite)}
@@ -307,23 +261,6 @@ body.esperando #controle{opacity:1}
 .peca .dv{position:absolute;inset:0;padding:70px 76px;display:flex;flex-direction:column;justify-content:center}
 .peca .dv b{font:600 58px/1 var(--disp);letter-spacing:-.02em;color:var(--ouro)}
 .peca .dv span{font:400 30px/1.4 var(--texto);color:var(--marfim);margin-top:22px}
-
-/* ---------- 8 · resultado */
-.c-res .bloco-r{position:absolute;left:112px;top:120px;width:760px}
-.c-res .rotulo{margin-bottom:14px}
-.c-res .grande{display:block;font-size:136px;line-height:1;color:var(--ouro);margin-top:70px;white-space:nowrap}
-.c-res .leg1{font:500 30px/1.25 var(--disp);letter-spacing:-.015em;color:var(--marfim);margin-top:16px}
-.c-res .sub{margin-top:14px;font-size:20px}
-.c-res .selos{display:flex;flex-wrap:wrap;gap:10px;margin-top:60px}
-.c-res .selos span{font:500 18px/1 var(--texto);color:var(--m2);border:1px solid rgba(200,164,90,.5);border-radius:999px;padding:11px 16px}
-
-/* ---------- 9 · oferta */
-.c-oferta .topo{position:absolute;left:112px;top:104px;width:900px}
-.c-oferta .ficha{position:absolute;left:112px;top:470px;width:820px;display:grid;grid-template-columns:240px 1fr}
-.c-oferta .ficha div{padding:16px 0;border-top:1px solid rgba(243,238,225,.14)}
-.c-oferta .ficha .k{font:500 19px/1.4 var(--texto);color:var(--ouro)}
-.c-oferta .ficha .v{font:400 19px/1.5 var(--texto);color:var(--m2)}
-.c-oferta .amb{position:absolute;left:112px;top:960px;width:960px;font:500 27px/1.3 var(--disp);letter-spacing:-.015em;color:var(--marfim)}
 
 /* ---------- material */
 #material{position:fixed;inset:0;background:rgba(4,10,7,.72);display:none;align-items:center;justify-content:center;z-index:60}

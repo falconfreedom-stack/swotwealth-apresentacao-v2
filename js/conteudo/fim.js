@@ -21,8 +21,8 @@ export function FIM(base, R) {
     ficha1: [
       ["A rede recebe", "o mapa do custo do dinheiro, a projeção de 13 semanas e o plano de substituição de fontes, com memória de cálculo."],
       // roteiro v2 (D5): o esforço com o que a própria SWOT já afirmava (a confirmar pelos sócios)
-      ["A equipe", `separa os ${docs} documentos (cerca de um dia) e participa de duas sessões: a de decisão, entre o 4º e o 6º dia, e a devolutiva de 1h30, no 9º.`],
-      ["Prazo", `${POR_EXTENSO[dias]} dias corridos, a partir dos documentos completos; devolutiva no nono dia.`],
+      ["A equipe", `separa os ${docs} documentos (cerca de um dia) e participa de duas sessões: a de decisão, entre o 4º e o 6º dia, e a devolutiva de 1h30, no 9º.`],
+      ["Prazo", `${POR_EXTENSO[dias]} dias corridos, a partir dos documentos completos.`],
     ],
     ficha2: [
       ["Quem executa", "a tesouraria da rede. Cada ação diz se depende da empresa, de financiadores ou da credenciadora."],

@@ -43,7 +43,9 @@ const seguirPara = (alvo) => { if (alvo) ir(alvo.i, { marco: alvo.marco }); };
 // abre a lente n (projeto n do Top 3): o primeiro passo do seu percurso opcional ou, se não houver, o seu diagnóstico
 function abrirLente(n) {
   let j = ORDEM.findIndex((d) => d.opcional === `lente${n}`);
-  if (j < 0) j = ORDEM.findIndex((d) => d.id === "diagnostico" && d.projeto === n);
+  // a lente que conduz a peça (FIN3.10) não tem percurso opcional: reabre o percurso principal nos achados
+  if (j < 0) j = ORDEM.findIndex((d) => !d.opcional && d.projeto === n && d.id === "descoberta");
+  if (j < 0) j = ORDEM.findIndex((d) => !d.opcional && d.projeto === n);
   if (j < 0) return;
   estado.vistas.add(n);
   ir(j);

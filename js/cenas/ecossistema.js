@@ -4,8 +4,8 @@
 import { FIM } from "../conteudo.js?v=202610071930";
 import { FASES_N } from "../mundo.js?v=202610071930";
 import * as K from "./comum.js?v=202610071930";
-import { batida } from "./oferta.js?v=202610071930";
-const { gsap, marco, parada, linhas, revelar, recolher, aparecer, sumir, rot } = K;
+import { batida, entraLinhas } from "./oferta.js?v=202610071930";
+const { gsap, parada, linhas, aparecer, rot } = K;
 
 // a mesma corrida dos ponteiros do instrumento (js/mundo.js): sai devagar, corre e assenta
 const CORRIDA = (t) => t * t * (6 - 8 * t + 3 * t * t);
@@ -23,11 +23,13 @@ export function socios(c, ctx) {
   // continua do plano do Top 3 e desce ao plano rasante dos sócios (câmera média)
   M.base(tl, { cam: "top3", disco: { acesos: 0, top3: 1 }, luz: { a: 1.0, expo: 1 } });
   M.irPara(tl, "socios", 1.8, 0.1, {}, "power2.inOut");
-  revelar(tl, q(".rot"), 1.3);
+  entraLinhas(tl, q(".rot"), 1.3);
   // os quatro entram em cascata, como uma lista (uma linha por vez, 0,3 s entre elas)
   const itens = [...c.querySelectorAll(".lista li")];
   aparecer(tl, itens, 1.9, 0.6, 0.3, 10);
-  const lista = S.pessoas.map((p) => `${p.nome} · ${p.credencial}`).join(" ");
+  // o tempo de leitura vem das credenciais (15 car/s, como as biografias no roteiro); os nomes se reconhecem de
+  // relance e o apresentador os diz (roteiro v2: alvo de 12 a 15 s no assistir)
+  const lista = S.pessoas.map((p) => p.credencial).join(" ");
   const B = batida(0, [{ o: 1.3, texto: S.rotulo, cam: 1 }, { o: 1.9, texto: lista, v: 15 }], [[0.1, 1.8]]);
   const t = Math.max(B.t, 1.9 + 0.3 * (itens.length - 1) + 0.6);
   parada(tl, ctx, "socios", t, B.fim - t);
@@ -55,16 +57,17 @@ export function projetos208(c, ctx) {
     const L = lado(M.angSetor(i));
     const m = rot(c, M, M.posSetor(i, 1.16), `fase ${L.cls}`, f, L.cls === "dir" ? 8 : L.cls === "esq" ? -8 : 0, L.cls === "cima" ? -4 : L.cls === "baixo" ? 4 : 0);
     gsap().set(m, { xPercent: L.xp, yPercent: L.yp });
+    // texto preso ao 3D só entra com a câmera assentada (2,7 s); dali em diante, quando o setor acende
     const meio = tAcende + durAcende * ((acum[i] - FASES_N[i] / 2) / 208);
-    tl.fromTo(m, { opacity: 0 }, { opacity: 1, duration: 0.45, ease: "power2.out", immediateRender: false }, meio - 0.1);
+    tl.fromTo(m, { opacity: 0 }, { opacity: 1, duration: 0.45, ease: "power2.out", immediateRender: false }, Math.max(meio - 0.1, 2.7 + 0.08 * i));
     return m;
   });
-  revelar(tl, q(".tit"), 3.0);
+  entraLinhas(tl, q(".tit"), 3.0);
   // o Top 3 acende em ouro; um selo em cada índice
   tl.to(M.disco, { top3: 1, duration: 0.8, ease: "power2.out" }, 5.0);
   const selos = ["FIN3.10", "FIN8.2", "FIN5.11"].map((cod) => { const m = rot(c, M, M.posIndice(cod, 0.64), "selo", E.selo); gsap().set(m, { xPercent: -50, yPercent: -50 }); return m; });
   tl.fromTo(selos, { opacity: 0 }, { opacity: 1, duration: 0.5, ease: "power2.out", stagger: 0.1, immediateRender: false }, 5.4);
-  revelar(tl, q(".sub"), 6.0);
+  entraLinhas(tl, q(".sub"), 6.0);
   const textoFases = E.fases.join(" · ");
   const B = batida(0, [{ o: 1.6, texto: textoFases }, { o: 3.0, texto: E.titulo, cam: 1 }, { o: 5.4, texto: E.selo }, { o: 6.0, texto: E.sub }], [[0.2, 2.6], [tAcende, durAcende], [5.0, 0.8]]);
   parada(tl, ctx, "ecossistema", B.t, B.hold);
@@ -102,8 +105,8 @@ export function fecho(c, ctx) {
   // continua do mostrador inteiro dos 208 e vem ao plano do relógio (mostrador à direita, ponteiros à vista)
   M.base(tl, { cam: "topoDir", disco: { acesos: 208, top3: 1 }, luz: { a: 1.0, expo: 1 } });
   M.irPara(tl, "relogio", 2.2, 0.2, {}, "power2.inOut");
-  revelar(tl, q(".rot"), 1.8);
-  revelar(tl, q(".tit"), 2.2);
+  entraLinhas(tl, q(".rot"), 1.8);
+  entraLinhas(tl, q(".tit"), 2.2);
   const itens = [...c.querySelectorAll(".acoes li")];
   aparecer(tl, itens, 3.4, 0.6, 0.25, 10);
   aparecer(tl, q(".rodape"), 6.0, 0.6, 0, 6);

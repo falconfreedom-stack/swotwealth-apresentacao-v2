@@ -7,8 +7,8 @@
 // lente, o controlador reabre esta cena no marco `escolha`; as lentes vistas (`ctx.vistas`) ganham o selo "visto".
 import { FIM } from "../conteudo.js?v=202610071930";
 import * as K from "./comum.js?v=202610071930";
-import { CAM_OFERTA, laminaDoIndice } from "./oferta.js?v=202610071930";
-const { gsap, marco, linhas, revelar, recolher, folha } = K;
+import { CAM_OFERTA, laminaDoIndice, entraLinhas } from "./oferta.js?v=202610071930";
+const { gsap, marco, linhas, folha } = K;
 
 // os cartões em fila, de frente para o plano `top3` (o mesmo retângulo dos cartões da versão anterior)
 const RET = [0, 1, 2].map((i) => ({ left: 150 + i * 560, top: 318, width: 500, height: 623 }));
@@ -46,7 +46,7 @@ export function top3Cena(c, ctx) {
     tl.to(M.laminas[i], { p: 1, duration: 1.6, ease: "power3.inOut" }, 1.2 + 0.15 * i);
     return { d, visto };
   });
-  revelar(tl, q(".tit"), 2.0);
+  entraLinhas(tl, q(".tit"), 2.0);
   // o texto de cada cartão entra quando o vidro chega; o já visto fica a 40%
   const tTexto = [3.3, 3.9, 4.5];
   els.forEach(({ d, visto }, i) => tl.fromTo(d, { opacity: 0 }, { opacity: visto ? 0.4 : 1, duration: 0.6, ease: "power2.out", immediateRender: false }, tTexto[i]));
