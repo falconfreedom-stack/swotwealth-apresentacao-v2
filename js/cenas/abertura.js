@@ -36,6 +36,14 @@ function noAro(b, cam) {
 function brotar(tl, bs, t, dur = 0.8, cada = 0.08, ease = "power3.out") {
   bs.forEach((b, i) => { tl.set(b, { a: 1 }, t + i * cada); tl.fromTo(b, { k: 0.001 }, { k: 1, duration: dur, ease, immediateRender: false }, t + i * cada); });
 }
+// Fora da sua janela, um bloco de texto fica com opacidade 0: as linhas guardadas na máscara não contam como texto
+// na tela (conferência do harness) e nada fica por baixo do bloco seguinte na mesma região.
+function janela(tl, el, ini, fim) {
+  if (!el) return;
+  el.style.opacity = "0";
+  tl.set(el, { opacity: 1 }, ini);
+  if (fim != null) tl.set(el, { opacity: 0 }, fim);
+}
 // contador com o formato final desde o primeiro quadro (o texto já nasce com o valor certo)
 function contar(tl, el, valor, fmt, dur, t) {
   const o = { v: 0 }; let ult = "";
@@ -125,11 +133,13 @@ export function venda(c, ctx) {
   const rLente = rot(c, M, direcao(ang(T.mesLente), R_SAIDA, 0.012), "r3d e saida", T.rotLente, -8, 30);   // logo abaixo do marcador: livre das parcelas e do monograma
   const rUltima = rot(c, M, direcao(ang(n), R_PARC, 0.012 + H_PARC), "r3d c", T.rotUltima, 0, -24);
 
+  [[".k1", 0.3, 8.15], [".l1", 2.6, 8.15], [".k2", 8.2, 17.35], [".l2", 8.9, 17.35], [".k3", 17.3, 25.35], [".l3", 17.8, 25.35], [".k4", 25.3], [".l4", 26.2]]
+    .forEach(([s, a, b]) => janela(tl, q(s), a, b));
   // 1.1 · a venda: título; as dez parcelas nascem nas horas 1 a 10, no sentido horário; o aro vira calendário
   revelar(tl, q(".k1"), 0.3);
   brotar(tl, parc, 1.0, 0.75, 0.1);
   aparecer(tl, aro, 3.2, 0.6, 0.08, 6);
-  revelar(tl, q(".l1"), 3.6);
+  revelar(tl, q(".l1"), 2.6);                                         // a legenda antes dos rótulos do aro: não entram juntos
   parada(tl, ctx, "venda", 4.2, 3.6);
 
   // 1.2 · paga em um mês, recebe em dez: o ponteiro das horas corre os dez meses; cada parcela brilha quando ele passa
@@ -220,6 +230,8 @@ export function retrato(c, ctx) {
   const aro = rotulosAro(c, M, V.aro);
   aro.forEach((m) => { m.style.opacity = "1"; });
 
+  [[".k1", 1.3, 8.45], [".l1", 2.1, 8.45], [".k2", 8.5, 18.35], [".l2", 10.3, 18.35], [".kq", 18.4, 28.6], [".custo", 28.6, 34.6], [".kp", 34.6]]
+    .forEach(([s, a, b]) => janela(tl, q(s), a, b));
   // 2.1 · a rede: as lascas e a coluna se apagam; câmera curta; 60 lojas, R$ 150 milhões; ≈ 1,4% do varejo paulista
   tl.to([...lasca, ...corpo], { a: 0, duration: 0.6, ease: "power1.in" }, 0);
   M.irPara(tl, CAL2, 1.0, 0.2, {}, "power2.inOut");
@@ -263,17 +275,17 @@ export function retrato(c, ctx) {
   contar(tl, q(".custo .heroi"), CA.valor, CA.fmt, 0.9, t4 + 0.4);
   aparecer(tl, q(".partes"), t4 + 1.4, 0.4, 0, 0);
   tl.fromTo(q(".partes .trilho"), { scaleX: 0 }, { scaleX: 1, duration: 0.8, ease: "power3.out", immediateRender: false }, t4 + 1.4);
-  parada(tl, ctx, "custo-ano", 30.6, 3.7);
+  parada(tl, ctx, "custo-ano", 30.6, 4.7);           // +1 s: os valores da barra (v2) pedem ~5,8 s de leitura
 
   // 2.5 · a pergunta: tudo sai; o mundo atenuado; só a pergunta
-  const t5 = 34.3;
+  const t5 = 35.3;
   sumir(tl, [...fx, q(".partes"), q(".rot-rede"), q(".nota-fonte")], t5, 0.35);
-  recolher(tl, q(".custo"), t5, 0.3);
+  recolher(tl, q(".custo"), t5, 0.25);                               // sai antes de a pergunta entrar
   tl.to(anel, { a: 0, duration: 0.5, ease: "power1.in" }, t5);
   revelar(tl, q(".kp"), t5 + 0.3, 0.6, 0.12);
-  parada(tl, ctx, "pergunta", 35.2, 6.6);
-  marco(tl, "fim", 41.8);
-  recolher(tl, q(".kp"), 41.8, 0.35);
-  fimEm(tl, 42.2);
+  parada(tl, ctx, "pergunta", 36.2, 6.6);
+  marco(tl, "fim", 42.8);
+  recolher(tl, q(".kp"), 42.8, 0.35);
+  fimEm(tl, 43.2);
   return tl;
 }

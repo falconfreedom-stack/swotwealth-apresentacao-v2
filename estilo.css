@@ -58,7 +58,7 @@ body.pausa #controle #c-tocar{border-color:var(--ouro)}
 .rotulo{font:500 19px/1.3 var(--texto);color:var(--ouro)}
 .num{font-family:var(--disp);font-weight:600;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
 /* revelação por linha: cada linha sobe de dentro da própria máscara (js/cenas/comum.js: linhas, revelar) */
-.l{display:block;overflow:hidden;padding-bottom:.14em;margin-bottom:-.14em}
+.l{display:block;overflow:hidden;padding:.08em 0 .14em;margin:-.08em 0 -.14em}
 /* legenda de leitura [L]: só no modo assistir; no apresentar, quem diz é o apresentador */
 body[data-modo="apresentar"] .so-assistir{display:none !important}
 .l > span{display:block;will-change:transform}

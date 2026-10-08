@@ -12,7 +12,17 @@
   "P": "alegação promocional de empresa"
  },
  "setor": {
-  "nota": "mercado e benchmark: ver estudo/pesquisa (A1); parâmetros do Banco Central em fin310.mercado"
+  "nota": "mercado de referência (fonte pública); números da rede são do bloco fin310 e rede_p_l (ilustrativos)",
+  "mercado": {
+   "vendas_ano": 28079000000.0,
+   "ano": 2025,
+   "pontos_de_venda": 71226,
+   "sp_pct": 37.6,
+   "sp_periodo": "jan/26",
+   "fonte": "Abióptica, via Diário do Comércio (18/02/2026) e Movimento Econômico (11/03/2026)",
+   "origem": "F",
+   "detalhe": "estudo/pesquisa/10-setor-optico.md e 12-parametros.json (mercado_otico_brasil)"
+  }
  },
  "referencias": {
   "origem": "R",
