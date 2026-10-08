@@ -626,7 +626,7 @@ export function calcularFin310(base) {
   const v = (i) => S[ordem[i]].custo_total - S[ordem[i + 1]].custo_total;
   const f = fmt;
   const acoes = [
-    { id: "garantida", ordem: 1, titulo: "Juntar conta e aplicação num caixa só e quitar a conta garantida com o caixa parado",
+    { id: "garantida", ordem: 1, titulo: "Juntar conta e aplicação num caixa só e quitar a conta garantida com parte da aplicação",
       tipo: "economia anual estimada de custo financeiro", valor_anual: v(0), decomposicao: dCG,
       quem_decide: "empresa", quem_executa: "tesouraria (resgate da aplicação e amortização no Banco A)", prazo: "semana 1",
       condicao: "a aplicação não está presa (garantia, covenant de caixa mínimo ou outro CNPJ); o contrato da garantida não cobra multa nem tarifa por não uso; o limite continua aberto para emergência",
