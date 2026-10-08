@@ -3,11 +3,11 @@
 // são percursos opcionais que voltam a ele; sem escolha, a peça segue sozinha.
 // Cada cena em ORDEM: { id, f, nome, projeto?: n (conteúdo fixo do projeto n), opcional?: "lente1" | "lente2" | …,
 // hub?: true }.
-import * as motor from "../motor/motor.js?v=202610071930";
-import { Mundo } from "./mundo.js?v=202610071930";
-import { ORDEM } from "./cenas.js?v=202610071930";
-import { conteudo, TOP3_CODIGOS, NOMES, TOP3 } from "./conteudo.js?v=202610071930";
-import { el } from "./util.js?v=202610071930";
+import * as motor from "../motor/motor.js?v=202610081530";
+import { Mundo } from "./mundo.js?v=202610081530";
+import { ORDEM } from "./cenas.js?v=202610081530";
+import { conteudo, TOP3_CODIGOS, NOMES, TOP3 } from "./conteudo.js?v=202610081530";
+import { el } from "./util.js?v=202610081530";
 
 window.__motor = motor;
 window.__ordem = ORDEM.map((d) => ({ id: d.id, nome: d.nome, projeto: d.projeto ?? null, opcional: d.opcional ?? null, hub: !!d.hub }));

@@ -1,5 +1,5 @@
-import { F } from "../util.js?v=202610071930";
-import { r1, mi, pc } from "./formato.js?v=202610071930";
+import { F } from "../util.js?v=202610081530";
+import { r1, mi, pc } from "./formato.js?v=202610081530";
 
 const CURTO = { "despesas pré-operacionais": "pré-operacionais", "eventos não recorrentes": "não recorrentes", "aluguel fixo fora do EBITDA (IFRS 16)": "aluguel fixo (IFRS 16)" };
 
@@ -71,9 +71,9 @@ export function projeto1(base, R, proj, dataBase) {
   const intro = { rotulo: `${proj.codigo} · ${proj.nome}`, k: "Os números que cada um lê." };
   const compacto = [
     { ...qEbitda, k: "O EBITDA de doze meses / tem três números.", l: "O conselho exclui pré-operacionais e não recorrentes; o banco, o aluguel fixo (IFRS 16).", parada: "l1-ebitda", comparacoes: 2 },
-    { ...qVenda, k: "As lojas bateram a meta. / O DRE ficou abaixo do orçamento.", l: "O painel conta o pedido; o DRE, os óculos entregues. O desvio vem da definição.", parada: "l1-venda" },
+    { ...qVenda, k: "As lojas bateram a meta. / O DRE ficou abaixo do orçamento.", l: "O painel conta o pedido; o DRE, a entrega dos óculos.", parada: "l1-venda" },
     { id: "custo", titulo: "Cada número ganha uma definição, um dono e uma fonte.", k: "Cada número ganha uma definição, / um dono e uma fonte.",
-      l: `Em dez dias: catálogo de ${K.total} indicadores, as duas pontes e a regra para mudar um indicador.`, parada: "l1-fim",
+      l: `Em dez dias: catálogo de ${K.total} indicadores e as duas pontes.`, parada: "l1-fim",
       tiles: [{ v: `${K.divergentes} de ${K.total}`, t: `indicadores com mais de uma definição; ${K.sem_dono} sem dono`, e: "posição na data-base", d: 1 }, tConc] },
   ];
   const catalogo = K.linhas.map((l) => [l.nome, l.divergente ? "a definir" : "ok", l.dono ? "nomeado" : "a nomear", l.fonte ? "registrada" : "a registrar"]);
@@ -93,7 +93,7 @@ export function projeto1(base, R, proj, dataBase) {
     legendas: { f0: ["A ponte", "Cada versão do EBITDA, com o que somou."], f1: ["A ficha", "A definição oficial, pronta para aprovar em ata."] },
     planilha: { titulo: "catálogo.xlsx", cab: ["indicador", "definição", "dono", "fonte"], linhas: catalogo },
     painel: { titulo: "EBITDA oficial", tipo: "ebitda", valores: [e.controladoria, e.conselho, e.banco] },
-    devolutiva: "Dia 9 · devolutiva de 1h30 com os sócios e as diretorias financeira e comercial",
+    devolutiva: "Dia 9 · devolutiva de 1h30 com os sócios da rede e as diretorias financeira e comercial",
   };
   const resultado = { numero: `${K.total}`, legenda: "indicadores com uma definição, um dono e uma fonte", sub: `${mi(r.orcamento.desvio_ytd)} de desvio do orçamento explicados pela ponte entre pedido e entrega.` };
   return { proj, n: 1, formulario, parede, quadros, compacto, intro, entregavel, resultado, cabDiag: `Diagnóstico · ${proj.codigo} · ${proj.nome} · rede ilustrativa · ${dataBase}` };

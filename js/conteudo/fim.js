@@ -4,8 +4,8 @@
 // perguntas dos cartões vêm do TOP3, as biografias de SOCIOS (literais), as fases de FASES. Fica de fora, de
 // propósito: retorno, "se paga", desconto, validade, garantia, reembolso, mensalidade, implantação; a palavra
 // "garantido" não aparece. Quebras de linha autorais com " / " (js/cenas/comum.js: linhas).
-import { F } from "../util.js?v=202610071930";
-import { TOP3, SOCIOS, FASES, AMOSTRA } from "./comum.js?v=202610071930";
+import { F } from "../util.js?v=202610081530";
+import { TOP3, SOCIOS, FASES, AMOSTRA } from "./comum.js?v=202610081530";
 
 const POR_EXTENSO = { 4: "quatro", 10: "dez" };
 
@@ -18,17 +18,33 @@ export function FIM(base, R) {
   // 4.1 · a oferta: O1 o que é e o que recebe · O2 quem faz e o que fica fora · O3 a pergunta · O4 a resposta
   const oferta = {
     preco: `Um projeto. / R$ ${F.n(preco)}. / ${Dez} dias.`,
+    // ritmo final (estudo/revisoes/42-ritmo-final.md, A1/P2): uma linha por vez e só o essencial de cada uma (≈ −30%);
+    // o texto completo fica no material e na fala. Fatos mantidos: cerca de um dia; duas sessões (decisão entre o 4º
+    // e o 6º dia; devolutiva de 1h30 no 9º); não inclui implantação nem negociação; estimativas com memória de cálculo.
     ficha1: [
-      ["A rede recebe", "o mapa do custo do dinheiro, a projeção de 13 semanas e o plano de substituição de fontes, com memória de cálculo."],
-      // roteiro v2 (D5): o esforço com o que a própria SWOT já afirmava (a confirmar pelos sócios)
-      ["A equipe", `separa os ${docs} documentos (cerca de um dia) e participa de duas sessões: a de decisão, entre o 4º e o 6º dia, e a devolutiva de 1h30, no 9º.`],
-      ["Prazo", `${POR_EXTENSO[dias]} dias corridos, a partir dos documentos completos.`],
+      ["A rede recebe", "mapa do custo · projeção de 13 semanas · plano de fontes, com memória de cálculo"],
+      ["A equipe", `separa os ${p310.usa.length} documentos (cerca de um dia) · 2 sessões: decisão (4º–6º dia) e devolutiva de 1h30 (9º)`],
+      ["Prazo", `${POR_EXTENSO[dias]} dias corridos, a partir dos documentos completos`],
     ],
     ficha2: [
-      ["Quem executa", "a tesouraria da rede. Cada ação diz se depende da empresa, de financiadores ou da credenciadora."],
-      ["Não inclui", "implantação, negociação com banco ou credenciadora, contratações."],
-      ["Os valores", "são estimativas, com memória de cálculo; não prometemos um número."],
+      ["Quem executa", "a tesouraria da rede · cada ação diz de quem depende"],
+      ["Não inclui", "implantação nem negociação com banco ou credenciadora"],
+      ["Os valores", "estimativas, com memória de cálculo · não prometemos um número"],
     ],
+    // o texto integral das seis linhas (fonte única do material: material.html, seção "O diagnóstico proposto", só no
+    // FIN3.10). Mesmas condições da tela; nenhuma condição nova (pagamento, parcelamento, garantia, reembolso).
+    integral: {
+      titulo: "O diagnóstico proposto",
+      resumo: `um projeto · R$ ${F.n(preco)} · ${POR_EXTENSO[dias]} dias`,
+      linhas: [
+        ["A rede recebe", "o mapa do custo do dinheiro, a projeção de 13 semanas e o plano de substituição de fontes, com memória de cálculo."],
+        ["A equipe", `separa os ${docs} documentos (cerca de um dia) e participa de duas sessões: a de decisão, entre o 4º e o 6º dia, e a devolutiva de 1h30, no 9º.`],
+        ["Prazo", `${POR_EXTENSO[dias]} dias corridos, a partir dos documentos completos.`],
+        ["Quem executa", "a tesouraria da rede. Cada ação diz se depende da empresa, de financiadores ou da credenciadora."],
+        ["Não inclui", "implantação, negociação com banco ou credenciadora, contratações."],
+        ["Os valores", "são estimativas, com memória de cálculo; não prometemos um número."],
+      ],
+    },
     pergunta: "E se não houver / oportunidade relevante?",
     resposta: { titulo: "Mesmo assim, a rede sai com:",
       itens: ["o custo de cada fonte, medido;", "a projeção para decidir a antecipação, semana a semana;", "a confirmação, ou não, da estrutura atual."] },

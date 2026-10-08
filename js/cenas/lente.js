@@ -3,9 +3,9 @@
 // lentes opcionais (FIN8.2 e FIN5.11, em versão compacta) e pelo diagnóstico legado do FIN3.10.
 // Ritmo: estudo/pesquisa/20-pitch-e-motion.md (B.3, C.2). Cada batida entra uma coisa por vez; a parada cai no fim
 // das entradas e o hold é o tempo de leitura (leitor), nunca animação. [L] = legenda só do modo assistir.
-import { F, contar } from "../util.js?v=202610071930";
+import { F, contar } from "../util.js?v=202610081530";
 import { gsap, marco, LOGO_ESC, ancora, rot, aparecer, sumir, folha, crescer, apagar, parada, leitura, leitor, linhas, revelar, recolher, atenuar, focar,
-  holdGrafico, caminho, uniformeLamina, PLANO_FOLHA, RET_FOLHA, poseFolha, lamT3, blocoHTML, ladosDoGrafo, montarQuadro, PECAS, htmlPeca } from "./comum.js?v=202610071930";
+  holdGrafico, caminho, uniformeLamina, PLANO_FOLHA, RET_FOLHA, poseFolha, lamT3, blocoHTML, ladosDoGrafo, montarQuadro, PECAS, htmlPeca } from "./comum.js?v=202610081530";
 
 const L_ = (t) => `<span class="so-assistir">${t}</span>`;   // legenda [L] dentro de um bloco
 
@@ -91,7 +91,9 @@ export function insumos(c, ctx) {
   aparecer(tl, q(".in-k2 .rotulo"), t + 1.6, 0.5);
   revelar(tl, q(".in-k2 h1"), t + 1.9);
   Lr.zerar(t + 1.6); Lr.olhar(t + 1.6, 2.4); Lr.ler(t + 1.9, I.junta);       // o rótulo do projeto é reconhecido, não lido
-  t = Lr.fim + 0.5;
+  const pJunta = t + 2.6;
+  parada(tl, ctx, "junta", pJunta, Lr.hold(pJunta));
+  t = pJunta + Lr.hold(pJunta);
 
   // ---- 3.3 · o checklist
   sumir(tl, q(".in-k2 .rotulo"), t, 0.35); recolher(tl, q(".in-k2 h1"), t);
@@ -115,9 +117,11 @@ export function insumos(c, ctx) {
   const tE = t0 + itens.length * passo + 0.5;
   cams[3].ir(tl, 3, 4, 1.0, tE, "power2.inOut");
   revelar(tl, q(".in-k3 h1"), tE + 0.8);
-  aparecer(tl, q(".in-k3 .t-lead"), tE + 1.7, 0.6);
-  Lr.zerar(tE + 0.8); Lr.ler(tE + 0.8, I.esforco, { depoisDeCamera: true }); Lr.ler(tE + 1.7, I.origens, { v: 17 });
-  const pIns = tE + 2.3;
+  Lr.zerar(tE + 0.8); Lr.ler(tE + 0.8, I.esforco, { depoisDeCamera: true });
+  const tOr = Lr.fim - 0.3;                                              // a legenda entra quando a frase foi lida (janelas ≤ 9 s)
+  aparecer(tl, q(".in-k3 .t-lead"), tOr, 0.6);
+  Lr.ler(tOr, I.origens, { v: 17 });
+  const pIns = tOr + 0.6;
   parada(tl, ctx, "insumos", pIns, Lr.hold(pIns));
   tl.to({}, { duration: 0.4 }, pIns + Lr.hold(pIns));
   return tl;
@@ -250,9 +254,11 @@ export function descoberta(c, ctx) {
   aparecer(tl, nomes, 2.8, 0.5, 0.2, 6);
   revelar(tl, blocoA.querySelector("h1"), 3.3);
   aparecer(tl, rMesma, 4.1, 0.5);
-  revelar(tl, blocoA.querySelector(".t-lead"), 4.6);
-  Lr.olhar(2.8, 1.0); Lr.ler(3.3, Mp.titulo); Lr.olhar(4.1, 1.2); Lr.ler(4.6, Mp.legenda, { v: 17 });
-  let t = 5.2;
+  Lr.olhar(2.8, 1.0); Lr.ler(3.3, Mp.titulo); Lr.olhar(4.1, 1.2);
+  const tLa = Lr.fim - 0.3;                                              // a legenda entra quando o título e o rótulo foram lidos
+  revelar(tl, blocoA.querySelector(".t-lead"), tLa);
+  Lr.ler(tLa, Mp.legenda, { v: 17 });
+  let t = tLa + 0.6;
   parada(tl, ctx, "mapa", t, Lr.hold(t));
   t += Lr.hold(t);
 
@@ -357,24 +363,35 @@ export function conta(c, ctx) {
   tl.to(halo, { opacity: 0, duration: 0.5, ease: "power1.in" }, 2.4);
   aparecer(tl, heroi.querySelector(".ct-l1"), 2.1, 0.5);
   aparecer(tl, heroi.querySelector(".ct-nat"), 2.4, 0.6);
-  aparecer(tl, heroi.querySelector(".ct-orig"), 3.0, 0.6);
-  Lr.olhar(1.2, 1.2); Lr.ler(2.4, K.natureza); Lr.ler(3.0, K.origem);         // o número se lê na contagem
-  const pMesa = 3.6;
+  Lr.olhar(1.2, 1.2); Lr.ler(2.4, K.natureza);                                // o número se lê na contagem
+  const pMesa = 3.0;
   parada(tl, ctx, "na-mesa", pMesa, Lr.hold(pMesa));
   let t = pMesa + Lr.hold(pMesa);
+  // 6.1b · de onde sai (roteiro v2, D2): a linha da origem, na sua própria batida
+  aparecer(tl, heroi.querySelector(".ct-orig"), t, 0.6);
+  Lr.zerar(t); Lr.ler(t, K.origem);
+  const pOrig = t + 0.6;
+  parada(tl, ctx, "origem", pOrig, Lr.hold(pOrig));
+  t = pOrig + Lr.hold(pOrig);
 
   // ---- 6.2 · quatro decisões: o número viaja (FLIP) e vira o total
   sumir(tl, [...heroi.children], t, 0.35);
   tl.to(num, { x: NUM_TOT.left - NUM.left, y: NUM_TOT.top - NUM.top, scale: NUM_TOT.esc, duration: 0.8, ease: "power2.inOut" }, t + 0.1);
   aparecer(tl, q(".ct-tot"), t + 0.8, 0.4);
   revelar(tl, q(".ct-k"), t + 0.9);
+  // 6.2a · as quatro decisões: barras e rótulos, uma por vez (sem os colchetes ainda)
   K.acoes.forEach((_, i) => { const ti = t + 1.5 + 0.35 * i; crescer(tl, [B[barras[i]]], ti, 0.8, 0); aparecer(tl, rAcao[i], ti + 0.25, 0.45); });
-  const tG = t + 1.5 + 0.35 * K.acoes.length + 0.6;
-  aparecer(tl, rGrupo, tG, 0.5, 0.25);
-  aparecer(tl, q(".ct-nota"), tG + 0.9, 0.5);
+  const tUlt = t + 1.5 + 0.35 * (K.acoes.length - 1) + 0.7;
+  Lr.zerar(t + 0.9); Lr.ler(t + 0.9, K.decisoes); K.acoes.forEach((_, i) => Lr.olhar(t + 1.75 + 0.35 * i, 1.2));
+  const pDecisoes = tUlt + 0.3;
+  parada(tl, ctx, "decisoes", pDecisoes, Lr.hold(pDecisoes));
+  t = pDecisoes + Lr.hold(pDecisoes);
+  // 6.2b · de quem depende cada uma: os colchetes com os três valores e a nota de referência do "cotar"
+  aparecer(tl, rGrupo, t, 0.5, 0.3);
+  aparecer(tl, q(".ct-nota"), t + 1.2, 0.5);
   // a nota de fonte se olha, não se lê inteira (é referência; o apresentador a cita se perguntarem)
-  Lr.zerar(t + 0.9); Lr.ler(t + 0.9, K.decisoes); Lr.olhar(t + 1.5, 2.0); Lr.olhar(tG, 3.0); Lr.olhar(tG + 0.9, 2.6);
-  const pDec = tG + 1.4;
+  Lr.zerar(t); rGrupo.forEach((_, k) => Lr.olhar(t + 0.3 * k, 1.5)); Lr.olhar(t + 1.2, 2.6);
+  const pDec = t + 1.7;
   parada(tl, ctx, "quem-decide", pDec, Lr.hold(pDec));
   t = pDec + Lr.hold(pDec);
 
@@ -383,10 +400,12 @@ export function conta(c, ctx) {
   barras.forEach((k) => tl.to(B[k], { a: 0.2, duration: 0.5 }, t + 0.1));
   atenuar(tl, [...rAcao, ...rGrupo], t + 0.1, 0.1);                       // ficam sob os ladrilhos
   const lad = [...c.querySelectorAll(".lad")];
-  lad.forEach((el, k) => aparecer(tl, el, t + 0.5 + 1.4 * k, 0.6));
   tl.to(num, { x: NUM_LAD.left - NUM.left, y: NUM_LAD.top - NUM.top, scale: NUM_LAD.esc, duration: 0.8, ease: "power2.inOut" }, t + 0.5);   // o total viaja para o 1º ladrilho
-  Lr.zerar(t + 0.5); K.ladrilhos.forEach((l, k) => Lr.olhar(t + 0.5 + 1.4 * k, 3.2));     // cada ladrilho: valor + natureza
-  const pNat = t + 0.5 + 1.4 * (lad.length - 1) + 0.7;
+  // um ladrilho por vez: o seguinte entra quando o anterior foi lido (valor + natureza); nenhuma janela longa parada
+  let tLad = t + 0.5;
+  Lr.zerar(tLad);
+  lad.forEach((el, k) => { aparecer(tl, el, tLad, 0.6); Lr.ler(tLad, `${K.ladrilhos[k].v} ${K.ladrilhos[k].t}`); if (k < lad.length - 1) tLad = Lr.fim; });
+  const pNat = tLad + 0.7;
   parada(tl, ctx, "naturezas", pNat, Lr.hold(pNat));
   tl.to({}, { duration: 0.4 }, pNat + Lr.hold(pNat));
   return tl;
@@ -431,28 +450,30 @@ export function semanas(c, ctx) {
   M.irPara(tl, M.planoGrafico(G, PLANO_SEM), 1.4, 0.1, {}, "power2.inOut");
   M.luzPara(tl, { expo: 0.45 }, 0.8, 0.2);
   revelar(tl, bq.querySelector("h1"), 1.3);
-  revelar(tl, bq.querySelector(".t-lead"), 2.0);
-  aparecer(tl, bq.querySelector(".nota"), 2.2, 0.5);
-  Lr.ler(1.3, W.pergunta, { depoisDeCamera: true }); Lr.ler(2.0, W.legPergunta, { v: 17 }); Lr.olhar(2.2, 1.5);   // pergunta: + 1,5 s para pensar (no apresentar, a espera é do apresentador)
-  const pMes = 2.6;
+  aparecer(tl, bq.querySelector(".nota"), 2.0, 0.5);                     // a fonte, visível nos dois modos
+  Lr.ler(1.3, W.pergunta, { depoisDeCamera: true });
+  const tLm = Lr.fim - 0.3;                                              // a legenda [L] entra quando a pergunta foi lida
+  revelar(tl, bq.querySelector(".t-lead"), tLm);
+  Lr.ler(tLm, W.legPergunta, { v: 17 }); Lr.olhar(tLm, 1.5);             // pergunta: + 1,5 s para pensar (no apresentar, a espera é do apresentador)
+  const pMes = tLm + 0.7;
   parada(tl, ctx, "mes-fraco", pMes, Lr.hold(pMes));
   let t = pMes + Lr.hold(pMes);
 
   // ---- 7.2 · a regra: régua, a linha do mínimo e as 13 semanas com o relógio como cursor
   recolher(tl, [bq.querySelector("h1"), bq.querySelector(".t-lead")], t); sumir(tl, bq.querySelector(".nota"), t, 0.3);
   M.luzPara(tl, { expo: 1 }, 0.6, t);
-  aparecer(tl, [reg, ...sem], t + 0.3, 0.4, 0.05);
-  tl.set(linhaMin, { a: 0.95 }, t + 0.6); tl.fromTo(linhaMin, { desenho: 0 }, { desenho: 1, duration: 0.8, ease: "power2.inOut", immediateRender: false }, t + 0.6);
-  aparecer(tl, rRegra, t + 1.0, 0.5);
-  const tC = t + 1.6;
+  revelar(tl, br.querySelector("h1"), t + 0.4);                         // o título primeiro; o gráfico cresce sob ele
+  aparecer(tl, [reg, ...sem], t + 1.0, 0.4, 0.05);
+  tl.set(linhaMin, { a: 0.95 }, t + 1.3); tl.fromTo(linhaMin, { desenho: 0 }, { desenho: 1, duration: 0.8, ease: "power2.inOut", immediateRender: false }, t + 1.3);
+  aparecer(tl, rRegra, t + 1.7, 0.5);
+  const tC = t + 2.3;
   M.correrRelogio(tl, 3.6, 3.2, tC);
   crescer(tl, S13.principal.map((k) => B[k]), tC + 0.1, 0.55, 0.22);
   aparecer(tl, rMinP, tC + 3.3, 0.5);
-  revelar(tl, br.querySelector("h1"), tC + 3.8);
-  revelar(tl, br.querySelector(".t-lead"), tC + 4.6);
-  aparecer(tl, br.querySelector(".nota"), tC + 5.0, 0.5);
-  Lr.zerar(t + 1.0); Lr.olhar(t + 1.0, 1.2); Lr.olhar(tC + 3.3, 1.2); Lr.ler(tC + 3.8, W.regraTit); Lr.ler(tC + 4.6, W.regraLeg, { v: 17 }); Lr.olhar(tC + 5.0, 1.5);
-  const pRegra = tC + 5.5;
+  revelar(tl, br.querySelector(".t-lead"), tC + 3.8);
+  aparecer(tl, br.querySelector(".nota"), tC + 4.2, 0.5);
+  Lr.zerar(t + 0.4); Lr.ler(t + 0.4, W.regraTit); Lr.olhar(t + 1.7, 1.0); Lr.olhar(tC + 3.3, 1.2); Lr.ler(tC + 3.8, W.regraLeg, { v: 17 }); Lr.olhar(tC + 4.2, 1.5);
+  const pRegra = tC + 4.7;
   parada(tl, ctx, "regra", pRegra, Lr.hold(pRegra));
   t = pRegra + Lr.hold(pRegra);
 
@@ -513,11 +534,10 @@ export function diagnostico(c, ctx) {
     tl.set(M.laminas[0], { p: 0, a: 1 }, 0);
     tl.to(M.laminas[0], { p: 1, duration: 1.2, ease: "power2.in" }, 0.1);
     tl.to(M.laminas[0], { a: 0, duration: 0.5, ease: "power1.in" }, 0.8);
-    aparecer(tl, q(".dg-intro .rotulo"), 1.0, 0.5);
-    revelar(tl, q(".dg-intro h1"), 1.5);
-    Lr.ler(1.0, intro.rotulo); Lr.ler(1.5, intro.k);
-    t = Math.max(4.0, Lr.fim);
-    sumir(tl, q(".dg-intro .rotulo"), t, 0.35); recolher(tl, q(".dg-intro h1"), t);
+    aparecer(tl, q(".dg-intro .rotulo"), 0.6, 0.5);
+    revelar(tl, q(".dg-intro h1"), 0.9);
+    t = 0.9 + Math.max(2.0, leitura(intro.k));                           // o título sozinho ≈ 2 s
+    sumir(tl, [q(".dg-intro .rotulo"), q(".dg-intro h1")], t, 0.35);       // sai por opacidade (subindo, passava sob o rótulo de cima)
   }
   Q.forEach((S, i) => {
     const qd = QD[i], tit = q(`.q${i}`), h1 = tit.querySelector("h1"), lead = tit.querySelector(".t-lead");
@@ -551,15 +571,18 @@ export function diagnostico(c, ctx) {
     Lr.olhar(tA + 1.0, lead ? Math.min(3, 0.5 * nRot + 0.5) : holdGrafico(nRot + 2, qd.comparacoes ?? 1));
     if (S.seq) Lr.olhar(tFim, 1.0 * S.seq.length);
     // legenda [L] (ou o subtítulo, no legado)
-    const tL = Math.max(tFim, tA + 2.4);
+    const tL = Math.max(tFim, tA + 2.4, Lr.fim - 0.3);                    // a legenda entra depois do título lido (janelas ≤ 9 s)
     if (lead) { aparecer(tl, lead, tL, 0.6); Lr.ler(tL, lead.textContent, { v: qd.l ? 17 : 15 }); }
     const tP = (lead ? tL : tFim) + 0.6, hold = Lr.hold(tP);
     parada(tl, ctx, qd.parada || `q${i + 1}`, tP, hold);
     t = tP + hold;
     if (i < Q.length - 1) {
-      recolher(tl, h1, t); sumir(tl, [lead, ...S.rots], t, 0.35); apagar(tl, S.barras.map((k) => B[k]), t, 0.4);
-      S.linhas.forEach((k) => tl.to(Ls[k], { a: 0, duration: 0.4 }, t));
-      if (S.matriz && Mz) tl.to(Mz, { a: 0, duration: 0.4 }, t);
+      // a saída começa depois do fim do hold (o → do apresentar pula para ele); o título sai por opacidade
+      const tS = t + 0.15;
+      sumir(tl, [h1, lead, ...S.rots], tS, 0.35); apagar(tl, S.barras.map((k) => B[k]), tS, 0.4);
+      S.linhas.forEach((k) => tl.to(Ls[k], { a: 0, duration: 0.4 }, tS));
+      if (S.matriz && Mz) tl.to(Mz, { a: 0, duration: 0.4 }, tS);
+      t = tS;
     }
   });
   tl.to({}, { duration: 0.4 }, t);

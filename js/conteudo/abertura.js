@@ -5,8 +5,8 @@
 // Mercado (Abióptica): vem de base.setor.mercado; enquanto a base não o trouxer, vale SETOR_PADRAO, copiado de
 // estudo/pesquisa/12-parametros.json (mercado_otico_brasil), com fonte e período. Pedido ao integrador: levar
 // este bloco para dados/base.json → setor. Quebras de linha autorais: " / ".
-import { F } from "../util.js?v=202610071930";
-import { mi, pc } from "./formato.js?v=202610071930";
+import { F } from "../util.js?v=202610081530";
+import { mi, pc } from "./formato.js?v=202610081530";
 
 const EXTENSO = ["zero", "um", "dois", "três", "quatro", "cinco", "seis", "sete", "oito", "nove", "dez", "onze", "doze"];
 const serial = (iso) => { const [a, m, d] = String(iso).slice(0, 10).split("-").map(Number); return Date.UTC(a, m - 1, d) / 864e5; };

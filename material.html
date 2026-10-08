@@ -4,8 +4,9 @@
 <meta charset="utf-8">
 <meta name="robots" content="noindex,nofollow">
 <title>SWOT WEALTH · material do projeto</title>
-<link rel="stylesheet" href="fontes/fontes.css?v=202610071930">
-<link rel="stylesheet" href="estilo.css?v=202610071930">
+<link rel="icon" href="midia/marca/monograma.svg">
+<link rel="stylesheet" href="fontes/fontes.css?v=202610081530">
+<link rel="stylesheet" href="estilo.css?v=202610081530">
 <style>
 :root{--sf:var(--disp);--sf-texto:var(--texto);--cinza-2:#8a8d86;--linha:rgba(17,17,17,.12)}
 html,body{overflow:auto;background:var(--papel);color:var(--grafite);height:auto}
@@ -35,6 +36,8 @@ html,body{overflow:auto;background:var(--papel);color:var(--grafite);height:auto
 .doc table.mini th:first-child,.doc table.mini td.e{text-align:left}
 .doc table.mini td{text-align:right;border-bottom:1px solid var(--fio)}
 .doc ol.itens{padding-left:22px;font-size:15px;line-height:1.7}
+.doc .proposta table.mini td{text-align:left;vertical-align:top;line-height:1.5}
+.doc .proposta table.mini td.e{width:170px;color:var(--ouro-e);font-weight:500}
 .doc .rodape-doc{margin-top:40px;font-size:12px;color:var(--cinza-2);border-top:1px solid var(--linha);padding-top:12px}
 .acoes{position:fixed;right:24px;top:24px;display:flex;gap:8px}
 .acoes button{font:500 14px var(--texto);background:var(--verde);color:var(--marfim);border:none;padding:12px 20px;border-radius:999px;cursor:pointer}
@@ -46,9 +49,9 @@ html,body{overflow:auto;background:var(--papel);color:var(--grafite);height:auto
 <div class="doc" id="doc"></div>
 <script type="module">
 // Material do projeto (v2): documento imprimível e arquivos CSV, gerados do mesmo conteúdo da apresentação.
-import * as motor from "./motor/motor.js?v=202610071930";
-import { conteudo } from "./js/conteudo.js?v=202610071930";
-import { F } from "./js/util.js?v=202610071930";
+import * as motor from "./motor/motor.js?v=202610081530";
+import { conteudo, FIM } from "./js/conteudo.js?v=202610081530";
+import { F } from "./js/util.js?v=202610081530";
 window.__motor = motor;
 const p = new URLSearchParams(location.search);
 const n = Number(p.get("projeto") || 3);
@@ -59,6 +62,9 @@ const C = conteudo(base, R, n);
 const E = C.entregavel;
 const mi = (v) => `R$ ${F.n(v / 1e6, Math.abs(v) >= 10e6 ? 1 : 2)} mi`;          // duas casas abaixo de R$ 10 mi, como na tela
 const semTag = (x) => String(x ?? "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
+// a proposta do diagnóstico, com o texto integral da ficha da oferta (js/conteudo/fim.js, oferta.integral). Só no
+// FIN3.10: se os R$ 10 mil valem para as outras lentes é pergunta dos sócios.
+const OI = n === 3 ? FIM(base, R).oferta.integral : null;
 
 // Cada quadro do diagnóstico vira uma tabela com os mesmos números do gráfico.
 function tabelaDoQuadro(qd) {
@@ -99,6 +105,7 @@ document.getElementById("doc").innerHTML = `
 <header><img src="midia/marca/logo_horizontal.svg" alt="SWOT WEALTH"><span>${C.proj.codigo} · ${C.proj.nome} · ${E.capa.sub}</span></header>
 <h1>${C.proj.nome}<small>${C.proj.pergunta}</small></h1>
 <section><h2>Sumário</h2><ol style="padding-left:22px;line-height:1.7;font-size:15px">${E.capa.indice.map((i) => `<li>${i}</li>`).join("")}</ol></section>
+${OI ? `<section class="proposta"><h2>${OI.titulo} <span>${OI.resumo}</span></h2>${tabHTML({ cab: [], linhas: OI.linhas })}</section>` : ""}
 <section><h2>1 · Diagnóstico</h2>${C.quadros.map((qd) => `<h3 class="qd">${qd.titulo}</h3><p class="qs">${qd.sub}</p>${tabHTML(tabelaDoQuadro(qd))}`).join("")}</section>
 ${E.folhas.map((fo, i) => `<section><h2>${i + 2} · ${fo.titulo} <span>${fo.sub}</span></h2>${fo.itens ? `<ol class="itens">${fo.itens.map((x) => `<li>${x}</li>`).join("")}</ol>` : tabHTML({ cab: [], linhas: fo.linhas })}</section>`).join("")}
 <section><h2>${E.folhas.length + 2} · ${E.planilha.titulo}</h2>${tabHTML({ cab: E.planilha.cab, linhas: E.planilha.linhas })}</section>

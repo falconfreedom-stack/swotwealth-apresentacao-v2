@@ -1,5 +1,5 @@
-import { F } from "../util.js?v=202610071930";
-import { r1, mi, mil, pc } from "./formato.js?v=202610071930";
+import { F } from "../util.js?v=202610081530";
+import { r1, mi, mil, pc } from "./formato.js?v=202610081530";
 
 // ================================================================== FIN3.10 · capital de giro e custo do dinheiro
 // A lente que conduz a peça (roteiro v1, estudo/roteiro/50-roteiro-v1.md, cenas 3 a 9). Todos os números vêm de
@@ -200,7 +200,7 @@ export function projeto3(base, R, proj, dataBase) {
   const iMinPlano = P13.plano.semanas.reduce((k, w, i, a) => (w.saldo_minimo < a[k].saldo_minimo ? i : k), 0);
   const devolutiva = "devolutiva · dia 9";
   const entrega = {
-    abre: "Dez dias. / Três documentos.", abreLeg: "e uma devolutiva com os sócios no nono dia.",
+    abre: "Dez dias. / Três documentos.", abreLeg: "e uma devolutiva com os sócios da rede no nono dia.",
     pecas: {
       capa: { titulo: proj.nome, sub: `Diagnóstico e direcionamento · rede ilustrativa · ${dataBase}`,
         indice: ["Mapa do custo do dinheiro", "Projeção de 13 semanas", "Plano de substituição de fontes", "Memória de cálculo"] },
@@ -221,7 +221,8 @@ export function projeto3(base, R, proj, dataBase) {
       devolutiva: { t: devolutiva },
     },
     sabe: "No décimo dia, a rede sabe:",
-    sabeLista: ["quanto custa cada fonte de dinheiro;", "quanto antecipar em cada semana;", "que decisões tomar, e de quem depende cada uma."],
+    // 8.4: a recapitulação dos três documentos que acabaram de passar, em itens de até 6 palavras (42-ritmo-final.md, A3)
+    sabeLista: ["o custo de cada fonte;", "quanto antecipar, semana a semana;", "que decidir, e de quem depende."],
   };
   // estrutura que o material.html lê (capa, folhas, planilha)
   const entregavel = {
@@ -240,7 +241,7 @@ export function projeto3(base, R, proj, dataBase) {
     // compatibilidade com as peças antigas de js/cenas/comum.js (PECAS, htmlPeca, LEGENDAS)
     legendas: { f0: ["O plano", "Cada ação com o valor estimado, de quem depende e quando."], f1: ["A regra", "Saldo mínimo e antecipação por pedido, prontos para aprovar."] },
     painel: { titulo: "Saldo semanal", tipo: "semanas", valores: P13.plano.semanas.map((w) => w.saldo_minimo), linha: regra },
-    devolutiva: "Dia 9 · devolutiva de 1h30 com os sócios e a tesouraria",
+    devolutiva: "Dia 9 · devolutiva de 1h30 com os sócios da rede e a tesouraria",
   };
 
   // ------------------------------------------------------------------ cena 9 · um projeto

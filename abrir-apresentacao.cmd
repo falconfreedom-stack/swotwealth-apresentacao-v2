@@ -21,7 +21,7 @@ if defined NAV (
 echo.
 echo  SWOT WEALTH - apresentacao em %URL%
 echo  Espaco pausa e continua - setas vao de marco em marco - 1, 2, 3 abrem as lentes do Top 3
-echo  M abre o material - R reinicia - F11 sai da tela cheia
+echo  A troca o modo (assistir / apresentar) - M abre o material - R reinicia - F11 sai da tela cheia
 echo  Feche esta janela para encerrar o servidor.
 echo.
 python -m http.server %PORTA% --bind 127.0.0.1

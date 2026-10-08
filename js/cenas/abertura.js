@@ -7,9 +7,9 @@
 // Textos e números: js/conteudo/abertura.js (todo número vem do motor). [L] = legenda de leitura: classe so-assistir.
 // As barras que andam pelo aro guardam o ângulo em b.x (que entra na assinatura do quadro do mundo): a posição sai
 // dele por um getter, sem onUpdate — a cena fica certa em qualquer busca da linha do tempo.
-import { ABERTURA } from "../conteudo/abertura.js?v=202610071930";
-import { direcao } from "../mundo.js?v=202610071930";
-import { gsap, marco, TAU, rot, aparecer, sumir, parada, linhas, revelar, recolher, atenuar } from "./comum.js?v=202610071930";
+import { ABERTURA } from "../conteudo/abertura.js?v=202610081530";
+import { direcao } from "../mundo.js?v=202610081530";
+import { gsap, marco, TAU, rot, aparecer, sumir, parada, linhas, revelar, recolher, atenuar } from "./comum.js?v=202610081530";
 
 // ---------------------------------------------------------------------------------------------- planos e medidas
 const LUZ_A = 1.0;                                                                    // ângulo da luz no calendário
@@ -91,9 +91,9 @@ export function abertura(c, ctx) {
   M.acertarRelogio(tl, 12, 2.4, 1.0);                                 // o ponteiro avança até o meio-dia: o "hoje"
   tl.to(M.poeira, { a: 1, duration: 1.4, ease: "power1.out" }, 1.0);
   tl.to(M.disco, { horas: 1, duration: 1.0, ease: "power2.out" }, 2.6);
-  parada(tl, ctx, "abre", 5.4, 0.6);
-  marco(tl, "fim", 6.0);
-  fimEm(tl, 6.0);
+  parada(tl, ctx, "abre", 3.9, 0.6);                                 // 1,5 s de mostrador parado (42-ritmo-final, A9)
+  marco(tl, "fim", 4.5);
+  fimEm(tl, 4.5);
   return tl;
 }
 
@@ -133,7 +133,7 @@ export function venda(c, ctx) {
   const rLente = rot(c, M, direcao(ang(T.mesLente), R_SAIDA, 0.012), "r3d e saida", T.rotLente, -8, 30);   // logo abaixo do marcador: livre das parcelas e do monograma
   const rUltima = rot(c, M, direcao(ang(n), R_PARC, 0.012 + H_PARC), "r3d c", T.rotUltima, 0, -24);
 
-  [[".k1", 0.3, 8.15], [".l1", 2.6, 8.15], [".k2", 8.2, 17.35], [".l2", 8.9, 17.35], [".k3", 17.3, 25.35], [".l3", 17.8, 25.35], [".k4", 25.3], [".l4", 26.2]]
+  [[".k1", 0.3, 8.15], [".l1", 2.6, 8.15], [".k2", 8.2, 17.35], [".l2", 8.9, 17.35], [".k3", 17.6, 25.35], [".l3", 18.1, 25.35], [".k4", 25.3], [".l4", 26.2]]
     .forEach(([s, a, b]) => janela(tl, q(s), a, b));
   // 1.1 · a venda: título; as dez parcelas nascem nas horas 1 a 10, no sentido horário; o aro vira calendário
   revelar(tl, q(".k1"), 0.3);
@@ -144,7 +144,7 @@ export function venda(c, ctx) {
 
   // 1.2 · paga em um mês, recebe em dez: o ponteiro das horas corre os dez meses; cada parcela brilha quando ele passa
   const t2 = 7.8, tCorre = 8.0, dCorre = 3.2;
-  recolher(tl, [q(".k1"), q(".l1")], t2, 0.25);
+  sumir(tl, [q(".k1"), q(".l1")], t2, 0.3);                          // sai por opacidade: não passa sob o rótulo de cima (B1)
   M.correrRelogio(tl, n, dCorre, tCorre);
   revelar(tl, q(".k2"), tCorre + 0.2);
   revelar(tl, q(".l2"), tCorre + 0.9);
@@ -157,12 +157,12 @@ export function venda(c, ctx) {
 
   // 1.3 · para ter hoje, a rede antecipa: brilho curto; as parcelas voltam pelo aro até o 12 (a mais próxima primeiro),
   // deixam a lasca de ouro do desconto no lugar e empilham numa coluna no 12; o ponteiro volta dez horas junto
-  const t3 = 17.0, tVoo = t3 + 1.8;
-  recolher(tl, [q(".k2"), q(".l2")], t3, 0.25);
+  const t3 = 17.0, tVoo = t3 + 0.35;                                  // o voo começa antes do título da ponte (42-ritmo-final, B2)
+  sumir(tl, [q(".k2"), q(".l2")], t3, 0.3);
   sumir(tl, [rLente, rUltima], t3, 0.35);
   tl.to(saida, { a: 0, duration: 0.5, ease: "power1.in" }, t3);
-  revelar(tl, q(".k3"), t3 + 0.3);
-  revelar(tl, q(".l3"), t3 + 0.8);
+  revelar(tl, q(".k3"), t3 + 0.6);
+  revelar(tl, q(".l3"), t3 + 1.1);
   tl.to(brilho, { a: 0.35, duration: 0.1, ease: "power1.out" }, tVoo - 0.3);
   tl.to(brilho, { a: 0, duration: 0.1, ease: "power1.in" }, tVoo - 0.2);
   tl.to(lasca, { a: 1, duration: 0.2, ease: "power1.out" }, tVoo - 0.3);
@@ -230,7 +230,9 @@ export function retrato(c, ctx) {
   const aro = rotulosAro(c, M, V.aro);
   aro.forEach((m) => { m.style.opacity = "1"; });
 
-  [[".k1", 1.3, 8.45], [".l1", 2.1, 8.45], [".k2", 8.5, 18.35], [".l2", 10.3, 18.35], [".kq", 18.4, 28.6], [".custo", 28.6, 34.6], [".kp", 34.6]]
+  // batidas (assistir): as perguntas seguram leitura + 1,5 s (crítico de ritmo, 42-ritmo-final A2)
+  const t2 = 8.1, t3 = 18.0, hPalpite = 6.6, t4 = 20.1 + hPalpite, hCusto = 6.0, t5 = t4 + 2.4 + hCusto, tPerg = t5 + 0.9, hPerg = 5.1;
+  [[".k1", 1.3, t2 + 0.35], [".l1", 2.1, t2 + 0.35], [".k2", t2 + 0.4, t3 + 0.35], [".l2", t2 + 2.2, t3 + 0.35], [".kq", t3 + 0.4, t4 + 0.4], [".custo", t4 + 0.4, t5 + 0.3], [".kp", t5 + 0.3]]
     .forEach(([s, a, b]) => janela(tl, q(s), a, b));
   // 2.1 · a rede: as lascas e a coluna se apagam; câmera curta; 60 lojas, R$ 150 milhões; ≈ 1,4% do varejo paulista
   tl.to([...lasca, ...corpo], { a: 0, duration: 0.6, ease: "power1.in" }, 0);
@@ -242,8 +244,7 @@ export function retrato(c, ctx) {
   parada(tl, ctx, "rede", 4.0, 4.1);
 
   // 2.2 · a agenda: o anel cresce no sentido horário, onde estavam as parcelas da venda (mesmo raio, mesmo ouro)
-  const t2 = 8.1;
-  recolher(tl, [q(".k1"), q(".l1")], t2, 0.25);
+  sumir(tl, [q(".k1"), q(".l1")], t2, 0.3);                          // sai por opacidade: não passa sob o rótulo de cima (B1)
   ag.forEach((m, j) => {
     const [ba, bc, bl] = anel.slice(3 * j, 3 * j + 3), [ha, hc] = m.partes.map((v) => v * escala), t = t2 + 0.2 + 0.09 * j, dur = 0.8, ease = "power3.out";
     tl.set([ba, bc, bl], { a: 1 }, t);
@@ -257,17 +258,16 @@ export function retrato(c, ctx) {
   parada(tl, ctx, "agenda", 11.9, 6.1);
 
   // 2.3 · o palpite: o mundo cai a ~45%, o anel a 30%; a pergunta e as três faixas
-  const t3 = 18.0;
-  recolher(tl, [q(".k2"), q(".l2")], t3, 0.25);
+  sumir(tl, [q(".k2"), q(".l2")], t3, 0.3);
   sumir(tl, [q(".leg-ag"), ...aro], t3, 0.35);
   tl.to(M.luz, { expo: 0.45, duration: 0.6, ease: "power2.out" }, t3);
   tl.to(anel, { a: 0.3, duration: 0.6, ease: "power2.out" }, t3);
   revelar(tl, q(".kq"), t3 + 0.4);
   aparecer(tl, c.querySelectorAll(".fx"), t3 + 1.3, 0.5, 0.15, 8);
-  parada(tl, ctx, "palpite", 20.1, 8.1);
+  parada(tl, ctx, "palpite", 20.1, hPalpite);
 
   // 2.4 · a resposta: a faixa certa ganha borda de ouro; R$ 6,36 mi por ano conta; a barra em duas partes
-  const t4 = 28.2, fx = Array.from(c.querySelectorAll(".fx")), certa = fx[T.palpite.certa];
+  const fx = Array.from(c.querySelectorAll(".fx")), certa = fx[T.palpite.certa];
   recolher(tl, q(".kq"), t4, 0.3);
   tl.to(certa, { borderColor: "#C8A45A", color: "#C8A45A", duration: 0.4, ease: "power2.out" }, t4 + 0.1);
   atenuar(tl, fx.filter((e) => e !== certa), t4 + 0.1, 0.32, 0.4);
@@ -275,17 +275,16 @@ export function retrato(c, ctx) {
   contar(tl, q(".custo .heroi"), CA.valor, CA.fmt, 0.9, t4 + 0.4);
   aparecer(tl, q(".partes"), t4 + 1.4, 0.4, 0, 0);
   tl.fromTo(q(".partes .trilho"), { scaleX: 0 }, { scaleX: 1, duration: 0.8, ease: "power3.out", immediateRender: false }, t4 + 1.4);
-  parada(tl, ctx, "custo-ano", 30.6, 4.7);           // +1 s: os valores da barra (v2) pedem ~5,8 s de leitura
+  parada(tl, ctx, "custo-ano", t4 + 2.4, hCusto);     // leitura integral do número e das duas partes (42-ritmo-final, A7)
 
   // 2.5 · a pergunta: tudo sai; o mundo atenuado; só a pergunta
-  const t5 = 35.3;
   sumir(tl, [...fx, q(".partes"), q(".rot-rede"), q(".nota-fonte")], t5, 0.35);
   recolher(tl, q(".custo"), t5, 0.25);                               // sai antes de a pergunta entrar
   tl.to(anel, { a: 0, duration: 0.5, ease: "power1.in" }, t5);
   revelar(tl, q(".kp"), t5 + 0.3, 0.6, 0.12);
-  parada(tl, ctx, "pergunta", 36.2, 6.6);
-  marco(tl, "fim", 42.8);
-  recolher(tl, q(".kp"), 42.8, 0.35);
-  fimEm(tl, 43.2);
+  parada(tl, ctx, "pergunta", tPerg, hPerg);
+  marco(tl, "fim", tPerg + hPerg);
+  recolher(tl, q(".kp"), tPerg + hPerg, 0.35);
+  fimEm(tl, tPerg + hPerg + 0.4);
   return tl;
 }

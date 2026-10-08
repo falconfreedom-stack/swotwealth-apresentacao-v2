@@ -1,9 +1,9 @@
 // Peças comuns às cenas: rótulos presos ao 3D, entradas e saídas, folhas coladas às lâminas, barras de vidro,
 // planos fixos de câmera, o montador de quadros do diagnóstico e as peças do entregável.
 // Todo número vem do motor, via conteudo.js.
-import { F, g } from "../util.js?v=202610071930";
-import { TOP3_CODIGOS } from "../conteudo.js?v=202610071930";
-import { direcao } from "../mundo.js?v=202610071930";
+import { F, g } from "../util.js?v=202610081530";
+import { TOP3_CODIGOS } from "../conteudo.js?v=202610081530";
+import { direcao } from "../mundo.js?v=202610081530";
 
 export const gsap = () => g();
 export const marco = (tl, nome, t) => tl.addLabel(nome, t);

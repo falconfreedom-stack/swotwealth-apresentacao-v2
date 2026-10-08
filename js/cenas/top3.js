@@ -5,9 +5,9 @@
 // sem limite no apresentar). Tecla ou toque: 2 = FIN8.2, 3 = FIN5.11, 1 = FIN3.10 (reabre o percurso principal).
 // `tl.saida(n)` (n = projeto 1/2/3; 0 = seguir) anima a saída e chama `ctx.proximaCena()` no fim. Ao voltar de uma
 // lente, o controlador reabre esta cena no marco `escolha`; as lentes vistas (`ctx.vistas`) ganham o selo "visto".
-import { FIM } from "../conteudo.js?v=202610071930";
-import * as K from "./comum.js?v=202610071930";
-import { CAM_OFERTA, laminaDoIndice, entraLinhas } from "./oferta.js?v=202610071930";
+import { FIM } from "../conteudo.js?v=202610081530";
+import * as K from "./comum.js?v=202610081530";
+import { CAM_OFERTA, laminaDoIndice, entraLinhas } from "./oferta.js?v=202610081530";
 const { gsap, marco, linhas, folha } = K;
 
 // os cartões em fila, de frente para o plano `top3` (o mesmo retângulo dos cartões da versão anterior)

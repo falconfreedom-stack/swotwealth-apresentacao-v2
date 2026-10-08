@@ -1,13 +1,13 @@
 // As cenas, na ordem da peça (roteiro em estudo/roteiro/). Cada cena monta a sua camada de texto, move câmera e
 // luz dentro da própria linha do tempo GSAP e marca os pontos para onde o espaço salta (ver js/cenas/*.js).
 // Os módulos entram como espaços de nome: uma cena que falte no seu arquivo vira provisória, e a peça continua rodando.
-import * as A from "./cenas/abertura.js?v=202610071930";
-import * as L from "./cenas/lente.js?v=202610071930";
-import * as O from "./cenas/oferta.js?v=202610071930";
-import * as T from "./cenas/top3.js?v=202610071930";
-import * as E from "./cenas/ecossistema.js?v=202610071930";
-import * as N from "./cenas/entrega.js?v=202610071930";
-import { cenaProvisoria } from "./cenas/comum.js?v=202610071930";
+import * as A from "./cenas/abertura.js?v=202610081530";
+import * as L from "./cenas/lente.js?v=202610081530";
+import * as O from "./cenas/oferta.js?v=202610081530";
+import * as T from "./cenas/top3.js?v=202610081530";
+import * as E from "./cenas/ecossistema.js?v=202610081530";
+import * as N from "./cenas/entrega.js?v=202610081530";
+import { cenaProvisoria } from "./cenas/comum.js?v=202610081530";
 
 const ou = (...fs) => { const titulo = fs.pop(); const f = fs.find((x) => typeof x === "function"); return f || ((c, ctx) => cenaProvisoria(c, ctx, titulo, "Cena provisória.", 5)); };
 

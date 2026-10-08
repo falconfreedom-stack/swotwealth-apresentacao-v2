@@ -1,5 +1,5 @@
 // Formatos de número usados nos textos.
-import { F } from "../util.js?v=202610071930";
+import { F } from "../util.js?v=202610081530";
 
 export const r1 = (v) => F.n(v / 1e6, 1);            // milhões com uma casa
 export const mi = (v, c = 1) => `R$ ${F.n(v / 1e6, c)} mi`;          // casas como argumento (padrão 1)

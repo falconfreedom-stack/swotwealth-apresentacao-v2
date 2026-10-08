@@ -1,5 +1,5 @@
-import { F } from "../util.js?v=202610071930";
-import { mi, pc } from "./formato.js?v=202610071930";
+import { F } from "../util.js?v=202610081530";
+import { mi, pc } from "./formato.js?v=202610081530";
 
 // ================================================================== FIN5.11 · segregação de funções (rede de óticas)
 // O financeiro central (16 pessoas, 6 passos do pagamento) e um ângulo de loja (estornos de venda), sem mudar a matriz.
@@ -60,8 +60,8 @@ export function projeto2(base, R, proj, dataBase) {
   const intro = { rotulo: `${proj.codigo} · ${proj.nome}`, k: "Quem consegue pagar sozinho." };
   const compacto = [
     { ...qPessoas, k: qPessoas.titulo.replace(" o caminho", " / o caminho"), l: "Cadastrar ou trocar a conta do fornecedor, aprovar e liberar no banco. Dourado: acessos incompatíveis.", parada: "l2-pessoas" },
-    { ...qFluxo, k: qFluxo.titulo.replace(" passaram", " / passaram"), l: "Metade é o aluguel mínimo dos shoppings: uma pessoa lança, aprova e libera.", parada: "l2-fluxo" },
-    { ...qMeses, k: qMeses.titulo.replace(" trocadas. ", " trocadas. / "), l: `Em ${S.alteracoes.mesmo_usuario_pagou} casos, quem trocou a conta liberou o pagamento seguinte.`, parada: "l2-fim", semValores: true },
+    { ...qFluxo, k: qFluxo.titulo.replace(" passaram", " / passaram"), l: "Metade é aluguel de shopping: uma pessoa lança, aprova e libera.", parada: "l2-fluxo" },
+    { ...qMeses, k: qMeses.titulo.replace(" trocadas. ", " trocadas. / "), l: `Em ${S.alteracoes.mesmo_usuario_pagou} casos, quem trocou a conta liberou o pagamento.`, parada: "l2-fim", semValores: true },
   ];
   const acessos = S.pessoas.filter((p) => p.n_conflitos > 0).map((p) => {
     const tirar = [];
@@ -84,7 +84,7 @@ export function projeto2(base, R, proj, dataBase) {
     legendas: { f0: ["A lista", "Cada acesso a retirar, por pessoa, para a TI executar."], f1: ["A regra", "Pronta para aprovar em ata e colocar no sistema."] },
     planilha: { titulo: "matriz_de_funcoes.xlsx", cab: ["pessoa", ...passos.map((p) => p.nome)], linhas: S.pessoas.map((p) => [p.cargo, ...passos.map((q) => (p.acessos.includes(q.id) ? "●" : ""))]) },
     painel: { titulo: "Pagamentos por fluxo", tipo: "fluxo", valores: [S.pagamentos.segregado_valor, S.pagamentos.pessoa_unica_valor] },
-    devolutiva: "Dia 9 · devolutiva de 1h30 com os sócios, a diretoria financeira e a TI",
+    devolutiva: "Dia 9 · devolutiva de 1h30 com os sócios da rede, a diretoria financeira e a TI",
   };
   const resultado = { numero: `${S.caminho_inteiro} → 0`, legenda: "pessoas com o caminho inteiro do pagamento, no desenho entregue", sub: `${S.conflitos_total} conflitos mapeados, cada um com o acesso a retirar ou o controle a declarar. A TI da rede executa a lista.` };
   return { proj, n: 2, formulario, parede, quadros, compacto, intro, entregavel, resultado, cabDiag: `Diagnóstico · ${proj.codigo} · ${proj.nome} · rede ilustrativa · ${dataBase}` };

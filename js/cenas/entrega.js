@@ -10,9 +10,9 @@
 // no tempo de leitura (leitor), a parada no fim das entradas e o hold só de leitura; [L] = legenda só do modo assistir.
 // Textos e números: ctx.C.entrega (js/conteudo/fin310.js); o que faltar é montado aqui, com as mesmas contas, a partir
 // de ctx.R.fin310. Nada de número digitado à mão.
-import { mi, mil, pc } from "../conteudo/formato.js?v=202610071930";
-import * as K from "./comum.js?v=202610071930";
-const { gsap, folha, parada, leitor, linhas, revelar, recolher, aparecer } = K;
+import { mi, mil, pc } from "../conteudo/formato.js?v=202610081530";
+import * as K from "./comum.js?v=202610081530";
+const { gsap, folha, parada, leitor, leitura, linhas, revelar, recolher, aparecer } = K;
 
 const TAU = Math.PI * 2;
 const LOGO = K.LOGO_ESC || "midia/marca/logo_horizontal.svg", LOGO_CLARO = "midia/marca/logo_horizontal_claro.svg";
@@ -57,7 +57,7 @@ const tirar = (tl, bloco, t) => { recolher(tl, [...bloco.querySelectorAll("h1, .
 
 // ---------------------------------------------------------------------------------------------- os dados
 // ctx.C.entrega (fin310.js); cada pedaço que faltar sai de ctx.R.fin310 com as contas de fin310.js.
-// Três ajustes de texto, aqui e não no conteúdo: a legenda da projeção leva a fala de 8.2 do roteiro v2 (P8: quem
+// Ajustes de texto, aqui e não no conteúdo: a legenda da projeção leva a fala de 8.2 do roteiro v2 (P8: quem
 // atualiza a planilha; a cadência fica na aba da planilha); a legenda do plano fica em ≤ 50 caracteres
 // (40-ritmo-original.md, item 9); o rodapé do plano diz "caixa médio menor" (v2, P6).
 function dados(ctx) {
@@ -81,9 +81,9 @@ function dados(ctx) {
   const capa = P.capa || { titulo: proj.nome, sub: "Diagnóstico e direcionamento · rede ilustrativa", indice: ["Mapa do custo do dinheiro", "Projeção de 13 semanas", "Plano de substituição de fontes", "Memória de cálculo"] };
   return { proj, capa, mapa, projecao, plano,
     devolutiva: (P.devolutiva && P.devolutiva.t) || "devolutiva · dia 9",
-    abre: E.abre || "Dez dias. / Três documentos.", abreLeg: E.abreLeg || "e uma devolutiva com os sócios no nono dia.",
+    abre: E.abre || "Dez dias. / Três documentos.", abreLeg: E.abreLeg || "e uma devolutiva com os sócios da rede no nono dia.",
     sabe: E.sabe || "No décimo dia, a rede sabe:",
-    sabeLista: E.sabeLista || ["quanto custa cada fonte de dinheiro;", "quanto antecipar em cada semana;", "que decisões tomar, e de quem depende cada uma."] };
+    sabeLista: E.sabeLista || [] };
 }
 
 // ---------------------------------------------------------------------------------------------- o HTML das folhas
@@ -186,7 +186,11 @@ export function entrega(c, ctx) {
   mostrar(tl, K0, 1.7);
   revelar(tl, h1(K0), 1.7); Lr.ler(1.7, E.abre, { depoisDeCamera: true });
   revelar(tl, lead(K0), 2.6); Lr.ler(2.6, E.abreLeg);
-  let t = Lr.fim + 0.4;
+  // a ponte é uma parada (42-ritmo-final.md, P3): no apresentar, o → não espera o quadro parado; no assistir, o hold
+  // é a leitura do título e da legenda (a duração fica a mesma)
+  const pD = 3.2;
+  parada(tl, ctx, "dez-dias", pD, Lr.hold(pD));
+  let t = pD + Lr.hold(pD);
 
   // ---- 8.1–8.3 · um documento por vez, de frente. A folha que sai some antes de a seguinte ficar legível; as
   // vizinhas voltam a ser vidro apagado (sem texto); a folha lida ganha a tinta quando a câmera chega; o cabeçalho e
@@ -198,6 +202,10 @@ export function entrega(c, ctx) {
   };
   const acender = (o, t0, tTexto) => { tl.to(M.laminas[o.i], { a: 1, branco: o.escura ? 0 : 1, duration: 0.6, ease: "power2.inOut" }, t0); tl.to(o.el, { opacity: 1, duration: 0.4, ease: "power1.out" }, tTexto); };
   const PARADA = { mapa: "doc-mapa", projecao: "doc-projecao", plano: "doc-plano" };
+  // a linha destacada de cada documento, como se lê (o hold nunca fica abaixo da leitura dela)
+  const tot = (m) => (m.linhas.find((l) => l.total) || m.linhas[m.linhas.length - 1]).v.join(" · ");
+  const DESTAQUE = { mapa: () => tot(E.mapa), projecao: () => { const l = E.projecao.linhas[E.projecao.destaque] || []; return `semana ${l.join(" · ")}`; },
+    plano: () => `${E.plano.totalRot} · ${E.plano.total}` };
   DOCS.forEach((id, k) => {
     const p = por[id], d = E[id], bl = Kd[k], T = t, dc = k ? 1.2 : 1.5;
     tirar(tl, k ? Kd[k - 1] : K0, T);
@@ -216,8 +224,11 @@ export function entrega(c, ctx) {
     if (p.marca) tl.fromTo(p.marca, { scaleX: 0 }, { scaleX: 1, duration: 0.6, ease: "power2.out", immediateRender: false }, tD + 0.1);
     Lr.olhar(tD, 2.5);
     const tP = tD + 0.7;
-    parada(tl, ctx, PARADA[id], tP, Lr.hold(tP));
-    t = tP + Lr.hold(tP);
+    // hold de leitura menos 1,5 s (42-ritmo-final.md, A3: o título curto e a linha de ouro se leem junto com a
+    // legenda), nunca abaixo da leitura() da linha destacada
+    const hold = Math.max(Lr.hold(tP) - 1.5, leitura(DESTAQUE[id]()));
+    parada(tl, ctx, PARADA[id], tP, hold);
+    t = tP + hold;
   });
 
   // ---- 8.4 · a vista do instrumento, as peças inteiras (de novo textura); o que a rede sabe no décimo dia
@@ -229,13 +240,14 @@ export function entrega(c, ctx) {
   PZ.forEach((o) => { if (o.id !== "plano") acender(o, T4 + 0.3, T4 + 0.8); });
   const tS = T4 + 1.4;
   mostrar(tl, K4, tS);
-  revelar(tl, h1(K4), tS); Lr.zerar(tS); Lr.ler(tS, E.sabe, { depoisDeCamera: true });
+  revelar(tl, h1(K4), tS);
   const itens = [...K4.querySelectorAll("li")];
-  aparecer(tl, itens, tS + 0.8, 0.5, 0.6, 10);                          // uma linha por vez
-  itens.forEach((li, j) => Lr.ler(tS + 0.8 + 0.6 * j, li.textContent));
-  const pS = tS + 0.8 + 0.6 * (itens.length - 1) + 0.5;
-  parada(tl, ctx, "sabe", pS, Lr.hold(pS));
-  tl.to({}, { duration: 0.4 }, pS + Lr.hold(pS));
+  // uma linha por vez, no ritmo de quem já viu os três documentos; hold ≈ 5 s (42-ritmo-final.md, A3: é a
+  // recapitulação do que acabou de passar, não leitura nova)
+  aparecer(tl, itens, tS + 0.9, 0.5, 0.7, 10);
+  const pS = tS + 0.9 + 0.7 * (itens.length - 1) + 0.5, holdS = 5.0;
+  parada(tl, ctx, "sabe", pS, holdS);
+  tl.to({}, { duration: 0.4 }, pS + holdS);
   return tl;
 }
 

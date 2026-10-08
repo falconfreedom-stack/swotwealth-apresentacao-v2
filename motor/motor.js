@@ -6,7 +6,7 @@
 // O FIN3.10 simula 365 dias, dia a dia, em onze cenários (alguns segundos): o resultado fica gravado em
 // dados/calculado.json, gerado por `node motor/gerar.mjs`, com a impressão digital da base. Se a base mudar e o
 // arquivo não for gerado de novo, o cálculo roda no navegador (mais lento) e um aviso vai ao console.
-import { calcularFin310 } from "./fin310.js?v=202610071930";
+import { calcularFin310 } from "./fin310.js?v=202610081530";
 
 const soma = (a) => a.reduce((s, x) => s + x, 0);
 export const aa = (am) => (Math.pow(1 + am / 100, 12) - 1) * 100;            // % a.m. → % a.a.
