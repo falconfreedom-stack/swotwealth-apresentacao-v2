@@ -33,7 +33,4 @@ export const ORDEM = [
   { id: "socios", f: ou(E.socios, "Quem conduz o diagnóstico"), nome: "Quem conduz o diagnóstico" },
   { id: "projetos208", f: ou(E.projetos208, "208 projetos"), nome: "208 projetos, em dez fases" },
   { id: "fecho", f: ou(E.fecho, "Próximo passo"), nome: "Próximo passo" },
-  // fora do percurso: cenas anteriores ainda abertas por id durante a construção (somem quando os blocos fecharem)
-  ...[["lente", "A lente (anterior)"], ["formulario", "Os insumos (anterior)"], ["analise", "O cruzamento (anterior)"], ["diagnostico", "O diagnóstico (anterior)"], ["entregavel", "O entregável (anterior)"], ["resultado", "O resultado (anterior)"]]
-    .filter(([id]) => typeof L[id] === "function").map(([id, nome]) => ({ id, f: L[id], nome, projeto: 3, opcional: "legado" })),
 ];

@@ -68,15 +68,18 @@ export function revelar(tl, els, t, dur = 0.6, cada = 0.1) {
   const l = (els instanceof Element ? [els] : Array.from(els || [])).filter(Boolean);
   const spans = l.flatMap((e) => Array.from(e.querySelectorAll(".l > span")));
   if (!spans.length) { aparecer(tl, l, t, dur); return; }
-  tl.set(spans, { yPercent: 108 }, 0);
-  tl.fromTo(spans, { yPercent: 108 }, { yPercent: 0, duration: dur, ease: "expo.out", stagger: cada, immediateRender: false }, t);
+  // escondida a 130% (e não 108%): a caixa do texto (≈ 1,2 em) passa da altura da linha (1,07) e a máscara (.l) tem
+  // 0,14 em de folga embaixo; a 108% sobrava uma fresta da caixa dentro dela (sem tinta, mas o harness a contava
+  // como texto visível e "recortado")
+  tl.set(spans, { yPercent: 130 }, 0);
+  tl.fromTo(spans, { yPercent: 130 }, { yPercent: 0, duration: dur, ease: "expo.out", stagger: cada, immediateRender: false }, t);
 }
 // Esconde as linhas de volta (saída curta, 60% da entrada), para a mesma região receber outro texto.
 export function recolher(tl, els, t, dur = 0.35) {
   const l = (els instanceof Element ? [els] : Array.from(els || [])).filter(Boolean);
   const spans = l.flatMap((e) => Array.from(e.querySelectorAll(".l > span")));
   if (!spans.length) { sumir(tl, l, t, dur); return; }
-  tl.to(spans, { yPercent: -108, duration: dur, ease: "power2.in", stagger: 0.04 }, t);
+  tl.to(spans, { yPercent: -130, duration: dur, ease: "power2.in", stagger: 0.04 }, t);          // toda a caixa do texto sai da máscara
 }
 // Foco por atenuação: o que não é o assunto cai para `nivel` de opacidade; `focar` devolve ao normal.
 export const atenuar = (tl, els, t, nivel = 0.32, dur = 0.5) => { const l = [].concat(els).filter(Boolean); if (l.length) tl.to(l, { opacity: nivel, duration: dur, ease: "power2.out" }, t); };
@@ -253,7 +256,7 @@ export function montarQuadro(qd, c, M, G, specs, rots, linhas, matriz) {
     qd.barras.forEach(([t, v, sb], i) => {
       bar({ x: xs[i], y0: 0, h: v * sy, w: 0.30, cor: i === 2 ? "verde" : "marfim", cheio: 0.72 });
       lab(i === 2 ? P(xs[i], v * sy - 0.05) : P(xs[i], v * sy + 0.02), "val c", `<b class="num">R$ ${F.n(v)} mil</b>`, 0, i === 2 ? 0 : -26);
-      lab(P(xs[i], (i === 2 ? vT : v) * sy + 0.02), "cat c", `${t}<span>${sb}</span>`, 0, i === 2 ? -30 : -84);
+      lab(P(xs[i], (i === 2 ? vT : v) * sy + 0.02), "cat c", `${t}<span>${sb}</span>`, 0, i === 2 ? -40 : -104);   // acima do valor, com folga para os rótulos de 22 px
     });
     bar({ x: xs[2], y0: vR * sy, h: (vT - vR) * sy, w: 0.30, cor: "ouro", cheio: 0.5, topo: 0, sobre: specs.length - 1 });
     lab(P(xs[2] + 0.17, (vR + (vT - vR) / 2) * sy), "seg", `R$ ${F.n(vT - vR)} mil <span>${qd.gapRot}</span>`, 10, 0);
@@ -385,34 +388,37 @@ export function montarQuadro(qd, c, M, G, specs, rots, linhas, matriz) {
 }
 
 // ============================================================================ 7 · o entregável: o que chega à empresa
-// Cinco folhas deitadas no mostrador (a pilha); uma por vez sobe até a posição de leitura, à direita, e volta.
-// Posição na pilha: x, z sobre o mostrador; w × h em unidades do mundo (retrato, como uma página).
+// As peças pousam sobre o instrumento; a câmera desce sobre cada uma.
+// As peças ficam em volta do centro, sobre o vidro: os ponteiros, a tampa e a marca continuam à vista.
 export const PECAS = [
-  { id: "capa", x: -0.64, z: 0.02, giro: 0.10, y: 0.020 },
-  { id: "mapa", x: -0.38, z: 0.50, giro: -0.06, y: 0.023 },
-  { id: "projecao", x: 0.04, z: 0.64, giro: 0.05, y: 0.026 },
-  { id: "plano", x: 0.46, z: 0.48, giro: -0.08, y: 0.029 },
-  { id: "regra", x: 0.66, z: 0.04, giro: 0.07, y: 0.032 },
-].map((p) => ({ ...p, w: 0.36, h: 0.49 }));
-// a folha de leitura: 690 × 940 px no palco, à direita (a coluna da esquerda fica para a legenda)
-export const RET_LEITURA = { left: 1080, top: 70, width: 690, height: 940 };
-const cabPg = (C) => `<div class="cab"><img src="${LOGO_ESC}" alt=""><span>${C.proj.codigo} · rede ilustrativa</span></div>`;
+  { id: "capa", x: -0.56, z: 0.10, w: 0.40, h: 0.545, giro: 0.06, y: 0.022 },
+  { id: "f0", x: -0.28, z: 0.56, w: 0.40, h: 0.545, giro: -0.04, y: 0.026 },
+  { id: "f1", x: 0.20, z: 0.52, w: 0.40, h: 0.545, giro: 0.05, y: 0.024 },
+  { id: "planilha", x: 0.58, z: 0.12, w: 0.50, h: 0.304, giro: -0.05, y: 0.028 },
+  { id: "painel", x: 0.58, z: 0.47, w: 0.44, h: 0.275, giro: 0.04, y: 0.030 },
+  { id: "devolutiva", x: -0.56, z: -0.50, w: 0.32, h: 0.195, giro: -0.07, y: 0.026 },
+];
 export function htmlPeca(p, E, C) {
-  const P = (E.pecas || {})[p.id];
-  if (!P) return "";
-  if (p.id === "capa") return `<div class="capa"><img src="midia/marca/logo_horizontal_claro.svg" alt="SWOT WEALTH"><h2>${P.titulo}</h2><p>${P.sub}</p><ol>${P.indice.map((x) => `<li>${x}</li>`).join("")}</ol></div>`;
-  const topo = `${cabPg(C)}<h2>${P.titulo}</h2><p class="sub">${P.sub}</p>`;
-  if (p.id === "mapa") return `<div class="pg">${topo}<table class="mapa"><thead><tr>${P.cab.map((h, i) => `<th class="${i ? "d" : ""}">${h}</th>`).join("")}</tr></thead><tbody>${P.linhas.map((l) => `<tr class="${l.dest ? "dest" : ""}${l.total ? " tot" : ""}">${l.v.map((v, i) => `<td class="${i ? "d" : ""}">${v}</td>`).join("")}</tr>`).join("")}</tbody></table><p class="rod">${P.rodape}</p></div>`;
-  if (p.id === "projecao") {
-    const max = Math.max(...P.valores, P.linha) * 1.08;
-    const barras = P.valores.map((v, i) => `<i class="${i === P.iMin ? "min" : ""}" style="height:${(100 * v / max).toFixed(1)}%"></i>`).join("");
-    return `<div class="pg">${topo}<div class="pj"><div class="pj-g">${barras}<em style="bottom:${(100 * P.linha / max).toFixed(1)}%"><span>${P.linhaRot}</span></em></div><div class="pj-x">${P.valores.map((_, i) => `<span>${i % 2 === 0 ? i + 1 : ""}</span>`).join("")}</div></div><div class="pj-dest"><b class="num">${P.minimo}</b><span>${P.minimoRot}</span></div><p class="rod">${P.rodape}</p></div>`;
+  if (p.id === "capa") return `<div class="capa"><img src="midia/marca/logo_horizontal_claro.svg" alt="SWOT WEALTH"><h2>${E.capa.titulo}</h2><p>${E.capa.sub}</p><ol>${E.capa.indice.map((x) => `<li>${x}</li>`).join("")}</ol></div>`;
+  if (p.id === "f0" || p.id === "f1") {
+    const f = E.folhas[p.id === "f0" ? 0 : 1];
+    const linha = (l) => (l.length > 2 ? `<tr><td>${l[0]}<span class="q">${l[2]}</span></td><td class="d">${l[1]}</td></tr>` : `<tr>${l.map((v, i) => `<td class="${i ? "d" : ""}">${v}</td>`).join("")}</tr>`);
+    const corpo = f.itens ? `<ol class="itens">${f.itens.map((x) => `<li>${x}</li>`).join("")}</ol>` : `<table class="${f.linhas[0].length > 2 ? "tres" : ""}">${f.linhas.map(linha).join("")}</table>`;
+    return `<div class="pg"><div class="cab"><img src="${LOGO_ESC}" alt=""><span>${C.proj.nome}</span></div><h2>${f.titulo}</h2><p class="sub">${f.sub}</p>${corpo}</div>`;
   }
-  if (p.id === "plano") return `<div class="pg">${topo}<table class="plano">${P.linhas.map((l) => `<tr><td>${l.t}<span class="q">${l.q}</span></td><td class="d">${l.v}</td></tr>`).join("")}<tr class="tot"><td>${P.totalRot}</td><td class="d"><span class="alvo">${P.total}</span></td></tr></table><p class="rod">${P.rodape}</p></div>`;
-  if (p.id === "regra") return `<div class="pg">${topo}<ol class="itens">${P.itens.map((x) => `<li>${x}</li>`).join("")}</ol></div>`;
-  return "";
+  if (p.id === "planilha") {
+    const P = E.planilha;
+    return `<div class="xl"><div class="xl-t"><i></i>${P.titulo}</div><table class="${P.cab.length > 5 ? "largo" : ""}"><thead><tr><th></th>${P.cab.map((h) => `<th>${h}</th>`).join("")}</tr></thead><tbody>${P.linhas.slice(0, P.cab.length > 5 ? 13 : 14).map((l, i) => `<tr><td class="n">${i + 2}</td>${l.map((v) => `<td>${v}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
+  }
+  if (p.id === "painel") {
+    const P = E.painel, max = Math.max(...P.valores);
+    const barras = P.valores.map((v, i) => `<i style="height:${(100 * v / max).toFixed(1)}%" class="${P.tipo === "fluxo" && i === 1 ? "o" : ""}"></i>`).join("");
+    const linha = P.linha ? `<em style="bottom:${(100 * P.linha / max).toFixed(1)}%"></em>` : "";
+    return `<div class="pn"><div class="pn-t"><b>${P.titulo}</b><span>atualizado no fechamento de agosto</span></div><div class="pn-g ${P.tipo}">${barras}${linha}</div></div>`;
+  }
+  return `<div class="dv"><b>Devolutiva</b><span>${E.devolutiva}</span></div>`;
 }
-export const LEGENDAS = {};
+export const LEGENDAS = { capa: ["O documento", "Diagnóstico e direcionamento, com o índice do que foi decidido."], f0: ["As folhas", "Cada achado com a sua conta e o que fazer."], f1: ["As regras", "Prontas para aprovar em ata e colocar no sistema."], planilha: ["A planilha", "Os mesmos números, para a empresa continuar no fechamento seguinte."], painel: ["O painel", "Uma tela que se atualiza a cada fechamento."], devolutiva: ["A devolutiva", "Uma hora e meia com os sócios, no nono dia."] };
 
 // Cena provisória: um título e um subtítulo no escuro, com o instrumento ao fundo (até a cena definitiva existir).
 export function cenaProvisoria(c, ctx, titulo, sub = "", dur = 6, cam = "inteiro") {

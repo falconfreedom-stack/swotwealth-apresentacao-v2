@@ -21,7 +21,16 @@
    "sp_periodo": "jan/26",
    "fonte": "Abióptica, via Diário do Comércio (18/02/2026) e Movimento Econômico (11/03/2026)",
    "origem": "F",
-   "detalhe": "estudo/pesquisa/10-setor-optico.md e 12-parametros.json (mercado_otico_brasil)"
+   "detalhe": "estudo/pesquisa/10-setor-optico.md e 12-parametros.json (mercado_otico_brasil)",
+   "mes_fraco": {
+    "mes": "julho de 2026",
+    "base": "julho de 2025",
+    "curto": "jul/26 × jul/25",
+    "var_pct": -11,
+    "fonte": "Abióptica",
+    "origem": "F",
+    "detalhe": "estudo/pesquisa/10-setor-optico.md"
+   }
   }
  },
  "referencias": {
@@ -964,6 +973,13 @@
    "iof_credito_pj": {
     "diario_pct": 0.0082,
     "adicional_pct": 0.38
+   },
+   "ofertas_antecipacao_am": {
+    "min": 1.3,
+    "max": 3.5,
+    "origem": "P",
+    "nota": "ofertas comerciais de antecipação (credenciadoras e plataformas); faixa de referência, não estatística oficial nem cotação",
+    "detalhe": "estudo/pesquisa/11-persona.md, cena 5; estudo/pesquisa/10-setor-optico.md"
    }
   },
   "calendario": {

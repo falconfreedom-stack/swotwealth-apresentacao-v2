@@ -237,6 +237,9 @@ export function projeto3(base, R, proj, dataBase) {
     ],
     planilha: { titulo: "projecao_13_semanas.xlsx", cab: ["semana", "hoje", "com a regra", `vendas −${quedaVendas}%`],
       linhas: P13.hoje.semanas.map((w, i) => [`${i + 1}`, mi(w.saldo_minimo), mi(P13.plano.semanas[i].saldo_minimo), mi(ev.semanas_min[i])]) },
+    // compatibilidade com as peças antigas de js/cenas/comum.js (PECAS, htmlPeca, LEGENDAS)
+    legendas: { f0: ["O plano", "Cada ação com o valor estimado, de quem depende e quando."], f1: ["A regra", "Saldo mínimo e antecipação por pedido, prontos para aprovar."] },
+    painel: { titulo: "Saldo semanal", tipo: "semanas", valores: P13.plano.semanas.map((w) => w.saldo_minimo), linha: regra },
     devolutiva: "Dia 9 · devolutiva de 1h30 com os sócios e a tesouraria",
   };
 

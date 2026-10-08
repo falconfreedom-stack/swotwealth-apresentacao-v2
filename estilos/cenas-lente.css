@@ -24,7 +24,7 @@
 
 /* ---------- 3 · insumos */
 .c-ins .iris{position:absolute;inset:0;pointer-events:none;--r:390px;
-  background:radial-gradient(circle at 1180px 540px,rgba(4,10,7,0) var(--r),rgba(4,10,7,.97) calc(var(--r) + 80px))}
+  background:radial-gradient(circle at 1257px 540px,rgba(4,10,7,0) var(--r),rgba(4,10,7,.97) calc(var(--r) + 80px))}
 .c-ins .in-k1{position:absolute;left:112px;top:96px;width:1200px}
 .c-ins .in-k2{position:absolute;left:112px;top:96px;width:1200px}
 .c-ins .in-k2 .rotulo{font-size:22px;margin-bottom:14px}
@@ -88,3 +88,40 @@
 :is(.c-desc,.c-conta,.c-sem) .anc.foco.c .miolo{transform:translate(-50%,-50%);text-align:center}
 :is(.c-desc,.c-conta,.c-sem) .anc.foco.e .miolo{transform:translate(0,-50%)}
 .c-desc .anc.dentro .miolo{font-size:22px}
+
+/* ---------- 6 · conta */
+.c-conta .ct-heroi{position:absolute;left:112px;top:270px;width:1400px}
+.c-conta .ct-heroi .rotulo{font-size:22px}
+.c-conta .ct-l1{position:relative;height:150px}
+.c-conta .ct-por{position:absolute;top:66px;font:600 44px/1 var(--disp);letter-spacing:-.02em;color:var(--marfim)}
+.c-conta .ct-nat{font:500 34px/1.25 var(--disp);letter-spacing:-.015em;color:var(--marfim);margin-top:8px}
+.c-conta .ct-orig{font:400 25px/1.4 var(--texto);color:var(--m2);margin-top:14px}
+.c-conta .ct-num{position:absolute;left:112px;top:318px;font:600 136px/1 var(--disp);letter-spacing:-.03em;white-space:nowrap;transform-origin:0 0;color:var(--ouro);--brilho:0;--bp:120%}
+.c-conta .ct-num::after{content:attr(data-t);position:absolute;left:0;top:0;pointer-events:none;opacity:var(--brilho);color:transparent;
+  background:linear-gradient(100deg,rgba(255,243,207,0) 0%,rgba(255,243,207,0) 42%,#fff3cf 50%,rgba(255,243,207,0) 58%,rgba(255,243,207,0) 100%);background-size:260% 100%;background-position:var(--bp) 0;-webkit-background-clip:text;background-clip:text}
+.c-conta .ct-halo{position:absolute;left:-40px;top:200px;width:1000px;height:380px;pointer-events:none;mix-blend-mode:screen;
+  background:radial-gradient(ellipse at 50% 50%,rgba(200,164,90,.42),rgba(200,164,90,.12) 45%,rgba(200,164,90,0) 70%)}
+.c-conta .ct-tot{position:absolute;left:1388px;top:160px;font:400 22px/1.3 var(--texto);color:var(--m2)}
+.c-conta .ct-k{position:absolute;left:112px;top:96px;width:1150px}
+.c-conta .ct-nota{position:absolute;left:112px;top:700px;width:1600px;font:400 20px/1.4 var(--texto);color:var(--m3)}
+.c-conta .anc.colchete .miolo{transform:translate(0,-50%);display:flex;align-items:center;gap:14px}
+.c-conta .anc.colchete i{display:block;width:12px;border:2px solid rgba(200,164,90,.75);border-left:none;border-radius:0 6px 6px 0}
+.c-conta .anc.colchete span{font:500 24px/1.2 var(--texto);color:var(--marfim)}
+.c-conta .ct-lad{position:absolute;left:112px;top:420px;display:grid;grid-template-columns:repeat(3,520px);gap:34px}
+.c-conta .lad{min-height:210px;padding:28px 32px;border-radius:18px;background:rgba(4,10,7,.92)}
+.c-conta .lad b{display:block;min-height:66px;font-size:56px;line-height:1.15;color:var(--marfim);white-space:nowrap}
+.c-conta .lad span{display:block;margin-top:12px;font:400 24px/1.4 var(--texto);color:var(--m2)}
+.c-conta .lad.estimada{border:2px dashed var(--ouro)}
+.c-conta .lad.uma-vez{border:2px solid var(--ouro);box-shadow:inset 8px 0 0 var(--ouro)}
+.c-conta .lad.uma-vez b{color:var(--ouro)}
+.c-conta .lad.nao-ganho{border:2px solid #57605c;background:rgba(40,46,43,.92)}
+/* camadas da conta: os ladrilhos ficam sobre os rótulos atenuados; o número que viaja fica sobre os ladrilhos */
+.c-conta .ct-lad{z-index:4}
+.c-conta .ct-halo{z-index:5}
+.c-conta .ct-num{z-index:6}
+
+/* ---------- 7 · semanas */
+.c-sem .sm-txt{position:absolute;left:112px;top:96px;width:1150px}
+.c-sem .sm-txt .t-lead{margin-top:16px;font-size:25px;line-height:1.45}
+.c-sem .sm-txt .nota{margin-top:12px;font:400 20px/1.4 var(--texto);color:var(--m3)}
+.c-diag .dg-rede{position:absolute;right:112px;top:40px;font-size:22px}
