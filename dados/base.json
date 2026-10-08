@@ -76,20 +76,21 @@
     "ago"
    ],
    "valores": [
-    11600000,
-    12000000,
-    13400000,
-    15600000,
-    12200000,
-    11400000,
-    12300000,
-    11800000,
-    13000000,
-    11900000,
-    12000000,
-    12800000
+    12500000,
+    12125000,
+    12750000,
+    13500000,
+    13250000,
+    12125000,
+    12125000,
+    12250000,
+    12500000,
+    11750000,
+    12875000,
+    12250000
    ],
-   "definicao": "receita bruta do DRE gerencial: óculos e produtos entregues no mês (ordem de serviço encerrada)"
+   "definicao": "receita bruta do DRE gerencial: óculos e produtos entregues no mês (ordem de serviço encerrada)",
+   "fonte": "mesma série de fin310.rede.vendas_mensais, na ordem set → ago (sazonalidade pelo índice mensal da Abióptica levantado pelo A1; recalibração 1.1.0 do FIN3.10). A rede tem uma série só."
   },
   "deducoes_12m": 34500000,
   "deducoes_descricao": "impostos sobre vendas e devoluções depois da entrega; 23% da receita bruta, ilustrativo, a calibrar com o regime tributário da rede",
@@ -185,57 +186,58 @@
     60
    ],
    "orcamento_mes": [
-    12600000,
-    11900000,
-    12450000,
-    12300000,
-    13450000,
-    12250000,
-    12450000,
-    13300000
+    13680000,
+    12650000,
+    12270000,
+    12760000,
+    12920000,
+    12090000,
+    13350000,
+    12715000
    ],
    "pedidos_painel_mes": [
-    12446000,
-    11983000,
-    12549000,
-    12189000,
-    13578000,
-    12137000,
-    12395000,
-    13423000
+    13512000,
+    12736000,
+    12367000,
+    12650000,
+    13051000,
+    11981000,
+    13293000,
+    12845000
    ],
    "cancelados_mes": [
-    346000,
-    333000,
-    349000,
-    339000,
-    378000,
-    337000,
-    345000,
-    373000
+    372000,
+    351000,
+    342000,
+    350000,
+    361000,
+    331000,
+    368000,
+    355000
    ],
    "a_entregar_inicio": 3400000,
    "a_entregar_fim_mes": [
-    3300000,
+    3290000,
     3550000,
     3450000,
     3500000,
-    3700000,
-    3600000,
-    3650000,
-    3900000
+    3690000,
+    3590000,
+    3640000,
+    3880000
    ],
    "receita_dre_mes": [
-    12200000,
-    11400000,
-    12300000,
-    11800000,
-    13000000,
-    11900000,
-    12000000,
-    12800000
+    13250000,
+    12125000,
+    12125000,
+    12250000,
+    12500000,
+    11750000,
+    12875000,
+    12250000
    ],
    "identidade": "receita_dre_mes[m] = pedidos_painel_mes[m] − cancelados_mes[m] − (a_entregar_fim_mes[m] − a_entregar_fim_mes[m−1]), com a_entregar_fim_mes[−1] = a_entregar_inicio",
+   "realinhamento": "receita_dre_mes = jan a ago de fin310.rede.vendas_mensais. Orçamento, pedidos, cancelados e a variação mensal dos óculos a entregar da versão anterior foram multiplicados pelo fator de cada mês (receita nova ÷ antiga) e ajustados no total (cancelados −R$ 19 mil; óculos a entregar −R$ 17 mil) para que as pontes de uma casa decimal da tela fechem: 102,4 − 2,8 − 0,5 = 99,1.",
    "premissas": [
     "O orçamento de receita de 2026 é a soma das metas das lojas, e as metas são medidas como no painel: pedido registrado no dia da venda, pelo valor do pedido.",
     "As lojas fecharam janeiro a agosto em 100,0% da meta somada (mês a mês, entre 98,8% e 101,0%).",
@@ -916,7 +918,7 @@
  },
  "fin310": {
   "natureza": "Rede ILUSTRATIVA e independente de óticas em SP. Não é empresa real, não é case realizado. Valores provisórios; cada um marcado em 'origem' como F (fonte pública), E (estimativa) ou H (hipótese).",
-  "fonte_unica_pl": "Lojas, colaboradores e grandes linhas de custo vêm de estudo/modelo/top3_oticas.json (rede_p_l, A5). A série mensal de vendas deste bloco segue, desde a versão 1.1.0, o índice da Abióptica levantado pelo A1 (soma de R$ 150,0 mi); o bloco rede_p_l ainda usa a série do A5 (dezembro R$ 15,6 mi), o que só importa se as duas séries aparecerem juntas. Prazos, meios de pagamento, dívidas e caixa são deste arquivo.",
+  "fonte_unica_pl": "Receita mensal, lojas, colaboradores e grandes linhas de custo são as mesmas do bloco rede_p_l (FIN8.2): a série mensal de vendas é única para os três projetos (sazonalidade da Abióptica, R$ 150 mi no ano). Prazos, meios de pagamento, dívidas e caixa são deste bloco.",
   "parametros_externos": {
    "arquivo": "estudo/pesquisa/12-parametros.json",
    "situacao": "lido em 07/10/2026 na recalibração 1.1.0: parcelas, sazonalidade, compras por categoria e Res. BCB 562/2026; as demais premissas foram conferidas pelo A1 (10-setor-optico.md, seção 7) como confirmadas ou compatíveis"
@@ -1450,7 +1452,7 @@
  },
  "conferencia": {
   "origem": "C",
-  "nota": "valores esperados, recalculados pelo script de conferência do A5 com motor/motor.js (kpis e segregacao sem mudança) e com a função resultadoRede proposta",
+  "nota": "valores esperados, recalculados pelo A5 com resultadoRede, kpis e segregacao do motor/motor.js atual, depois do realinhamento da série mensal do FIN8.2 à do FIN3.10 (07/10/2026); EBITDA, kpis e segregacao não mudaram",
   "rede_p_l": {
    "receita_liquida_12m": 115500000,
    "custos_total_12m": 98700000,
@@ -1465,19 +1467,19 @@
     "banco": 23.5
    },
    "venda_jan_ago": {
-    "orcamento": 100700000,
-    "pedidos_painel": 100700000,
-    "conselho_sem_cancelados": 97900000,
-    "receita_dre": 97400000,
-    "cancelados": 2800000,
-    "aumento_a_entregar": 500000,
-    "desvio_definicao": 3300000,
+    "orcamento": 102435000,
+    "pedidos_painel": 102435000,
+    "conselho_sem_cancelados": 99605000,
+    "receita_dre": 99125000,
+    "cancelados": 2830000,
+    "aumento_a_entregar": 480000,
+    "desvio_definicao": 3310000,
     "lojas_mes_soma": 468,
     "por_loja_mes_mil": {
-     "orcamento": 215,
-     "painel": 215,
-     "conselho": 209,
-     "dre": 208,
+     "orcamento": 219,
+     "painel": 219,
+     "conselho": 213,
+     "dre": 212,
      "diferenca": 7
     }
    }
