@@ -1,0 +1,62 @@
+/* Estilos das cenas — bloco: fim (agente S3). Oferta (.c-of), hub do Top 3 (.c-hub), quem conduz (.c-soc),
+   os 208 (.c-eco) e o fecho (.c-fim). Sistema visual comum em estilo.css; nada abaixo de 22 px no que se lê
+   na reunião (18–20 px só em nota). */
+
+/* ---------- 10 · a oferta */
+.c-of .preco{position:absolute;left:112px;top:228px;width:700px}
+.c-of .preco .l > span{white-space:nowrap}
+.c-of .ficha-of{color:var(--marfim)}
+.c-of .ficha-of .f1,.c-of .ficha-of .f2{position:absolute;left:48px;right:48px;top:40px}
+.c-of .ficha-of .lin{display:grid;grid-template-columns:196px 1fr;column-gap:24px;padding:16px 0 18px;border-top:1px solid rgba(243,238,225,.14)}
+.c-of .ficha-of .lin:first-child{border-top:none;padding-top:4px}
+.c-of .ficha-of .k{font:500 22px/1.45 var(--texto);color:var(--ouro)}
+.c-of .ficha-of .v{font:400 26px/1.42 var(--texto);color:var(--marfim)}
+.c-of .perg{position:absolute;left:112px;top:560px;width:1000px}
+.c-of .resp{position:absolute;left:112px;top:560px;width:1000px}
+.c-of .resp ul{list-style:none;margin-top:28px}
+.c-of .resp li{font:400 28px/1.4 var(--texto);color:var(--marfim);padding:7px 0 7px 26px;position:relative}
+.c-of .resp li:before{content:"";position:absolute;left:0;top:27px;width:12px;height:2px;background:var(--ouro)}
+
+/* ---------- 11 · o hub do Top 3 */
+.c-hub .iris{position:absolute;inset:0;z-index:5;background:var(--noite);visibility:hidden;--x:960px;--y:540px;--r:0px;
+  -webkit-mask-image:radial-gradient(circle at var(--x) var(--y),transparent var(--r),#000 calc(var(--r) + 3px));
+  mask-image:radial-gradient(circle at var(--x) var(--y),transparent var(--r),#000 calc(var(--r) + 3px))}
+.c-hub .tit{position:absolute;left:112px;top:96px;width:1400px}
+.c-hub .dica{position:absolute;left:50%;top:958px;transform:translateX(-50%);white-space:nowrap;padding:12px 24px;border-radius:999px;background:rgba(4,10,7,.86);border:1px solid rgba(200,164,90,.45);font:500 25px/1 var(--texto);color:var(--ouro)}
+.c-hub .cartao-hub{padding:40px 42px 34px;color:var(--marfim)}
+.c-hub .cartao-hub .cab{display:flex;align-items:center;gap:14px}
+.c-hub .cartao-hub .tecla{width:46px;height:46px;border-radius:50%;border:1.5px solid var(--ouro);display:flex;align-items:center;justify-content:center;font:600 24px/1 var(--disp);color:var(--ouro)}
+.c-hub .cartao-hub .cod{font:500 22px/1 var(--texto);color:var(--ouro)}
+.c-hub .cartao-hub .selo{margin-left:auto;font:500 22px/1 var(--texto);color:var(--ouro);border:1px solid rgba(200,164,90,.6);border-radius:999px;padding:8px 14px}
+.c-hub .cartao-hub h3{font:600 42px/1.08 var(--disp);letter-spacing:-.02em;color:var(--marfim);margin:30px 0 20px}
+.c-hub .cartao-hub .perg{font:400 28px/1.4 var(--texto);color:var(--marfim)}
+.c-hub .cartao-hub .dur{position:absolute;left:42px;bottom:34px;font:400 22px/1 var(--texto);color:var(--m3)}
+
+/* ---------- 12 · quem conduz o diagnóstico (v2: uma lista, uma credencial por nome) */
+.c-soc .rot{position:absolute;left:112px;top:96px;font:500 22px/1.3 var(--texto);color:var(--ouro)}
+.c-soc .lista{position:absolute;left:112px;top:150px;width:1500px;list-style:none}
+.c-soc .lista li{display:grid;grid-template-columns:440px 1fr;align-items:baseline;padding:15px 0 16px;border-top:1px solid rgba(243,238,225,.14);will-change:transform,opacity}
+.c-soc .lista li:first-child{border-top-color:rgba(200,164,90,.55)}
+.c-soc .lista b{font:600 34px/1.15 var(--disp);letter-spacing:-.015em;color:var(--marfim)}
+.c-soc .lista span{font:400 27px/1.3 var(--texto);color:var(--m2)}
+
+/* ---------- 13 · os 208 */
+.c-eco .tit{position:absolute;left:112px;top:96px;width:720px}
+.c-eco .sub{position:absolute;left:112px;top:252px;width:640px;font:400 28px/1.4 var(--texto);color:var(--m2)}
+.c-eco .fase .miolo{font:600 24px/1.1 var(--disp);letter-spacing:-.01em;color:var(--marfim)}
+.c-eco .fase .miolo.ativa{color:var(--ouro)}
+.c-eco .selo .miolo{font:600 19px/1 var(--texto);color:#1b1305;background:var(--ouro);padding:7px 12px;border-radius:999px;text-shadow:none}
+.c-eco .amostra{position:absolute;left:112px;top:440px;width:600px;opacity:0;pointer-events:none}
+.c-eco .amostra em{display:block;font:500 22px/1.3 var(--texto);font-style:normal;color:var(--ouro);margin-bottom:12px}
+.c-eco .amostra span{display:block;font:500 28px/1.3 var(--disp);letter-spacing:-.01em;color:var(--marfim);padding:8px 0;border-top:1px solid rgba(243,238,225,.12)}
+
+/* ---------- 14 · o próximo passo */
+.c-fim .rot{position:absolute;left:112px;top:212px;font:500 22px/1.3 var(--texto);color:var(--ouro)}
+.c-fim .tit{position:absolute;left:112px;top:252px;width:760px}
+.c-fim .acoes{position:absolute;left:112px;top:432px;width:720px;list-style:none}
+.c-fim .acoes li{display:grid;grid-template-columns:48px 1fr;align-items:baseline;padding:13px 0;border-top:1px solid rgba(243,238,225,.14);will-change:transform,opacity}
+.c-fim .acoes b{font:600 30px/1 var(--disp);color:var(--ouro)}
+.c-fim .acoes span{font:400 28px/1.35 var(--texto);color:var(--marfim)}
+.c-fim .rodape{position:absolute;left:112px;top:860px;width:760px;font:400 22px/1.4 var(--texto);color:var(--m3)}
+.c-fim .halo{position:absolute;left:0;top:0;width:520px;height:520px;margin:-260px 0 0 -260px;border-radius:50%;pointer-events:none;mix-blend-mode:screen;
+  background:radial-gradient(circle,rgba(255,236,190,.55) 0%,rgba(222,182,108,.22) 26%,rgba(200,164,90,0) 62%);will-change:transform,opacity}

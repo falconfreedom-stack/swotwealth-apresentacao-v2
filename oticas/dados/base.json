@@ -1,0 +1,1540 @@
+{
+ "versao": "3.0.0",
+ "gerado_em": "2026-10-07",
+ "data_base": "2026-08-31",
+ "natureza": "Rede ILUSTRATIVA e independente de óticas em São Paulo (60 lojas, R$ 150 mi de receita bruta em 12 meses). Não é empresa real nem caso realizado pela SWOT WEALTH: os valores da rede são estimativas e hipóteses coerentes entre si, com premissas explícitas; parâmetros de mercado (Banco Central, Abióptica) têm fonte. Nenhum valor deve ser atribuído a empresa real.",
+ "legenda_origem": {
+  "F": "fonte pública",
+  "E": "estimativa ilustrativa",
+  "H": "hipótese do modelo",
+  "C": "calculado pelo motor",
+  "R": "referência pública setor-agnóstica",
+  "P": "alegação promocional de empresa"
+ },
+ "setor": {
+  "nota": "mercado de referência (fonte pública); números da rede são do bloco fin310 e rede_p_l (ilustrativos)",
+  "mercado": {
+   "vendas_ano": 28079000000.0,
+   "ano": 2025,
+   "pontos_de_venda": 71226,
+   "sp_pct": 37.6,
+   "sp_periodo": "jan/26",
+   "fonte": "Abióptica, via Diário do Comércio (18/02/2026) e Movimento Econômico (11/03/2026)",
+   "origem": "F",
+   "detalhe": "estudo/pesquisa/10-setor-optico.md e 12-parametros.json (mercado_otico_brasil)",
+   "mes_fraco": {
+    "mes": "julho de 2026",
+    "base": "julho de 2025",
+    "curto": "jul/26 × jul/25",
+    "var_pct": -11,
+    "fonte": "Abióptica",
+    "origem": "F",
+    "detalhe": "estudo/pesquisa/10-setor-optico.md"
+   }
+  }
+ },
+ "referencias": {
+  "origem": "R",
+  "nota": "já existem em dados/base.json → setor; mantidas porque não dependem de setor. O A1 deve conferir número, edição e recorte antes de ir à tela.",
+  "fpa_tempo_dados_pct": {
+   "v": 46,
+   "fonte": "FP&A Trends, 2025 FP&A Benchmarks"
+  },
+  "acfe_faturamento_duracao_meses": {
+   "v": 14,
+   "fonte": "ACFE, Occupational Fraud 2026: A Report to the Nations — duração mediana dos esquemas de faturamento"
+  },
+  "acfe_mediana_usd_mil": {
+   "v": 110,
+   "fonte": "ACFE 2026 — perda mediana em organizações de 100 a 999 empregados"
+  }
+ },
+ "rede_p_l": {
+  "origem": "E",
+  "periodo_12m": "set/2025 a ago/2026",
+  "perfil": {
+   "descricao": "rede ilustrativa de óticas de preço médio a médio-alto em São Paulo, com laboratório próprio de surfaçagem e montagem",
+   "regiao": "capital, Grande São Paulo e interior de SP",
+   "lojas": 60,
+   "lojas_shopping": 38,
+   "lojas_rua": 22,
+   "lojas_abertas_12m": 6,
+   "aberturas": [
+    "out/2025",
+    "dez/2025",
+    "mar/2026",
+    "abr/2026",
+    "jun/2026",
+    "jul/2026"
+   ],
+   "lojas_fechadas_12m": 2,
+   "fechamentos": [
+    "jan/2026 (rua)",
+    "mai/2026 (rua)"
+   ],
+   "laboratorio_proprio": true,
+   "laboratorio_parte_dos_pedidos_com_lente_pct": 70,
+   "colaboradores": 420,
+   "ticket_medio_pedido": 760,
+   "venda_majoritaria": "cartão de crédito parcelado (até 10 vezes sem juros), com PIX, débito e dinheiro no restante"
+  },
+  "receita_bruta_12m": 150000000,
+  "receita_bruta_mensal_12m": {
+   "meses": [
+    "set",
+    "out",
+    "nov",
+    "dez",
+    "jan",
+    "fev",
+    "mar",
+    "abr",
+    "mai",
+    "jun",
+    "jul",
+    "ago"
+   ],
+   "valores": [
+    12500000,
+    12125000,
+    12750000,
+    13500000,
+    13250000,
+    12125000,
+    12125000,
+    12250000,
+    12500000,
+    11750000,
+    12875000,
+    12250000
+   ],
+   "definicao": "receita bruta do DRE gerencial: óculos e produtos entregues no mês (ordem de serviço encerrada)",
+   "fonte": "mesma série de fin310.rede.vendas_mensais, na ordem set → ago (sazonalidade pelo índice mensal da Abióptica levantado pelo A1; recalibração 1.1.0 do FIN3.10). A rede tem uma série só."
+  },
+  "deducoes_12m": 34500000,
+  "deducoes_descricao": "impostos sobre vendas e devoluções depois da entrega; 23% da receita bruta, ilustrativo, a calibrar com o regime tributário da rede",
+  "receita_liquida_12m": 115500000,
+  "custos_12m": {
+   "cmv": 38200000,
+   "folha": 27700000,
+   "ocupacao": 16200000,
+   "vendas": 8100000,
+   "administrativo": 8500000
+  },
+  "custos_descricao": {
+   "cmv": "armações, lentes oftálmicas e blocos do laboratório, lentes de contato, solares e serviços de laboratórios terceiros, com refações e líquido de bonificações de fornecedores",
+   "folha": "lojas, laboratório e escritório, com encargos e comissões",
+   "ocupacao": "aluguel fixo e percentual, condomínio e fundo de promoção dos shoppings, IPTU",
+   "vendas": "marketing e mídia, taxas de cartão (MDR), embalagens",
+   "administrativo": "sistemas, serviços, logística entre laboratório e lojas, manutenção das lojas, seguros, despesas gerais"
+  },
+  "custos_pct_liquida_derivado": {
+   "cmv": 33.07,
+   "folha": 23.98,
+   "ocupacao": 14.03,
+   "vendas": 7.01,
+   "administrativo": 7.36
+  },
+  "ocupacao_12m": {
+   "aluguel_fixo_ifrs16": 10300000,
+   "aluguel_percentual": 900000,
+   "condominio_fundo_promocao": 4200000,
+   "iptu_outros": 800000
+  },
+  "ocupacao_por_tipo_12m": {
+   "shopping": {
+    "lojas": 38,
+    "aluguel_minimo": 6900000,
+    "aluguel_percentual": 900000,
+    "condominio_fundo_promocao": 4200000,
+    "total": 12000000
+   },
+   "rua": {
+    "lojas_media": 23,
+    "aluguel": 2600000,
+    "iptu": 500000,
+    "total": 3100000
+   },
+   "laboratorio_cd_escritorio": {
+    "aluguel": 800000,
+    "iptu_outros": 300000,
+    "total": 1100000
+   }
+  },
+  "ifrs16_nota": "Pelo IFRS 16 (CPC 06), só o aluguel fixo (mínimo) sai das despesas e vira depreciação do direito de uso mais juros do arrendamento. Aluguel percentual sobre vendas, condomínio, fundo de promoção e IPTU continuam no EBITDA. Premissa ilustrativa: as demonstrações contábeis da rede adotam o CPC 06.",
+  "preoperacionais_12m": 1500000,
+  "preoperacionais_detalhe": {
+   "lojas_novas": 6,
+   "por_loja": 250000,
+   "inclui": "equipe contratada e treinada antes da abertura, condomínio durante a obra, campanha de inauguração"
+  },
+  "nao_recorrentes_12m": 800000,
+  "nao_recorrentes_detalhe": [
+   {
+    "t": "rescisões do fechamento de duas lojas de rua",
+    "v": 350000
+   },
+   {
+    "t": "multa de rescisão de aluguel de rua",
+    "v": 250000
+   },
+   {
+    "t": "implantação do sistema do laboratório",
+    "v": 200000
+   }
+  ],
+  "venda_jan_ago": {
+   "meses": [
+    "jan",
+    "fev",
+    "mar",
+    "abr",
+    "mai",
+    "jun",
+    "jul",
+    "ago"
+   ],
+   "lojas_mes": [
+    57,
+    57,
+    58,
+    59,
+    58,
+    59,
+    60,
+    60
+   ],
+   "orcamento_mes": [
+    13680000,
+    12650000,
+    12270000,
+    12760000,
+    12920000,
+    12090000,
+    13350000,
+    12715000
+   ],
+   "pedidos_painel_mes": [
+    13512000,
+    12736000,
+    12367000,
+    12650000,
+    13051000,
+    11981000,
+    13293000,
+    12845000
+   ],
+   "cancelados_mes": [
+    372000,
+    351000,
+    342000,
+    350000,
+    361000,
+    331000,
+    368000,
+    355000
+   ],
+   "a_entregar_inicio": 3400000,
+   "a_entregar_fim_mes": [
+    3290000,
+    3550000,
+    3450000,
+    3500000,
+    3690000,
+    3590000,
+    3640000,
+    3880000
+   ],
+   "receita_dre_mes": [
+    13250000,
+    12125000,
+    12125000,
+    12250000,
+    12500000,
+    11750000,
+    12875000,
+    12250000
+   ],
+   "identidade": "receita_dre_mes[m] = pedidos_painel_mes[m] − cancelados_mes[m] − (a_entregar_fim_mes[m] − a_entregar_fim_mes[m−1]), com a_entregar_fim_mes[−1] = a_entregar_inicio",
+   "realinhamento": "receita_dre_mes = jan a ago de fin310.rede.vendas_mensais. Orçamento, pedidos, cancelados e a variação mensal dos óculos a entregar da versão anterior foram multiplicados pelo fator de cada mês (receita nova ÷ antiga) e ajustados no total (cancelados −R$ 19 mil; óculos a entregar −R$ 17 mil) para que as pontes de uma casa decimal da tela fechem: 102,4 − 2,8 − 0,5 = 99,1.",
+   "premissas": [
+    "O orçamento de receita de 2026 é a soma das metas das lojas, e as metas são medidas como no painel: pedido registrado no dia da venda, pelo valor do pedido.",
+    "As lojas fecharam janeiro a agosto em 100,0% da meta somada (mês a mês, entre 98,8% e 101,0%).",
+    "O DRE gerencial reconhece a receita na entrega dos óculos (ordem de serviço encerrada). Pedido cancelado antes da entrega nunca vira receita.",
+    "Cancelamentos incluem desistência do cliente, receita que o laboratório não consegue fazer e pedido refeito (troca de lente ou de armação) que entra como pedido novo.",
+    "Óculos a entregar: pedidos pagos que estão no laboratório ou esperando retirada na loja; o saldo cresceu R$ 0,5 mi de 31/12/2025 a 31/08/2026 com quatro lojas a mais e prazo do laboratório maior em agosto. Essa parte é calendário e volta quando os óculos são entregues.",
+    "Prazo médio do pedido à entrega: 7 dias corridos (laboratório próprio, cerca de 5; laboratório terceiro, cerca de 10; pronta entrega e solares, no dia)."
+   ]
+  }
+ },
+ "kpis": {
+  "origem": "E",
+  "documentos": [
+   {
+    "id": "conselho",
+    "nome": "Pacote do conselho",
+    "cadencia": "mensal",
+    "quem": "diretoria financeira"
+   },
+   {
+    "id": "banco",
+    "nome": "Relatório de covenants",
+    "cadencia": "semestral",
+    "quem": "tesouraria"
+   },
+   {
+    "id": "controladoria",
+    "nome": "DRE gerencial",
+    "cadencia": "mensal",
+    "quem": "controladoria"
+   },
+   {
+    "id": "painel",
+    "nome": "Painel de vendas",
+    "cadencia": "diária",
+    "quem": "comercial"
+   },
+   {
+    "id": "orcamento",
+    "nome": "Orçamento 2026",
+    "cadencia": "anual",
+    "quem": "diretoria"
+   }
+  ],
+  "indicadores": [
+   {
+    "nome": "Receita bruta",
+    "docs": {
+     "conselho": "d",
+     "banco": "c",
+     "controladoria": "c",
+     "painel": "d",
+     "orcamento": "d"
+    },
+    "dono": true,
+    "fonte": true
+   },
+   {
+    "nome": "Receita líquida",
+    "docs": {
+     "conselho": "c",
+     "banco": "c",
+     "controladoria": "c",
+     "orcamento": "c"
+    },
+    "dono": true,
+    "fonte": true
+   },
+   {
+    "nome": "Margem bruta",
+    "docs": {
+     "conselho": "c",
+     "controladoria": "c",
+     "painel": "d",
+     "orcamento": "c"
+    },
+    "dono": true,
+    "fonte": true
+   },
+   {
+    "nome": "EBITDA",
+    "docs": {
+     "conselho": "d",
+     "banco": "d",
+     "controladoria": "c",
+     "orcamento": "d"
+    },
+    "dono": true,
+    "fonte": true
+   },
+   {
+    "nome": "Margem EBITDA",
+    "docs": {
+     "conselho": "d",
+     "banco": "d",
+     "controladoria": "c"
+    },
+    "dono": true,
+    "fonte": true
+   },
+   {
+    "nome": "Ticket médio",
+    "docs": {
+     "conselho": "c",
+     "controladoria": "d",
+     "painel": "c",
+     "orcamento": "d"
+    },
+    "dono": false,
+    "fonte": true
+   },
+   {
+    "nome": "Vendas mesmas lojas",
+    "docs": {
+     "conselho": "d",
+     "painel": "d",
+     "orcamento": "c"
+    },
+    "dono": false,
+    "fonte": true
+   },
+   {
+    "nome": "Margem por loja",
+    "docs": {
+     "conselho": "d",
+     "controladoria": "c",
+     "painel": "d"
+    },
+    "dono": true,
+    "fonte": true
+   },
+   {
+    "nome": "Óculos por venda",
+    "docs": {
+     "painel": "c"
+    },
+    "dono": true,
+    "fonte": true
+   },
+   {
+    "nome": "Pedidos cancelados",
+    "docs": {
+     "conselho": "c",
+     "painel": "c"
+    },
+    "dono": false,
+    "fonte": true
+   },
+   {
+    "nome": "Óculos a entregar",
+    "docs": {
+     "controladoria": "c",
+     "painel": "c"
+    },
+    "dono": false,
+    "fonte": true
+   },
+   {
+    "nome": "Prazo do laboratório",
+    "docs": {
+     "conselho": "d",
+     "painel": "c"
+    },
+    "dono": true,
+    "fonte": true
+   },
+   {
+    "nome": "Taxa de refação",
+    "docs": {
+     "painel": "c"
+    },
+    "dono": false,
+    "fonte": false
+   },
+   {
+    "nome": "Conversão de atendimentos",
+    "docs": {
+     "conselho": "c",
+     "painel": "c",
+     "orcamento": "c"
+    },
+    "dono": true,
+    "fonte": false
+   },
+   {
+    "nome": "Participação de multifocais",
+    "docs": {
+     "conselho": "c",
+     "painel": "c",
+     "orcamento": "c"
+    },
+    "dono": true,
+    "fonte": true
+   },
+   {
+    "nome": "Estoque de armações (dias)",
+    "docs": {
+     "conselho": "c",
+     "controladoria": "c",
+     "orcamento": "c"
+    },
+    "dono": true,
+    "fonte": true
+   },
+   {
+    "nome": "Armações paradas (+180 dias)",
+    "docs": {
+     "conselho": "c",
+     "painel": "c"
+    },
+    "dono": false,
+    "fonte": false
+   },
+   {
+    "nome": "Folha sobre receita",
+    "docs": {
+     "conselho": "c",
+     "controladoria": "c",
+     "orcamento": "c"
+    },
+    "dono": true,
+    "fonte": true
+   },
+   {
+    "nome": "Ocupação sobre receita",
+    "docs": {
+     "conselho": "d",
+     "controladoria": "c",
+     "orcamento": "c"
+    },
+    "dono": true,
+    "fonte": true
+   },
+   {
+    "nome": "Taxa efetiva do cartão",
+    "docs": {
+     "conselho": "c",
+     "controladoria": "c"
+    },
+    "dono": true,
+    "fonte": true
+   },
+   {
+    "nome": "Prazo médio de recebimento",
+    "docs": {
+     "conselho": "c",
+     "banco": "c",
+     "controladoria": "c"
+    },
+    "dono": true,
+    "fonte": true
+   },
+   {
+    "nome": "Caixa disponível",
+    "docs": {
+     "conselho": "c",
+     "banco": "c",
+     "controladoria": "c"
+    },
+    "dono": true,
+    "fonte": true
+   },
+   {
+    "nome": "Dívida líquida",
+    "docs": {
+     "conselho": "c",
+     "banco": "d",
+     "controladoria": "c"
+    },
+    "dono": true,
+    "fonte": true
+   },
+   {
+    "nome": "Dívida líquida / EBITDA",
+    "docs": {
+     "conselho": "d",
+     "banco": "d",
+     "controladoria": "c"
+    },
+    "dono": true,
+    "fonte": true
+   },
+   {
+    "nome": "Capex por loja nova",
+    "docs": {
+     "conselho": "c",
+     "orcamento": "c"
+    },
+    "dono": true,
+    "fonte": true
+   },
+   {
+    "nome": "Retorno da loja nova",
+    "docs": {
+     "conselho": "c",
+     "orcamento": "c"
+    },
+    "dono": true,
+    "fonte": false
+   }
+  ],
+  "definicoes": {
+   "ebitda": {
+    "controladoria": "receita líquida menos custos e despesas operacionais, com o aluguel como despesa e com as despesas pré-operacionais das lojas novas",
+    "conselho": "o da controladoria sem as despesas pré-operacionais das lojas novas e sem eventos não recorrentes",
+    "banco": "o das demonstrações contábeis: o aluguel fixo das lojas sai do EBITDA pelo IFRS 16; aluguel percentual, condomínio e fundo de promoção ficam",
+    "orcamento": "montado a partir da receita orçada em pedidos (definição do painel)"
+   },
+   "receita_bruta": {
+    "painel": "pedidos registrados no dia da venda, pelo valor do pedido, sem descontar cancelamentos posteriores",
+    "conselho": "pedidos do painel menos os cancelados no mês",
+    "controladoria": "óculos e produtos entregues no mês (ordem de serviço encerrada); pedido cancelado nunca entra",
+    "banco": "receita bruta das demonstrações contábeis, igual à da controladoria",
+    "orcamento": "soma das metas das lojas, medidas como no painel"
+   },
+   "ticket_medio": {
+    "painel": "valor dos pedidos ÷ número de pedidos",
+    "conselho": "igual ao painel",
+    "controladoria": "receita entregue ÷ número de notas fiscais",
+    "orcamento": "receita orçada ÷ número de óculos, contando o segundo par como um óculos"
+   },
+   "margem_bruta": {
+    "controladoria": "receita líquida menos o CMV real, com refações e bonificações de fornecedores",
+    "painel": "venda menos o custo de tabela da armação e da lente, sem refações nem bonificações"
+   },
+   "vendas_mesmas_lojas": {
+    "conselho": "lojas abertas há 13 meses ou mais, sem as fechadas no período",
+    "painel": "lojas abertas há 12 meses ou mais, com as que mudaram de endereço",
+    "orcamento": "lojas abertas antes de 1º de janeiro de 2025"
+   },
+   "margem_por_loja": {
+    "controladoria": "contribuição da loja depois do rateio do laboratório e do escritório",
+    "conselho": "contribuição da loja sem rateio",
+    "painel": "venda menos custo de tabela e comissão"
+   },
+   "prazo_do_laboratorio": {
+    "painel": "dias corridos entre o pedido e o aviso de óculos prontos",
+    "conselho": "dias úteis entre a chegada da armação ao laboratório e a expedição"
+   },
+   "ocupacao_sobre_receita": {
+    "controladoria": "aluguel fixo e percentual, condomínio, fundo de promoção e IPTU ÷ receita líquida",
+    "conselho": "só o aluguel ÷ receita bruta",
+    "orcamento": "igual à controladoria"
+   },
+   "divida_liquida": {
+    "conselho": "empréstimos e financiamentos menos caixa e aplicações",
+    "controladoria": "igual ao conselho",
+    "banco": "a mesma conta somando o saldo antecipado da agenda de cartão"
+   },
+   "divida_liquida_ebitda": {
+    "conselho": "dívida líquida ÷ EBITDA ajustado do conselho",
+    "banco": "dívida líquida com antecipações ÷ EBITDA contábil (IFRS 16), sem somar o passivo de arrendamento",
+    "controladoria": "dívida líquida ÷ EBITDA gerencial"
+   }
+  },
+  "ordem_na_matriz": "o gráfico 'matriz' põe os 13 primeiros na coluna da esquerda e os 13 seguintes na da direita; os nomes da esquerda têm no máximo 20 caracteres porque a deriva da câmera (+0,12) empurra os rótulos ~80 px para a borda; os nomes longos ficam na direita",
+  "orcamento": {
+   "base_usada": "pedidos do painel (soma das metas das lojas)",
+   "meses_decorridos": 8
+  },
+  "conciliacao_dias_mes": 6,
+  "analistas_controladoria": 2,
+  "rotina": {
+   "quem_concilia_painel_e_dre": null,
+   "aprovacao_de_indicador_novo": null,
+   "nota": "null = não existe na rede (aparece no formulário como alerta)"
+  }
+ },
+ "segregacao": {
+  "origem": "E",
+  "passos": [
+   {
+    "id": "C",
+    "nome": "cadastrar fornecedor"
+   },
+   {
+    "id": "B",
+    "nome": "alterar conta bancária"
+   },
+   {
+    "id": "L",
+    "nome": "lançar título"
+   },
+   {
+    "id": "A",
+    "nome": "aprovar pagamento"
+   },
+   {
+    "id": "P",
+    "nome": "liberar no banco"
+   },
+   {
+    "id": "Q",
+    "nome": "conciliar"
+   }
+  ],
+  "incompativeis": [
+   [
+    "C",
+    "A"
+   ],
+   [
+    "B",
+    "A"
+   ],
+   [
+    "B",
+    "P"
+   ],
+   [
+    "L",
+    "A"
+   ],
+   [
+    "A",
+    "P"
+   ],
+   [
+    "P",
+    "Q"
+   ],
+   [
+    "C",
+    "P"
+   ]
+  ],
+  "pessoas": [
+   {
+    "cargo": "Diretora financeira",
+    "acessos": [
+     "A"
+    ]
+   },
+   {
+    "cargo": "Gerente financeiro",
+    "acessos": [
+     "C",
+     "B",
+     "A",
+     "P"
+    ]
+   },
+   {
+    "cargo": "Coordenadora de contas a pagar",
+    "acessos": [
+     "B",
+     "L",
+     "A",
+     "P"
+    ]
+   },
+   {
+    "cargo": "Analista sênior de pagamentos",
+    "acessos": [
+     "C",
+     "B",
+     "L",
+     "A",
+     "P"
+    ]
+   },
+   {
+    "cargo": "Analista de contas a pagar 1",
+    "acessos": [
+     "C",
+     "L",
+     "A"
+    ]
+   },
+   {
+    "cargo": "Analista de contas a pagar 2",
+    "acessos": [
+     "L",
+     "A"
+    ]
+   },
+   {
+    "cargo": "Analista de contas a pagar 3",
+    "acessos": [
+     "B",
+     "L"
+    ]
+   },
+   {
+    "cargo": "Analista de cadastro",
+    "acessos": [
+     "C",
+     "B"
+    ]
+   },
+   {
+    "cargo": "Comprador de armações",
+    "acessos": [
+     "C"
+    ]
+   },
+   {
+    "cargo": "Compradora de lentes",
+    "acessos": [
+     "C"
+    ]
+   },
+   {
+    "cargo": "Tesoureiro",
+    "acessos": [
+     "B",
+     "P",
+     "Q"
+    ]
+   },
+   {
+    "cargo": "Assistente de tesouraria",
+    "acessos": [
+     "P",
+     "Q"
+    ]
+   },
+   {
+    "cargo": "Analista de cartões",
+    "acessos": [
+     "Q"
+    ]
+   },
+   {
+    "cargo": "Analista de retaguarda",
+    "acessos": [
+     "C",
+     "L"
+    ]
+   },
+   {
+    "cargo": "Analista de controladoria",
+    "acessos": [
+     "Q"
+    ]
+   },
+   {
+    "cargo": "Analista fiscal",
+    "acessos": [
+     "L"
+    ]
+   }
+  ],
+  "pessoas_notas": {
+   "Analista sênior de pagamentos": "cobre as férias da coordenação e de dois analistas; recebeu todos os acessos e nunca os devolveu",
+   "Analista de cartões": "concilia vendas, agenda e repasses das credenciadoras de 60 lojas",
+   "Analista de retaguarda": "cadastra prestadores locais das lojas (manutenção, limpeza, motoboy) e lança os títulos"
+  },
+  "pagamentos_12m": {
+   "titulos": 19800,
+   "valor": 78600000,
+   "pessoa_unica_titulos": 3120,
+   "pessoa_unica_valor": 13400000
+  },
+  "pagamentos_composicao_12m": [
+   {
+    "t": "armações (distribuidores e importadores)",
+    "valor": 15200000,
+    "titulos": 4100
+   },
+   {
+    "t": "lentes oftálmicas e blocos para o laboratório",
+    "valor": 17400000,
+    "titulos": 2900
+   },
+   {
+    "t": "laboratórios terceiros (surfaçagem e montagem)",
+    "valor": 4600000,
+    "titulos": 1700
+   },
+   {
+    "t": "lentes de contato, solares e acessórios",
+    "valor": 3900000,
+    "titulos": 900
+   },
+   {
+    "t": "shoppings: aluguel mínimo e percentual, condomínio, fundo de promoção",
+    "valor": 12000000,
+    "titulos": 2280
+   },
+   {
+    "t": "aluguéis de lojas de rua, laboratório e escritório",
+    "valor": 4200000,
+    "titulos": 300
+   },
+   {
+    "t": "obras de lojas novas, reformas e equipamentos do laboratório",
+    "valor": 7100000,
+    "titulos": 520
+   },
+   {
+    "t": "marketing e mídia",
+    "valor": 4300000,
+    "titulos": 640
+   },
+   {
+    "t": "serviços, sistemas, logística e manutenção das lojas",
+    "valor": 9900000,
+    "titulos": 6460
+   }
+  ],
+  "pessoa_unica_composicao_12m": [
+   {
+    "t": "aluguel mínimo dos shoppings, lançado, aprovado e liberado pelo gerente financeiro",
+    "valor": 6900000,
+    "titulos": 456
+   },
+   {
+    "t": "pagamentos urgentes a laboratórios e fornecedores de lentes",
+    "valor": 3800000,
+    "titulos": 1410
+   },
+   {
+    "t": "cobertura de férias pelo analista sênior de pagamentos",
+    "valor": 2700000,
+    "titulos": 1254
+   }
+  ],
+  "alteracoes_bancarias_mes": [
+   3,
+   4,
+   3,
+   5,
+   2,
+   4,
+   4,
+   6,
+   3,
+   3,
+   5,
+   4
+  ],
+  "alteracoes_confirmadas_mes": [
+   1,
+   2,
+   1,
+   1,
+   0,
+   1,
+   2,
+   2,
+   1,
+   1,
+   2,
+   1
+  ],
+  "alteracoes_mesmo_usuario_pagou": 7,
+  "alteracoes_por_cessao_factoring": {
+   "total": 14,
+   "com_notificacao_de_cessao": 9
+  },
+  "alcada_analista": 15000,
+  "alcada_gerente": 100000,
+  "alcada_trava_no_sistema": false,
+  "fracionamentos": {
+   "casos": 64,
+   "valor": 1900000
+  },
+  "fracionamentos_nota": "grupos de pagamentos ao mesmo fornecedor no mesmo dia, cada um entre R$ 13.500 e R$ 15.000, que somados passam da alçada; parte deve ser nota por loja de fornecedor de armações, que é legítima: a conferência é um a um",
+  "usuarios_genericos": 2,
+  "acessos_desligados_ativos": 4,
+  "lojas": {
+   "origem": "E",
+   "fonte_do_dado": "registro de cancelamentos e de usuários do sistema das lojas, 12 meses",
+   "estornos_12m": {
+    "total": 5760,
+    "valor": 4380000
+   },
+   "estornos_mesmo_usuario": {
+    "total": 1140,
+    "valor": 820000
+   },
+   "lojas_com_senha_de_gerente_em_uso_simultaneo": 19,
+   "lojas_total": 60,
+   "desconto_acima_da_politica_exige": "senha do gerente da loja; sem segunda aprovação",
+   "nota": "estornos = cancelamentos com devolução ao cliente (cartão, PIX ou dinheiro) mais devoluções depois da entrega. Coerente com o FIN8.2: R$ 2,8 mi de cancelados de janeiro a agosto."
+  }
+ },
+ "fin310": {
+  "natureza": "Rede ILUSTRATIVA e independente de óticas em SP. Não é empresa real, não é case realizado. Valores provisórios; cada um marcado em 'origem' como F (fonte pública), E (estimativa) ou H (hipótese).",
+  "fonte_unica_pl": "Receita mensal, lojas, colaboradores e grandes linhas de custo são as mesmas do bloco rede_p_l (FIN8.2): a série mensal de vendas é única para os três projetos (sazonalidade da Abióptica, R$ 150 mi no ano). Prazos, meios de pagamento, dívidas e caixa são deste bloco.",
+  "parametros_externos": {
+   "arquivo": "estudo/pesquisa/12-parametros.json",
+   "situacao": "lido em 07/10/2026 na recalibração 1.1.0: parcelas, sazonalidade, compras por categoria e Res. BCB 562/2026; as demais premissas foram conferidas pelo A1 (10-setor-optico.md, seção 7) como confirmadas ou compatíveis"
+  },
+  "data_base": "2026-08-31",
+  "dias_historico": 365,
+  "dias_horizonte": 365,
+  "dias_projecao": 91,
+  "mercado": {
+   "data_consulta": "2026-10-07",
+   "cdi_aa": 13.65,
+   "selic_meta_aa": 13.75,
+   "bcb_antecipacao_cartao_am": 1.21,
+   "bcb_antecipacao_cartao_aa": 15.49,
+   "bcb_desconto_recebiveis_am": 1.43,
+   "bcb_desconto_recebiveis_aa": 18.6,
+   "bcb_capital_giro_total_am": 1.73,
+   "bcb_capital_giro_total_aa": 22.89,
+   "bcb_capital_giro_longo_am": 1.71,
+   "bcb_capital_giro_longo_aa": 22.55,
+   "bcb_conta_garantida_am": 3.78,
+   "bcb_conta_garantida_aa": 56.15,
+   "bcb_cheque_especial_pj_am": 13.45,
+   "bcb_aquisicao_outros_bens_aa": 19.41,
+   "bcb_pj_recursos_livres_aa": 24.19,
+   "bcb_mdr_1t26_presencial_pct": {
+    "debito": 1.06,
+    "credito_1x": 1.96,
+    "credito_2_3x": 2.23,
+    "credito_4_6x": 2.34,
+    "credito_7x_mais": 2.52
+   },
+   "iof_credito_pj": {
+    "diario_pct": 0.0082,
+    "adicional_pct": 0.38
+   },
+   "ofertas_antecipacao_am": {
+    "min": 1.3,
+    "max": 3.5,
+    "origem": "P",
+    "nota": "ofertas comerciais de antecipação (credenciadoras e plataformas); faixa de referência, não estatística oficial nem cotação",
+    "detalhe": "estudo/pesquisa/11-persona.md, cena 5; estudo/pesquisa/10-setor-optico.md"
+   }
+  },
+  "calendario": {
+   "feriados_fixos": [
+    "01-01",
+    "01-25",
+    "04-21",
+    "05-01",
+    "07-09",
+    "09-07",
+    "10-12",
+    "11-02",
+    "11-15",
+    "11-20",
+    "12-25",
+    "12-31"
+   ],
+   "feriados_moveis_dias_da_pascoa": [
+    -48,
+    -47,
+    -2,
+    60
+   ],
+   "lojas_fechadas": [
+    "12-25",
+    "01-01"
+   ]
+  },
+  "rede": {
+   "lojas": 60,
+   "lojas_shopping": 38,
+   "lojas_rua": 22,
+   "colaboradores": 420,
+   "ticket_medio_pedido": 760,
+   "vendas_mensais": {
+    "01": 13250000,
+    "02": 12125000,
+    "03": 12125000,
+    "04": 12250000,
+    "05": 12500000,
+    "06": 11750000,
+    "07": 12875000,
+    "08": 12250000,
+    "09": 12500000,
+    "10": 12125000,
+    "11": 12750000,
+    "12": 13500000
+   },
+   "crescimento_aa_pct": 0,
+   "peso_dia_semana": [
+    0.9,
+    0.85,
+    0.85,
+    0.9,
+    0.95,
+    1.1,
+    1.45
+   ],
+   "eventos": {
+    "janela_dias": 7,
+    "fator": 1.6
+   },
+   "mix_pct": {
+    "credito_parcelado": 58,
+    "credito_vista": 12,
+    "debito": 8,
+    "pix": 18,
+    "dinheiro": 4
+   },
+   "parcelas_pct": {
+    "2": 4,
+    "3": 7,
+    "4": 6,
+    "5": 7,
+    "6": 15,
+    "7": 4,
+    "8": 8,
+    "9": 9,
+    "10": 40
+   },
+   "devolucoes_pct": 2.0
+  },
+  "cartao": {
+   "mdr_contratado_pct": {
+    "debito": 0.89,
+    "credito_1x": 1.69,
+    "credito_2_6x": 1.99,
+    "credito_7_10x": 2.19
+   },
+   "mdr_cobrado_pct": {
+    "debito": 0.89,
+    "credito_1x": 1.69,
+    "credito_2_6x": 1.99,
+    "credito_7_10x": 2.44
+   },
+   "mdr_divergencia_desde": "2026-03-01",
+   "liquidacao": {
+    "debito_dias_uteis": 1,
+    "dinheiro_deposito_dias_uteis": 1,
+    "credito_dias_corridos_por_parcela": 30
+   },
+   "antecipacao_automatica": {
+    "pct_da_parte_livre": 80,
+    "taxa_am": 1.89,
+    "iof": false,
+    "credito_dias_uteis": 1
+   },
+   "antecipacao_por_pedido_credenciadora": {
+    "taxa_am": 1.89,
+    "iof": false
+   },
+   "antecipacao_cotada": {
+    "taxa_am": 1.49,
+    "iof": false
+   },
+   "antecipacao_cotada_banco_com_iof": {
+    "taxa_am": 1.21,
+    "iof": true
+   },
+   "trava_banco_b_pct": 30
+  },
+  "dividas": [
+   {
+    "id": "giro_a",
+    "nome": "Capital de giro",
+    "credor": "Banco A",
+    "saldo": 12000000,
+    "taxa_am": 1.62,
+    "parcelas_restantes": 60,
+    "dia_vencimento": 25,
+    "garantia": "aval dos sócios; covenant de dívida líquida sobre EBITDA até 2,5 vezes"
+   },
+   {
+    "id": "giro_b",
+    "nome": "Capital de giro",
+    "credor": "Banco B",
+    "saldo": 8000000,
+    "taxa_am": 1.55,
+    "parcelas_restantes": 48,
+    "dia_vencimento": 15,
+    "garantia": "cessão fiduciária de 30% dos recebíveis de cartão, registrada na registradora (trava)"
+   },
+   {
+    "id": "equip_c",
+    "nome": "Financiamento de equipamentos do laboratório",
+    "credor": "Banco C",
+    "saldo": 2400000,
+    "taxa_am": 1.39,
+    "parcelas_restantes": 36,
+    "dia_vencimento": 5,
+    "garantia": "alienação fiduciária das máquinas de surfaçagem e montagem"
+   }
+  ],
+  "conta_garantida": {
+   "id": "garantida",
+   "nome": "Conta garantida",
+   "credor": "Banco A",
+   "limite": 6000000,
+   "sacado_data_base": 2200000,
+   "taxa_am": 2.89,
+   "iof": true,
+   "cobranca": "juros e IOF do mês no 1º dia útil do mês seguinte"
+  },
+  "caixa": {
+   "movimento_data_base": 0,
+   "aplicacao_data_base": 11000000,
+   "aplicacao_pct_cdi": 80,
+   "regra_hoje": {
+    "descricao": "a aplicação é tratada como reserva e não é resgatada no dia a dia; a conta movimento roda contra a conta garantida (saque e amortização automáticos); no último dia útil do mês, o que passa de R$ 1 mi na conta movimento vai para a aplicação; se a garantida passar de 80% do limite, resgata-se o necessário para voltar a 50%",
+    "movimento_alvo": 1000000,
+    "resgate_gatilho_pct_limite": 80,
+    "resgate_alvo_pct_limite": 50
+   }
+  },
+  "plano": {
+   "inicio": "2026-09-01",
+   "saldo_minimo": 4000000,
+   "folga_pct": 10,
+   "folga_minima": 100000,
+   "desconto_previsao_vendas_pct": 10,
+   "movimento_alvo": 500000,
+   "descricao": "caixa único (conta e aplicação) com saldo mínimo; pedido de cancelamento da antecipação automática no dia 1, efetivo em até 4 dias úteis e só para vendas novas (Res. BCB 562/2026); toda semana, no primeiro dia útil, a projeção dos 7 dias mostra o menor saldo; se ficar abaixo do mínimo, antecipa-se a diferença mais a folga, começando pelas parcelas livres que vencem primeiro depois da semana; se o saldo do dia ainda ficar abaixo do mínimo, antecipa-se no mesmo dia; recebíveis cedidos ao Banco B nunca são antecipados; a garantida é quitada no dia 1 e só volta a ser usada se não houver recebível livre",
+   "cancelamento_automatica_dias_uteis": 4
+  },
+  "saidas": {
+   "armacoes": {
+    "descricao": "armações de grau e óculos de sol (mesmos distribuidores e importadores)",
+    "pct_vendas": 11.5,
+    "compra_meses_antes": 1,
+    "dia_compra": 10,
+    "parcelas_meses": [
+     1,
+     2,
+     3
+    ]
+   },
+   "lentes_blocos": {
+    "descricao": "lentes oftálmicas e blocos para o laboratório (fabricantes)",
+    "pct_vendas": 7.9,
+    "dia": 15,
+    "parcelas_meses": [
+     1,
+     2
+    ]
+   },
+   "laboratorios_terceiros": {
+    "descricao": "laboratórios terceiros (surfaçagem e montagem de lentes especiais)",
+    "pct_vendas": 2.95,
+    "dia": 10,
+    "parcelas_meses": [
+     1
+    ]
+   },
+   "lentes_contato_acessorios": {
+    "descricao": "lentes de contato e acessórios (distribuidores)",
+    "pct_vendas": 3.8,
+    "dia": 28,
+    "parcelas_meses": [
+     1
+    ]
+   },
+   "folha": {
+    "salarios_mes": 1120000,
+    "adiantamento_pct": 40,
+    "dia_adiantamento": 20,
+    "dia_util_pagamento": 5,
+    "comissao_pct_vendas": 2.0,
+    "ferias_terco_pct_salarios": 2.78,
+    "encargos_pct": 36,
+    "dia_encargos": 20,
+    "beneficios_mes": 250000,
+    "decimo_terceiro_primeira": "11-30",
+    "decimo_terceiro_segunda": "12-20"
+   },
+   "ocupacao": {
+    "aluguel_minimo_shopping_mes": 530769,
+    "dezembro_dobra_minimo": true,
+    "condominio_fpp_mes": 350000,
+    "aluguel_rua_lab_escritorio_mes": 283333,
+    "dia": 10,
+    "aluguel_percentual_pct_vendas": 0.6,
+    "iptu_outros_ano": 800000,
+    "iptu_meses": [
+     2,
+     3,
+     4,
+     5,
+     6,
+     7,
+     8,
+     9,
+     10,
+     11
+    ],
+    "dia_iptu": 15
+   },
+   "marketing_ano": 4300000,
+   "dia_marketing": 25,
+   "servicos_mes": 825000,
+   "dias_servicos": [
+    10,
+    25
+   ],
+   "tributos_vendas": {
+    "icms_pct": 14.5,
+    "dia_icms": 20,
+    "pis_cofins_pct": 6.5,
+    "dia_pis_cofins": 25
+   },
+   "ir_cs_pct_vendas": 1.5,
+   "capex_mes": 250000,
+   "dia_capex": 15,
+   "tarifas_mes": 15000
+  },
+  "estresses": {
+   "vendas": {
+    "titulo": "vendas 15% abaixo do previsto nas 13 semanas",
+    "queda_pct": 15
+   },
+   "parcelas": {
+    "titulo": "mais parcelas: 10x passa de 40% para 55% do valor parcelado nas 13 semanas",
+    "pp_para_10x": 15
+   },
+   "concentrados": {
+    "titulo": "pagamentos concentrados: compras de Natal 50% maiores, pagas à vista em 30 dias, e o 13º inteiro em 30/11",
+    "meses_compra": [
+     10,
+     11
+    ],
+    "fator_compras": 1.5,
+    "parcelas_meses": [
+     1
+    ],
+    "decimo_terceiro_segunda": "11-30"
+   }
+  },
+  "exemplo_venda": {
+   "valor": 1890,
+   "parcelas": 10,
+   "data": "2026-09-01",
+   "descricao": "óculos com lentes multifocais"
+  },
+  "origem": {
+   "mercado.cdi_aa": {
+    "o": "F",
+    "fonte": "BCB SGS 4389 (CDI anualizado base 252), valor de 06/10/2026"
+   },
+   "mercado.selic_meta_aa": {
+    "o": "F",
+    "fonte": "BCB SGS 432; Copom de 17/09/2026 (cortes de 15,00% para 13,75% entre mar e set/2026)"
+   },
+   "mercado.bcb_antecipacao_cartao_am": {
+    "o": "F",
+    "fonte": "BCB SGS 25440 (PJ, antecipação de faturas de cartão, % a.m.), ago/2026; anual SGS 20721 = 15,49%"
+   },
+   "mercado.bcb_desconto_recebiveis_am": {
+    "o": "F",
+    "fonte": "BCB SGS 25438, ago/2026; anual SGS 20719"
+   },
+   "mercado.bcb_capital_giro_total_am": {
+    "o": "F",
+    "fonte": "BCB SGS 25444, ago/2026; anual SGS 20725"
+   },
+   "mercado.bcb_capital_giro_longo_am": {
+    "o": "F",
+    "fonte": "BCB SGS 25442 (prazo acima de 365 dias), ago/2026; anual SGS 20723"
+   },
+   "mercado.bcb_conta_garantida_am": {
+    "o": "F",
+    "fonte": "BCB SGS 25445, ago/2026; anual SGS 20726"
+   },
+   "mercado.bcb_cheque_especial_pj_am": {
+    "o": "F",
+    "fonte": "BCB SGS 25446, ago/2026"
+   },
+   "mercado.bcb_aquisicao_outros_bens_aa": {
+    "o": "F",
+    "fonte": "BCB SGS 20729, ago/2026"
+   },
+   "mercado.bcb_pj_recursos_livres_aa": {
+    "o": "F",
+    "fonte": "BCB SGS 20718, ago/2026"
+   },
+   "mercado.bcb_mdr_1t26_presencial_pct": {
+    "o": "F",
+    "fonte": "BCB, Estatísticas de Meios de Pagamento, API Olinda MPV_DadosAbertos/DESCONTODA, trimestre 20261, média ponderada pelo valor, captura presencial com chip e por aproximação (cálculo do A4)"
+   },
+   "mercado.iof_credito_pj": {
+    "o": "F",
+    "fonte": "Decreto 6.306/2007 com a redação do Decreto 12.499/2025 (0,0082% ao dia para PJ e adicional de 0,38%), mantido pela liminar do STF de 16/07/2025"
+   },
+   "rede.vendas_mensais": {
+    "o": "E",
+    "fonte": "índice mensal do A1 (12-parametros.json, sazonalidade_indice_mensal: série nacional da Abióptica 2025 com ajuste para shopping) × R$ 12,5 mi; soma R$ 150,0 mi; repetida de set/2026 a ago/2027",
+    "nota": "substitui a série do A5 (dezembro 1,25; janeiro 0,98): janeiro foi o mês mais forte em 2025 e 2026 e o 4º trimestre ficou na média"
+   },
+   "rede.lojas": {
+    "o": "E",
+    "fonte": "A5, rede_p_l.perfil"
+   },
+   "rede.peso_dia_semana": {
+    "o": "H",
+    "nota": "domingo a sábado; sábado forte em shopping"
+   },
+   "rede.eventos": {
+    "o": "H",
+    "nota": "Dia das Mães, Dia dos Pais, Black Friday e Natal concentram a venda nos 7 dias anteriores; o total do mês não muda"
+   },
+   "rede.mix_pct": {
+    "o": "H",
+    "nota": "crédito parcelado dominante (até 10x sem juros). O A1 propõe 55/10/7/20/3 + 5% de crediário e convênios e julga o 58/12/8/18/4 do modelo compatível; crediário próprio fica como variante não modelada"
+   },
+   "rede.parcelas_pct": {
+    "o": "H",
+    "nota": "central do A1: 40% em 10x, média 7,51 (antes 55% e 7,90); ancorado em ABECS 1T26 (7–12x = 35,4% do parcelado sem juros) e BCB 1T26 (segmento 421: 7+ = 48,9% do parcelado). A cauda de 11x e 12x do A1 (5%) foi redistribuída em 7x a 9x porque a rede anuncia até 10x sem juros. Sensibilidade de 6,5 a 7,9 parcelas na memória"
+   },
+   "rede.devolucoes_pct": {
+    "o": "E",
+    "nota": "parte das deduções de 23% do A5 (21% impostos + 2% devoluções)"
+   },
+   "cartao.mdr_contratado_pct": {
+    "o": "H",
+    "nota": "abaixo da média do BCB 1T26 por ser cliente grande (débito 1,06; 1x 1,96; 7x+ 2,52)"
+   },
+   "cartao.mdr_cobrado_pct": {
+    "o": "H",
+    "nota": "achado ilustrativo da conciliação: faixa 7–10x cobrada a 2,44% desde mar/2026, contra 2,19% do contrato"
+   },
+   "cartao.antecipacao_automatica": {
+    "o": "H",
+    "nota": "80% da parte livre de cada venda no crédito, D+1, a 1,89% a.m. (desconto simples por dia); referências de mercado para credenciadoras de 1,5% a 3,5% a.m. (fontes comerciais, sem estatística oficial); bancos: 1,21% a.m. (BCB)"
+   },
+   "cartao.antecipacao_cotada": {
+    "o": "H",
+    "nota": "1,49% a.m. all-in via registradora (financiador sem IOF ou credenciadora renegociada); BCB bancos 1,21% a.m. sem IOF"
+   },
+   "cartao.antecipacao_cotada_banco_com_iof": {
+    "o": "F/H",
+    "nota": "sensibilidade: banco à taxa média do BCB (F) mais IOF de crédito (F); enquadramento do IOF a confirmar (H)"
+   },
+   "cartao.trava_banco_b_pct": {
+    "o": "H",
+    "nota": "percentual de cada unidade de recebível com efeito de contrato a favor do Banco B"
+   },
+   "dividas": {
+    "o": "H",
+    "nota": "saldos, taxas e prazos ilustrativos; taxas perto das médias do BCB de ago/2026 (capital de giro > 365 dias 1,71% a.m.; aquisição de bens 19,41% a.a.)"
+   },
+   "conta_garantida": {
+    "o": "H",
+    "nota": "2,89% a.m. contra média do BCB de 3,78% a.m.; saldo de 31/08 viria do extrato"
+   },
+   "caixa.aplicacao_data_base": {
+    "o": "H",
+    "nota": "viria dos extratos"
+   },
+   "caixa.aplicacao_pct_cdi": {
+    "o": "H"
+   },
+   "caixa.regra_hoje": {
+    "o": "H",
+    "nota": "comportamento atual da tesouraria, a confirmar nos extratos de seis meses"
+   },
+   "plano.saldo_minimo": {
+    "o": "H",
+    "nota": "cerca de 10 dias de saídas médias; a regra final sai do diagnóstico"
+   },
+   "plano.folga_pct": {
+    "o": "H"
+   },
+   "saidas.armacoes": {
+    "o": "E/H",
+    "nota": "armações de grau (25% da receita, A1) e óculos de sol (18%) compram-se dos mesmos distribuidores: 11,5% da venda, custo ≈ 27% da receita das duas categorias; compra um mês antes; 30/60/90 (H)"
+   },
+   "saidas.lentes_blocos": {
+    "o": "E/H",
+    "nota": "lentes oftálmicas = 45% da receita (A1): blocos e lentes de fabricantes 7,9% + laboratórios terceiros 2,95% = 24% da receita de lentes (markup ≈ 4×; o A1 cita até 6× em lentes, P); 30/60 (H)"
+   },
+   "saidas.laboratorios_terceiros": {
+    "o": "E",
+    "nota": "A5: R$ 4,6 mi; fatura mensal (H)"
+   },
+   "saidas.folha": {
+    "o": "E",
+    "nota": "calibrada para os R$ 27,7 mi do A5 (salários, comissões, férias, 13º, encargos de 36% e benefícios); calendário legal (5º dia útil, adiantamento no dia 20, 13º em 30/11 e 20/12)"
+   },
+   "saidas.ocupacao": {
+    "o": "E",
+    "nota": "A5: shoppings R$ 12,0 mi (mínimo 6,9 em 13 parcelas, com o dobro em dezembro; percentual 0,9; condomínio e fundo 4,2), rua e laboratório R$ 3,4 mi, IPTU R$ 0,8 mi"
+   },
+   "saidas.marketing_ano": {
+    "o": "E",
+    "nota": "A5: R$ 4,3 mi pagos em 12 meses"
+   },
+   "saidas.servicos_mes": {
+    "o": "E",
+    "nota": "A5: R$ 9,9 mi pagos em 12 meses (administrativo 8,5 + embalagens 1,4)"
+   },
+   "saidas.tributos_vendas": {
+    "o": "H",
+    "nota": "21% da receita bruta (ICMS 14,5% e PIS/COFINS 6,5% líquidos de créditos), dentro dos 23% de deduções do A5; o A1 estima 19% (faixa 14–22%) e julga 21% compatível com a ponta alta"
+   },
+   "saidas.ir_cs_pct_vendas": {
+    "o": "H",
+    "nota": "estimativa mensal do lucro real; igual em todos os cenários (os ganhos são antes de IR/CSLL)"
+   },
+   "saidas.capex_mes": {
+    "o": "H",
+    "nota": "2 a 3 lojas novas e reformas; A5 registra R$ 7,1 mi no ano anterior, com 6 aberturas"
+   },
+   "saidas.tarifas_mes": {
+    "o": "H"
+   },
+   "estresses": {
+    "o": "H"
+   },
+   "exemplo_venda": {
+    "o": "H",
+    "nota": "preço ilustrativo de um par com lentes multifocais"
+   },
+   "saidas.lentes_contato_acessorios": {
+    "o": "E/H",
+    "nota": "lentes de contato = 8% da receita (A1) a custo ≈ 44%, mais acessórios: 3,8% da venda; 30 dias (H). Total de compras mantido em 26,15% da venda (A1: CMV ≈ 27%, confirma). O A5 classificou R$ 3,9 mi como 'LC, solares e acessórios' nos pagamentos do FIN5.11; com o mix do A1 essa linha ficaria em ~R$ 5,7 mi e os solares migram para armações"
+   },
+   "plano.cancelamento_automatica_dias_uteis": {
+    "o": "F",
+    "fonte": "Res. BCB 264/2022, art. 7º, na redação da Res. BCB 562 de 30/04/2026 (vigência 11/05/2026): cancelamento da antecipação pré-contratada em até 4 dias úteis após o pedido, só para recebíveis de transações posteriores; antes, Res. BCB 514/2025 (2 dias úteis) e 349/2023 (A1, 10-setor-optico.md, seção 5.1)"
+   }
+  },
+  "recalibracao_1_1_0": [
+   "parcelas: central com 40% do valor parcelado em 10x e média de 7,51 parcelas (antes 55% e 7,90), ancorado em ABECS e BCB via A1",
+   "sazonalidade: índice mensal da Abióptica levantado pelo A1 (janeiro 1,06; dezembro 1,08; quarto trimestre perto da média), R$ 150 mi no ano; datas comerciais mantidas",
+   "compras por categoria: solares junto com armações (mesmos fornecedores) e lentes de contato com peso coerente com 8% da receita; total de compras mantido em 26,15% da venda",
+   "antecipação automática: cancelamento em até 4 dias úteis e só para vendas novas (Res. BCB 562/2026)"
+  ]
+ },
+ "conferencia": {
+  "origem": "C",
+  "nota": "valores esperados, recalculados pelo A5 com resultadoRede, kpis e segregacao do motor/motor.js atual, depois do realinhamento da série mensal do FIN8.2 à do FIN3.10 (07/10/2026); EBITDA, kpis e segregacao não mudaram",
+  "rede_p_l": {
+   "receita_liquida_12m": 115500000,
+   "custos_total_12m": 98700000,
+   "ebitda": {
+    "controladoria": 16800000,
+    "conselho": 19100000,
+    "banco": 27100000
+   },
+   "margem_ebitda_liquida_pct": {
+    "controladoria": 14.5,
+    "conselho": 16.5,
+    "banco": 23.5
+   },
+   "venda_jan_ago": {
+    "orcamento": 102435000,
+    "pedidos_painel": 102435000,
+    "conselho_sem_cancelados": 99605000,
+    "receita_dre": 99125000,
+    "cancelados": 2830000,
+    "aumento_a_entregar": 480000,
+    "desvio_definicao": 3310000,
+    "lojas_mes_soma": 468,
+    "por_loja_mes_mil": {
+     "orcamento": 219,
+     "painel": 219,
+     "conselho": 213,
+     "dre": 212,
+     "diferenca": 7
+    }
+   }
+  },
+  "kpis": {
+   "total": 26,
+   "divergentes": 11,
+   "sem_dono": 6,
+   "sem_fonte": 4,
+   "celulas": 73,
+   "celulas_div": 20,
+   "por_documento": {
+    "conselho": 23,
+    "banco": 8,
+    "controladoria": 16,
+    "painel": 13,
+    "orcamento": 13
+   }
+  },
+  "segregacao": {
+   "pessoas": 16,
+   "com_conflito": 7,
+   "caminho_inteiro": 3,
+   "conflitos_total": 21,
+   "pessoa_unica_pct": 17.0,
+   "segregado_valor": 65200000,
+   "trocas": 46,
+   "confirmadas": 15,
+   "sem_confirmacao": 31
+  }
+ }
+}

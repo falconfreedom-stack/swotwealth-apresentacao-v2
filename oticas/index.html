@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex,nofollow">
+<title>SWOT WEALTH · Inteligência financeira</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="icon" href="midia/marca/monograma.svg">
+<link rel="preload" as="image" href="midia/marca/logo_horizontal.svg">
+<link rel="preload" as="image" href="midia/marca/logo_horizontal_claro.svg">
+<link rel="preload" as="font" type="font/woff2" href="fontes/inter-var-latin.woff2" crossorigin>
+<link rel="preload" as="font" type="font/woff2" href="fontes/inter-tight-var-latin.woff2" crossorigin>
+<link rel="stylesheet" href="fontes/fontes.css?v=202610081530">
+<link rel="stylesheet" href="estilo.css?v=202610081530">
+<link rel="stylesheet" href="estilos/cenas-abertura.css?v=202610081530">
+<link rel="stylesheet" href="estilos/cenas-lente.css?v=202610081530">
+<link rel="stylesheet" href="estilos/cenas-fim.css?v=202610081530">
+<link rel="stylesheet" href="estilos/cenas-entrega.css?v=202610081530">
+<script type="importmap">{"imports":{"three":"./lib/three/three.module.js","three/addons/":"./lib/three/jsm/"}}</script>
+</head>
+<body>
+<div id="moldura">
+  <div id="palco">
+    <canvas id="mundo" width="1920" height="1080"></canvas>
+    <div id="cenas"></div>
+    <div id="abas"></div>
+    <div id="progresso"><i></i></div>
+    <div id="controle">
+      <button id="c-voltar" aria-label="Marco anterior"><svg viewBox="0 0 24 24"><path d="M7 5.5v13" stroke="#C8A45A" stroke-width="1.6" stroke-linecap="round" fill="none"/><path d="M18 6.2v11.6L9.4 12Z" fill="#C8A45A"/></svg></button>
+      <button id="c-tocar" aria-label="Pausar"><svg class="i-pausa" viewBox="0 0 24 24"><rect x="7" y="5.5" width="3.2" height="13" rx="1" fill="#C8A45A"/><rect x="13.8" y="5.5" width="3.2" height="13" rx="1" fill="#C8A45A"/></svg><svg class="i-tocar" viewBox="0 0 24 24"><path d="M7.5 4.8 19 12 7.5 19.2Z" fill="#C8A45A"/></svg></button>
+      <button id="c-avancar" aria-label="Próximo marco"><svg viewBox="0 0 24 24"><path d="M17 5.5v13" stroke="#C8A45A" stroke-width="1.6" stroke-linecap="round" fill="none"/><path d="M6 6.2v11.6L14.6 12Z" fill="#C8A45A"/></svg></button>
+    </div>
+    <div id="dica">espaço pausa e continua · ← → vão de marco em marco · 1, 2, 3 abrem as lentes do Top 3 · M abre o material · A troca o modo</div>
+    <div id="carregando"><img src="midia/marca/logo_horizontal_claro.svg" alt="SWOT WEALTH"><i></i></div>
+    <div id="inicio"><img src="midia/marca/logo_horizontal_claro.svg" alt="SWOT WEALTH"><button aria-label="Iniciar"><svg viewBox="0 0 24 24"><path d="M6 3.5 20 12 6 20.5Z" fill="#C8A45A"/></svg></button></div>
+  </div>
+</div>
+<div id="material">
+  <div class="caixa">
+    <img src="midia/marca/logo_horizontal.svg" alt="SWOT WEALTH" class="logo">
+    <h2>Material do projeto</h2>
+    <p id="material-sub">Documento do projeto, checklist de insumos e tabelas, para envio ao cliente.</p>
+    <a id="m-doc" href="#" target="_blank">Documento do projeto <span>abre para imprimir ou salvar em PDF</span></a>
+    <a id="m-check" href="#" download>Checklist de insumos preenchido <span>arquivo CSV</span></a>
+    <a id="m-tab" href="#" download>Tabelas do diagnóstico e do entregável <span>arquivo CSV</span></a>
+    <a id="m-base" href="#" download>Base de dados publicada <span>arquivo JSON, com a origem de cada dado</span></a>
+    <button class="fechar" id="m-fechar">fechar (M ou Esc)</button>
+  </div>
+</div>
+<script src="lib/gsap.min.js"></script>
+<script type="module" src="js/app.js?v=202610081530"></script>
+</body>
+</html>
