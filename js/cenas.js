@@ -1,7 +1,6 @@
 // As cenas, na ordem da peça (roteiro em estudo/roteiro/). Cada cena monta a sua camada de texto, move câmera e
 // luz dentro da própria linha do tempo GSAP e marca os pontos para onde o espaço salta (ver js/cenas/*.js).
-// Os módulos entram como espaços de nome: uma cena que ainda não exista no seu arquivo usa a anterior equivalente
-// ou vira provisória, e a peça continua rodando inteira enquanto os blocos são construídos.
+// Os módulos entram como espaços de nome: uma cena que falte no seu arquivo vira provisória, e a peça continua rodando.
 import * as A from "./cenas/abertura.js?v=202610071930";
 import * as L from "./cenas/lente.js?v=202610071930";
 import * as O from "./cenas/oferta.js?v=202610071930";
@@ -19,13 +18,13 @@ export const ORDEM = [
   { id: "abertura", f: ou(A.abertura, "Abertura"), nome: "Abertura" },
   { id: "venda", f: ou(A.venda, "A venda que vira caixa"), nome: "A venda que vira caixa" },
   { id: "retrato", f: ou(A.retrato, "A rede e o porte"), nome: "A rede e o porte" },
-  { id: "insumos", f: ou(L.insumos, L.formulario, "Os quatro documentos"), nome: "Os quatro documentos", projeto: 3 },
-  { id: "cruzamento", f: ou(L.cruzamento, L.analise, "O cruzamento"), nome: "O cruzamento", projeto: 3 },
-  { id: "descoberta", f: ou(L.descoberta, L.diagnostico, "O que o cruzamento mostra"), nome: "O que o cruzamento mostra", projeto: 3 },
+  { id: "insumos", f: ou(L.insumos, "Os quatro documentos"), nome: "Os quatro documentos", projeto: 3 },
+  { id: "cruzamento", f: ou(L.cruzamento, "O cruzamento"), nome: "O cruzamento", projeto: 3 },
+  { id: "descoberta", f: ou(L.descoberta, "O que o cruzamento mostra"), nome: "O que o cruzamento mostra", projeto: 3 },
   { id: "conta", f: ou(L.conta, "O que a lente revela"), nome: "O que a lente revela", projeto: 3 },
   { id: "semanas", f: ou(L.semanas, "E no mês fraco?"), nome: "E no mês fraco?", projeto: 3 },
-  { id: "entrega", f: ou(N.entrega, L.entrega, L.entregavel, "A entrega"), nome: "A entrega", projeto: 3 },
-  { id: "um-projeto", f: ou(N.umProjeto, L.umProjeto, L.resultado, "Isto é um projeto."), nome: "Isto é um projeto", projeto: 3 },
+  { id: "entrega", f: ou(N.entrega, "A entrega"), nome: "A entrega", projeto: 3 },
+  { id: "um-projeto", f: ou(N.umProjeto, "Isto é um projeto."), nome: "Isto é um projeto", projeto: 3 },
   { id: "oferta", f: ou(O.oferta, "A oferta"), nome: "A oferta" },
   { id: "top3", f: ou(T.top3Cena, "Mais duas lentes"), nome: "Mais duas lentes", hub: true },
   { id: "lente1", f: ou(L.diagnostico, "Lente FIN8.2"), nome: "Lente FIN8.2", projeto: 1, opcional: "lente1", compacto: true },

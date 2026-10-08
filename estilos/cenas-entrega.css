@@ -1,1 +1,85 @@
-/* Estilos das cenas — bloco: entrega e "isto é um projeto" (agente S4). O sistema visual comum fica em estilo.css. */
+/* Estilos das cenas — bloco: entrega e "isto é um projeto" (agente S4). O sistema visual comum fica em estilo.css.
+   As folhas são montadas no tamanho em que são lidas de frente (800 px de altura no palco): texto lido ≥ 22 px;
+   o que não pede leitura (o resto do documento) fica atenuado (.at). Ouro escuro sobre o papel; ouro sobre o escuro. */
+
+/* ---------- 8 · a entrega: o texto na coluna da esquerda */
+.c-entrega .en-k{position:absolute;left:112px;width:820px}
+.c-entrega .en-k .t-lead{margin-top:22px;max-width:780px}
+.c-entrega .en-k0{top:372px}
+.c-entrega .en-d{top:356px;width:840px}
+.c-entrega .en-k4{top:250px;width:860px}
+.c-entrega .en-k4 ul{list-style:none;margin-top:40px;max-width:760px}
+.c-entrega .en-k4 li{font:400 30px/1.35 var(--texto);letter-spacing:-.01em;color:var(--marfim);padding:16px 0 16px 34px;position:relative;border-top:1px solid rgba(243,238,225,.12)}
+.c-entrega .en-k4 li:before{content:"";position:absolute;left:3px;top:31px;width:11px;height:11px;border-radius:50%;background:var(--ouro)}
+/* véu da coluna do texto quando a câmera desce às folhas (o aro e o chão ficam por trás do texto) */
+.c-entrega .en-veu{position:absolute;left:0;top:0;width:1180px;height:1080px;pointer-events:none;
+  background:linear-gradient(90deg,rgba(4,10,7,.88) 0,rgba(4,10,7,.80) 46%,rgba(4,10,7,.38) 78%,rgba(4,10,7,0) 100%)}
+
+/* ---------- as peças (folhas coladas às lâminas; o papel é a própria lâmina)
+   A matriz 3D já põe cada folha na sua camada (sem will-change: com ele, a tinta e o ouro que mudam dentro da folha
+   refaziam a camada inteira — quadros de 90–150 ms medidos na troca da planilha); o que muda dentro dela (a tinta,
+   a linha destacada, o traço de ouro) fica em camada própria e só se compõe. */
+.c-entrega .folha3d.en-peca,.c-um-projeto .folha3d.en-peca{will-change:auto}
+.en-peca .tinta,.en-peca .fo{will-change:opacity}
+.en-peca .faixa,.en-peca .risco{will-change:transform}
+.en-peca{color:var(--grafite);font-family:var(--texto)}
+.en-peca .at,.en-peca .fo{opacity:.4}
+.en-pg{position:absolute;inset:0;padding:40px 40px 30px}
+.en-pg .cab{display:flex;align-items:center;justify-content:space-between;margin-bottom:44px}
+.en-pg .cab img{height:24px}
+.en-pg .cab span{font:400 20px/1 var(--texto);color:var(--cinza)}
+.en-pg h2{font:600 34px/1.1 var(--disp);letter-spacing:-.02em;color:var(--grafite)}
+.en-pg .sub{font:400 20px/1.4 var(--texto);color:var(--cinza);margin:12px 0 26px}
+.en-pg .rod{position:absolute;left:40px;right:40px;bottom:30px;font:400 18px/1.45 var(--texto);color:var(--cinza)}
+.en-pg .risco{position:absolute;left:0;right:0;bottom:-3px;height:4px;border-radius:2px;background:var(--ouro-e);transform-origin:0 50%;transform:scaleX(0)}
+
+/* o mapa do custo do dinheiro */
+.en-mapa .tab .lin{display:grid;grid-template-columns:1fr 122px 110px 126px;column-gap:10px;align-items:baseline;padding:13px 0;border-top:1px solid var(--fio);font:400 22px/1.3 var(--texto);white-space:nowrap;position:relative}
+.en-mapa .tab .lin span:not(:first-child){text-align:right;font-variant-numeric:tabular-nums}
+.en-mapa .tab .cabt{font:500 19px/1.2 var(--texto);color:var(--cinza);border-top:0;padding-top:0;white-space:normal;align-items:end}
+.en-mapa .tab .tot{font-weight:600;font-size:23px;border-top:2px solid var(--grafite)}
+
+/* a projeção de 13 semanas (a planilha) */
+.en-xl{position:absolute;inset:0;border-radius:10px;overflow:hidden;font:400 22px/1 var(--texto);color:var(--grafite)}
+.en-xl .xl-t{display:flex;align-items:center;gap:12px;height:58px;padding:0 20px;background:#eef1ee;border-bottom:1px solid #dfe3df}
+.en-xl .xl-t i{width:22px;height:22px;border-radius:4px;background:var(--verde-c);flex:none}
+.en-xl .xl-t b{font:500 21px/1 var(--texto)}
+.en-xl .xl-t span{margin-left:auto;font:400 20px/1 var(--texto);color:var(--cinza)}
+.en-xl .xl-g .lin{display:grid;grid-template-columns:44px 112px 1fr 1fr 1fr;height:47px;align-items:center;border-bottom:1px solid #e6e9e6;position:relative}
+.en-xl .xl-g .lin span{padding:0 14px;text-align:right;white-space:nowrap;position:relative;font-variant-numeric:tabular-nums}
+.en-xl .xl-g .lin span:nth-child(2),.en-xl .xl-g .dest span:nth-child(3){text-align:center}
+.en-xl .xl-g .lin span.n{padding:0;align-self:stretch;display:flex;align-items:center;justify-content:center;background:#f4f6f4;border-right:1px solid #e1e5e1;font-size:18px;color:var(--cinza)}
+.en-xl .xl-g .cabt{background:#f4f6f4;color:#4d524f;font-weight:500}
+.en-xl .xl-g .cabt span:not(.n){text-align:right}
+.en-xl .xl-g .cabt span:nth-child(2){text-align:center}
+.en-xl .xl-g .dest{font-weight:600}
+.en-xl .xl-g .dest .faixa{position:absolute;left:44px;right:0;top:0;bottom:0;background:rgba(200,164,90,.30);box-shadow:inset 5px 0 0 var(--ouro-e);transform-origin:0 50%;transform:scaleX(0)}
+.en-xl .xl-aba{position:absolute;left:0;right:0;bottom:0;height:46px;display:flex;align-items:center;gap:22px;padding:0 20px;background:#f4f6f4;border-top:1px solid #dfe3df}
+.en-xl .xl-aba b{font:500 19px/1 var(--texto);color:var(--verde-c);border-bottom:3px solid var(--verde-c);padding:12px 2px 9px}
+.en-xl .xl-aba span{font:400 18px/1 var(--texto);color:var(--cinza)}
+
+/* o plano de substituição de fontes */
+.en-plano .ac{display:grid;grid-template-columns:1fr auto;column-gap:18px;align-items:baseline;padding:15px 0;border-top:1px solid var(--fio);position:relative}
+.en-plano .ac .t{font:500 22px/1.28 var(--texto)}
+.en-plano .ac .t span{display:block;font:400 19px/1.35 var(--texto);color:var(--cinza);margin-top:4px}
+.en-plano .ac b{font:600 23px/1 var(--disp);letter-spacing:-.01em;white-space:nowrap}
+.en-plano .ac.tot{border-top:2px solid var(--grafite);padding-top:18px}
+.en-plano .ac.tot .t{font-weight:600;font-size:23px}
+.en-plano .ac.tot b{color:var(--ouro-e);font-size:32px}
+
+/* a capa (verde) e a etiqueta escura da devolutiva */
+.en-capa{position:absolute;inset:0;border-radius:10px;background:var(--verde);padding:60px 52px;color:var(--marfim)}
+.en-capa img{height:32px;margin-bottom:110px}
+.en-capa .cod{font:600 22px/1 var(--disp);color:var(--ouro);margin-bottom:14px}
+.en-capa h2{font:600 38px/1.08 var(--disp);letter-spacing:-.025em}
+.en-capa .sub{font:400 20px/1.45 var(--texto);color:var(--m2);margin:16px 0 34px}
+.en-capa ol{list-style:none;counter-reset:i}
+.en-capa li{counter-increment:i;font:400 22px/1.35 var(--texto);padding:12px 0;border-top:1px solid rgba(243,238,225,.16)}
+.en-capa li:before{content:counter(i);font:600 22px var(--disp);color:var(--ouro);margin-right:16px}
+.en-tag{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
+.en-tag span{font:500 22px/1 var(--texto);color:var(--ouro);white-space:nowrap}
+
+/* ---------- 9 · isto é um projeto */
+.c-um-projeto .up-k{position:absolute;left:112px;top:388px;width:560px}
+.c-um-projeto .up-rot .miolo > span{display:block;transform:translate(0,-50%);padding-left:16px;font:500 24px/1.2 var(--texto);color:var(--ouro);white-space:nowrap}
+.c-um-projeto .up-rot i{position:absolute;left:0;top:0;height:2px;margin-top:-1px;background:var(--ouro);transform-origin:0 50%;opacity:.85}
