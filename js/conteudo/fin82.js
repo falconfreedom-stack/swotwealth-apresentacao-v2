@@ -65,12 +65,15 @@ export function projeto1(base, R, proj, dataBase) {
         { v: "3", t: "valores para o EBITDA de doze meses, sem definição escrita", e: "posição na data-base" }, tDef, tConc,
         { v: pc(fpa.v, 0), t: "do tempo das equipes de planejamento vai para coletar e validar dados", e: `referência: ${fpa.fonte}` } ] },
   ];
-  // versão compacta, para a lente opcional depois da oferta (~45 s)
+  // versão compacta, para a lente opcional depois da oferta (roteiro v1, seção 4.2, L1.0 a L1.3): [K] = k (com
+  // quebras " / "), [L] = l (só no modo assistir), parada com o nome do roteiro. Totais e ajustes do EBITDA entram
+  // em dois estágios (o motor do diagnóstico põe os totais com os nomes e, depois, os ajustes em ouro).
+  const intro = { rotulo: `${proj.codigo} · ${proj.nome}`, k: "Os números que cada um lê." };
   const compacto = [
-    { ...qEbitda, sub: "O conselho exclui pré-operacionais e não recorrentes; o banco, o aluguel fixo (IFRS 16).", dur: 15 },
-    { ...qVenda, sub: "O painel conta o pedido; o DRE, os óculos entregues. O desvio vem da definição.", dur: 15 },
-    { id: "custo", titulo: "Cada número ganha uma definição, um dono e uma fonte.",
-      sub: "Em dez dias: catálogo de 26 indicadores, as duas pontes e a regra para mudar um indicador.", dur: 11,
+    { ...qEbitda, k: "O EBITDA de doze meses / tem três números.", l: "O conselho exclui pré-operacionais e não recorrentes; o banco, o aluguel fixo (IFRS 16).", parada: "l1-ebitda", comparacoes: 2 },
+    { ...qVenda, k: "As lojas bateram a meta. / O DRE ficou abaixo do orçamento.", l: "O painel conta o pedido; o DRE, os óculos entregues. O desvio vem da definição.", parada: "l1-venda" },
+    { id: "custo", titulo: "Cada número ganha uma definição, um dono e uma fonte.", k: "Cada número ganha uma definição, / um dono e uma fonte.",
+      l: `Em dez dias: catálogo de ${K.total} indicadores, as duas pontes e a regra para mudar um indicador.`, parada: "l1-fim",
       tiles: [{ v: `${K.divergentes} de ${K.total}`, t: `indicadores com mais de uma definição; ${K.sem_dono} sem dono`, e: "posição na data-base", d: 1 }, tConc] },
   ];
   const catalogo = K.linhas.map((l) => [l.nome, l.divergente ? "a definir" : "ok", l.dono ? "nomeado" : "a nomear", l.fonte ? "registrada" : "a registrar"]);
@@ -93,5 +96,5 @@ export function projeto1(base, R, proj, dataBase) {
     devolutiva: "Dia 9 · devolutiva de 1h30 com os sócios e as diretorias financeira e comercial",
   };
   const resultado = { numero: `${K.total}`, legenda: "indicadores com uma definição, um dono e uma fonte", sub: `${mi(r.orcamento.desvio_ytd)} de desvio do orçamento explicados pela ponte entre pedido e entrega.` };
-  return { proj, n: 1, formulario, parede, quadros, compacto, entregavel, resultado, cabDiag: `Diagnóstico · ${proj.codigo} · ${proj.nome} · ${dataBase}` };
+  return { proj, n: 1, formulario, parede, quadros, compacto, intro, entregavel, resultado, cabDiag: `Diagnóstico · ${proj.codigo} · ${proj.nome} · rede ilustrativa · ${dataBase}` };
 }

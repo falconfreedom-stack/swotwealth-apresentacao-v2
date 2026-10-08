@@ -7,6 +7,7 @@ import * as L from "./cenas/lente.js?v=202610071930";
 import * as O from "./cenas/oferta.js?v=202610071930";
 import * as T from "./cenas/top3.js?v=202610071930";
 import * as E from "./cenas/ecossistema.js?v=202610071930";
+import * as N from "./cenas/entrega.js?v=202610071930";
 import { cenaProvisoria } from "./cenas/comum.js?v=202610071930";
 
 const ou = (...fs) => { const titulo = fs.pop(); const f = fs.find((x) => typeof x === "function"); return f || ((c, ctx) => cenaProvisoria(c, ctx, titulo, "Cena provisória.", 5)); };
@@ -23,8 +24,8 @@ export const ORDEM = [
   { id: "descoberta", f: ou(L.descoberta, L.diagnostico, "O que o cruzamento mostra"), nome: "O que o cruzamento mostra", projeto: 3 },
   { id: "conta", f: ou(L.conta, "O que a lente revela"), nome: "O que a lente revela", projeto: 3 },
   { id: "semanas", f: ou(L.semanas, "E no mês fraco?"), nome: "E no mês fraco?", projeto: 3 },
-  { id: "entrega", f: ou(L.entrega, L.entregavel, "A entrega"), nome: "A entrega", projeto: 3 },
-  { id: "um-projeto", f: ou(L.umProjeto, L.resultado, "Isto é um projeto."), nome: "Isto é um projeto", projeto: 3 },
+  { id: "entrega", f: ou(N.entrega, L.entrega, L.entregavel, "A entrega"), nome: "A entrega", projeto: 3 },
+  { id: "um-projeto", f: ou(N.umProjeto, L.umProjeto, L.resultado, "Isto é um projeto."), nome: "Isto é um projeto", projeto: 3 },
   { id: "oferta", f: ou(O.oferta, "A oferta"), nome: "A oferta" },
   { id: "top3", f: ou(T.top3Cena, "Mais duas lentes"), nome: "Mais duas lentes", hub: true },
   { id: "lente1", f: ou(L.diagnostico, "Lente FIN8.2"), nome: "Lente FIN8.2", projeto: 1, opcional: "lente1", compacto: true },

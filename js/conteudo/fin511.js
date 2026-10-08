@@ -55,10 +55,13 @@ export function projeto2(base, R, proj, dataBase) {
         { v: n(S.fracionamentos.casos), t: `grupos de pagamentos ao mesmo fornecedor, no mesmo dia, cada um logo abaixo da alçada; ${mi(S.fracionamentos.valor)}`, e: "realizado, 12 meses; a conferir um a um" },
         { v: `${ref.acfe_faturamento_duracao_meses.v} meses`, t: `é quanto um esquema de pagamento a fornecedor dura, em mediana, até ser descoberto`, e: "referência: ACFE, 2026" } ] },
   ];
+  // versão compacta, para a lente opcional (roteiro v1, seção 4.2, L2.0 a L2.3): [K] = k, [L] = l, parada com o
+  // nome do roteiro; no quadro das trocas, sem o número em cada barra (≤ 3 números novos por tela).
+  const intro = { rotulo: `${proj.codigo} · ${proj.nome}`, k: "Quem consegue pagar sozinho." };
   const compacto = [
-    { ...qPessoas, sub: "Cadastrar ou trocar a conta do fornecedor, aprovar e liberar no banco. Dourado: acessos incompatíveis.", dur: 16 },
-    { ...qFluxo, sub: "Metade é o aluguel mínimo dos shoppings: uma pessoa lança, aprova e libera.", dur: 13 },
-    { ...qMeses, sub: `Em ${S.alteracoes.mesmo_usuario_pagou} casos, quem trocou a conta liberou o pagamento seguinte.`, dur: 13 },
+    { ...qPessoas, k: qPessoas.titulo.replace(" o caminho", " / o caminho"), l: "Cadastrar ou trocar a conta do fornecedor, aprovar e liberar no banco. Dourado: acessos incompatíveis.", parada: "l2-pessoas" },
+    { ...qFluxo, k: qFluxo.titulo.replace(" passaram", " / passaram"), l: "Metade é o aluguel mínimo dos shoppings: uma pessoa lança, aprova e libera.", parada: "l2-fluxo" },
+    { ...qMeses, k: qMeses.titulo.replace(" trocadas. ", " trocadas. / "), l: `Em ${S.alteracoes.mesmo_usuario_pagou} casos, quem trocou a conta liberou o pagamento seguinte.`, parada: "l2-fim", semValores: true },
   ];
   const acessos = S.pessoas.filter((p) => p.n_conflitos > 0).map((p) => {
     const tirar = [];
@@ -84,5 +87,5 @@ export function projeto2(base, R, proj, dataBase) {
     devolutiva: "Dia 9 · devolutiva de 1h30 com os sócios, a diretoria financeira e a TI",
   };
   const resultado = { numero: `${S.caminho_inteiro} → 0`, legenda: "pessoas com o caminho inteiro do pagamento, no desenho entregue", sub: `${S.conflitos_total} conflitos mapeados, cada um com o acesso a retirar ou o controle a declarar. A TI da rede executa a lista.` };
-  return { proj, n: 2, formulario, parede, quadros, compacto, entregavel, resultado, cabDiag: `Diagnóstico · ${proj.codigo} · ${proj.nome} · ${dataBase}` };
+  return { proj, n: 2, formulario, parede, quadros, compacto, intro, entregavel, resultado, cabDiag: `Diagnóstico · ${proj.codigo} · ${proj.nome} · rede ilustrativa · ${dataBase}` };
 }

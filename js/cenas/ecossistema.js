@@ -1,74 +1,125 @@
-// Ecossistema: os 208 projetos e o fecho.
-import { cascata } from "../util.js?v=202610071930";
-import { top3, FASES, AMOSTRA } from "../conteudo.js?v=202610071930";
+// Cenas 12 a 14 (roteiro v1; telas 4.3 a 4.5): quem conduz o diagnóstico, os 208 projetos e o próximo passo.
+// Tempos pelo modelo do roteiro (`batida`, js/cenas/oferta.js): cada bloco no tempo de leitura; as paradas cobrem
+// a leitura (no apresentar, a fala). Textos: js/conteudo/fim.js.
+import { FIM } from "../conteudo.js?v=202610071930";
 import { FASES_N } from "../mundo.js?v=202610071930";
-import { gsap, marco, COD, ancora, direcaoCam, cenaProvisoria } from "./comum.js?v=202610071930";
+import * as K from "./comum.js?v=202610071930";
+import { batida } from "./oferta.js?v=202610071930";
+const { gsap, marco, parada, linhas, revelar, recolher, aparecer, sumir, rot } = K;
 
-// ============================================================================ 1 · os 208 projetos
-export function projetos208(c, ctx) {
-  const M = ctx.mundo;
-  c.className = "cena c-208";
-  const acum = FASES_N.reduce((a, n, i) => (a.push((a[i - 1] || 0) + n), a), []);
-  const lado = (th) => (Math.sin(th) > 0.35 ? "dir" : Math.sin(th) < -0.35 ? "esq" : Math.cos(th) > 0 ? "cima" : "baixo");
-  c.innerHTML = `<div class="topo"><h1 class="t-display">208 projetos<br>de gestão,<br>em dez fases.</h1><p class="t-lead">Cada projeto diz que informação usa, o que examina e o que entrega.</p></div>
-  ${FASES.map((f, i) => ancora(`fase ${lado(M.angSetor(i))}`, `<b>${f}</b><span>${FASES_N[i]} projetos</span>`)).join("")}
-  ${FASES.map((f, i) => `<div class="amostra"><em>${f}</em>${AMOSTRA[i + 1].map((a) => `<span>${a}</span>`).join("")}</div>`).join("")}
-  ${[1, 2, 3].map((n) => ancora("t3tag", `Top 3 · projeto ${n}`)).join("")}
-  <p class="areas t-leg">Tributário, contábil, crédito e cobrança, preço e custo, caixa e bancos, orçamento e investimento, compliance e riscos, sistemas e agentes de inteligência artificial, pessoas, governança e estratégia.</p>`;
+// a mesma corrida dos ponteiros do instrumento (js/mundo.js): sai devagar, corre e assenta
+const CORRIDA = (t) => t * t * (6 - 8 * t + 3 * t * t);
+
+// ============================================================================ 12 · quem conduz o diagnóstico
+// Roteiro v2 (P10): uma parada só. O rótulo e os quatro nomes, em lista, cada um com uma linha de credencial tirada
+// literalmente da biografia (js/conteudo/fim.js); a biografia inteira fica no material.
+export function socios(c, ctx) {
+  const M = ctx.mundo, S = FIM(ctx.base, ctx.R).socios;
+  c.className = "cena c-soc";
+  c.innerHTML = `<p class="rot">${linhas(S.rotulo)}</p>
+  <ul class="lista">${S.pessoas.map((p) => `<li><b>${p.nome}</b><span>${p.credencial}</span></li>`).join("")}</ul>`;
   const q = (s) => c.querySelector(s);
-  const fases = [...c.querySelectorAll(".fase")], amostras = [...c.querySelectorAll(".amostra")], tags = [...c.querySelectorAll(".t3tag")];
   const tl = gsap().timeline({ paused: true });
-  M.base(tl, { cam: "inteiro", disco: { acesos: 0 }, luz: { a: 1.1 } });
-  fases.forEach((el, i) => M.ancorar(el, M.posSetor(i, 1.16)));
-  tags.forEach((el, k) => M.ancorar(el, M.posIndice(COD(k + 1), 0.64)));
-  const miolos = (els) => els.map((e) => e.querySelector(".miolo"));
-  tl.set([q(".topo"), q(".areas"), ...miolos(fases), ...amostras, ...miolos(tags)], { opacity: 0 }, 0);
-  M.luzPara(tl, { a: 3.0 }, 30, 0, "none");
-  M.irPara(tl, "topoDir", 2.2, 0, {}, "power2.inOut");
-  cascata(tl, [q(".topo")], 0, 0.6, 1.0, 14);
-  tl.to(M.disco, { acesos: 208, duration: 2.6, ease: "none" }, 2.0);
-  miolos(fases).forEach((m, i) => cascata(tl, [m], 0, 2.0 + 2.6 * acum[i] / 208 - 0.15, 0.6, 6));
-  marco(tl, "mapa", 5.0);
-  // a volta: a câmera passa rápido; cada fase fica ~2 s legível (as amostras se sobrepõem)
-  tl.to([...miolos(fases), q(".topo")], { opacity: 0, duration: 0.5 }, 9.4);
-  const th0 = M.angSetor(0), th9 = M.angSetor(9), durVolta = 17;
-  const orb = { raio: 1.78, alt: 0.44, alvoR: 0.70, alvoY: 0.20, fov: 30 };
-  M.irPara(tl, direcaoCam(M, th0, orb), 1.8, 9.4);
-  M.orbitar(tl, { de: th0, ate: th9, ...orb }, durVolta, 11.2, "none");
-  amostras.forEach((m, i) => {
-    const t = 11.2 + durVolta * (M.angSetor(i) - th0) / (th9 - th0);
-    tl.fromTo(m, { opacity: 0, y: 12 }, { opacity: 1, y: 0, duration: 0.35, ease: "power2.out", immediateRender: false }, t - 0.9);
-    tl.to(m, { opacity: 0, duration: 0.3 }, t + 1.05);
+  // continua do plano do Top 3 e desce ao plano rasante dos sócios (câmera média)
+  M.base(tl, { cam: "top3", disco: { acesos: 0, top3: 1 }, luz: { a: 1.0, expo: 1 } });
+  M.irPara(tl, "socios", 1.8, 0.1, {}, "power2.inOut");
+  revelar(tl, q(".rot"), 1.3);
+  // os quatro entram em cascata, como uma lista (uma linha por vez, 0,3 s entre elas)
+  const itens = [...c.querySelectorAll(".lista li")];
+  aparecer(tl, itens, 1.9, 0.6, 0.3, 10);
+  const lista = S.pessoas.map((p) => `${p.nome} · ${p.credencial}`).join(" ");
+  const B = batida(0, [{ o: 1.3, texto: S.rotulo, cam: 1 }, { o: 1.9, texto: lista, v: 15 }], [[0.1, 1.8]]);
+  const t = Math.max(B.t, 1.9 + 0.3 * (itens.length - 1) + 0.6);
+  parada(tl, ctx, "socios", t, B.fim - t);
+  tl.to({}, { duration: 0.4 }, B.fim);
+  return tl;
+}
+
+// ============================================================================ 13 · os 208 projetos
+export function projetos208(c, ctx) {
+  const M = ctx.mundo, E = FIM(ctx.base, ctx.R).eco;
+  c.className = "cena c-eco";
+  c.innerHTML = `<h1 class="tit t-titulo">${linhas(E.titulo)}</h1><p class="sub">${linhas(E.sub)}</p><div class="amostra"></div>`;
+  const q = (s) => c.querySelector(s);
+  const tl = gsap().timeline({ paused: true });
+  // continua do plano dos sócios; só o índice do FIN3.10 aceso (desde "Isto é um projeto")
+  M.base(tl, { cam: "socios", disco: { acesos: 0, destaque: 1 }, luz: { a: 1.0, expo: 1 } });
+  // câmera longa com novidade no trajeto: os 208 acendem por fase enquanto ela sobe ao mostrador inteiro
+  M.irPara(tl, "topoDir", 2.6, 0.2, {}, "power2.inOut");
+  const tAcende = 1.0, durAcende = 3.0;
+  tl.to(M.disco, { acesos: 208, duration: durAcende, ease: "none" }, tAcende);
+  // o nome de cada fase entra quando o seu setor acende (posSetor a r = 1,16, fora da caixa)
+  const acum = FASES_N.reduce((a, n, i) => (a.push((a[i - 1] || 0) + n), a), []);
+  const lado = (th) => (Math.sin(th) > 0.35 ? { cls: "dir", xp: 0, yp: -50 } : Math.sin(th) < -0.35 ? { cls: "esq", xp: -100, yp: -50 } : Math.cos(th) > 0 ? { cls: "cima", xp: -50, yp: -100 } : { cls: "baixo", xp: -50, yp: 0 });
+  const fases = E.fases.map((f, i) => {
+    const L = lado(M.angSetor(i));
+    const m = rot(c, M, M.posSetor(i, 1.16), `fase ${L.cls}`, f, L.cls === "dir" ? 8 : L.cls === "esq" ? -8 : 0, L.cls === "cima" ? -4 : L.cls === "baixo" ? 4 : 0);
+    gsap().set(m, { xPercent: L.xp, yPercent: L.yp });
+    const meio = tAcende + durAcende * ((acum[i] - FASES_N[i] / 2) / 208);
+    tl.fromTo(m, { opacity: 0 }, { opacity: 1, duration: 0.45, ease: "power2.out", immediateRender: false }, meio - 0.1);
+    return m;
   });
-  marco(tl, "volta", 11.2);
-  M.irPara(tl, "topoDir", 2.4, 28.2, {}, "power3.inOut");
-  cascata(tl, [q(".topo")], 0, 29.0, 0.9, 10);
-  cascata(tl, miolos(fases), 0.04, 29.4, 0.5, 6);
-  cascata(tl, [q(".areas")], 0, 30.0, 0.9, 10);
-  marco(tl, "areas", 30.8);
-  tl.to(M.disco, { top3: 1, duration: 0.9, ease: "power2.out" }, 33.4);
-  tl.to(M.disco, { pulso: 1, duration: 0.5, yoyo: true, repeat: 1, ease: "sine.inOut" }, 33.8);
-  cascata(tl, miolos(tags), 0.2, 33.9, 0.7, 8);
-  marco(tl, "fim", 34.6);
-  tl.to([q(".topo"), q(".areas"), ...miolos(fases), ...miolos(tags)], { opacity: 0, duration: 0.6 }, 39.6);
+  revelar(tl, q(".tit"), 3.0);
+  // o Top 3 acende em ouro; um selo em cada índice
+  tl.to(M.disco, { top3: 1, duration: 0.8, ease: "power2.out" }, 5.0);
+  const selos = ["FIN3.10", "FIN8.2", "FIN5.11"].map((cod) => { const m = rot(c, M, M.posIndice(cod, 0.64), "selo", E.selo); gsap().set(m, { xPercent: -50, yPercent: -50 }); return m; });
+  tl.fromTo(selos, { opacity: 0 }, { opacity: 1, duration: 0.5, ease: "power2.out", stagger: 0.1, immediateRender: false }, 5.4);
+  revelar(tl, q(".sub"), 6.0);
+  const textoFases = E.fases.join(" · ");
+  const B = batida(0, [{ o: 1.6, texto: textoFases }, { o: 3.0, texto: E.titulo, cam: 1 }, { o: 5.4, texto: E.selo }, { o: 6.0, texto: E.sub }], [[0.2, 2.6], [tAcende, durAcende], [5.0, 0.8]]);
+  parada(tl, ctx, "ecossistema", B.t, B.hold);
+  tl.to({}, { duration: 0.4 }, B.fim);
+
+  // exploração opcional, fora da linha do tempo: tocar no nome de uma fase mostra três temas de exemplo
+  const caixa = q(".amostra");
+  let aberta = -1;
+  fases.forEach((m, i) => {
+    const ancora = m.parentElement;
+    ancora.style.pointerEvents = "auto"; ancora.style.cursor = "pointer";
+    ancora.addEventListener("click", (ev) => {
+      ev.stopPropagation();
+      if (Number(m.style.opacity || 0) < 0.5) return;
+      aberta = aberta === i ? -1 : i;
+      gsap().killTweensOf(caixa);
+      if (aberta < 0) { gsap().to(caixa, { opacity: 0, duration: 0.3 }); fases.forEach((x) => x.classList.remove("ativa")); return; }
+      caixa.innerHTML = `<em>${E.fases[i]} · exemplos</em>${(E.amostras[i + 1] || []).map((a) => `<span>${a}</span>`).join("")}`;
+      fases.forEach((x, k) => x.classList.toggle("ativa", k === i));
+      gsap().fromTo(caixa, { opacity: 0, y: 8 }, { opacity: 1, y: 0, duration: 0.45, ease: "power2.out" });
+    });
+  });
   return tl;
 }
 
-// ============================================================================ 10 · fecho
+// ============================================================================ 14 · o próximo passo
 export function fecho(c, ctx) {
-  const M = ctx.mundo;
-  c.className = "cena c-abre c-fecho";
-  c.innerHTML = `<div class="leg"><p class="l1">Inteligência financeira para a sua empresa, projeto a projeto.</p></div>`;
+  const M = ctx.mundo, F = FIM(ctx.base, ctx.R).fecho;
+  c.className = "cena c-fim";
+  c.innerHTML = `<p class="rot">${linhas(F.rotulo)}</p><h1 class="tit t-titulo">${linhas(F.titulo)}</h1>
+  <ol class="acoes">${F.acoes.map((a, i) => `<li><b>${i + 1}</b><span>${a}</span></li>`).join("")}</ol>
+  <p class="rodape">${F.rodape}</p><div class="halo"></div>`;
+  const q = (s) => c.querySelector(s);
   const tl = gsap().timeline({ paused: true });
-  M.base(tl, { cam: "oferta", disco: { top3: 1 } });
-  M.irPara(tl, "macro", 4.0, 0.2, {}, "power3.inOut");
-  M.luzPara(tl, { a: 1.6 }, 9, 0);
-  M.irPara(tl, "rasante", 4.2, 4.6, {}, "power3.inOut");
-  tl.set(c.querySelectorAll(".leg p"), { opacity: 0 }, 0);
-  cascata(tl, [c.querySelector(".l1")], 0, 7.4, 1.1, 10);
-  marco(tl, "fim", 8.6);
+  // continua do mostrador inteiro dos 208 e vem ao plano do relógio (mostrador à direita, ponteiros à vista)
+  M.base(tl, { cam: "topoDir", disco: { acesos: 208, top3: 1 }, luz: { a: 1.0, expo: 1 } });
+  M.irPara(tl, "relogio", 2.2, 0.2, {}, "power2.inOut");
+  revelar(tl, q(".rot"), 1.8);
+  revelar(tl, q(".tit"), 2.2);
+  const itens = [...c.querySelectorAll(".acoes li")];
+  aparecer(tl, itens, 3.4, 0.6, 0.25, 10);
+  aparecer(tl, q(".rodape"), 6.0, 0.6, 0, 6);
+  // o relógio volta e assenta em 10h10 enquanto a lista é lida (o único movimento durante a leitura); a volta é
+  // medida quando a corrida começa e tem pelo menos 3 h, para ser vista
+  const R = M.relogio, alvo = 10 + 10 / 60;
+  tl.to(R, { hora: () => { const h = R.hora; let volta = (((h - alvo) % 12) + 12) % 12; if (volta < 3) volta += 12; return h - volta; }, duration: 5.2, ease: CORRIDA }, 4.0);
+  M.ritmoSegundo(tl, -1, 5.2, 4.0);
+  // halo curto nos ponteiros quando assentam (momento 2 de 2)
+  const halo = q(".halo"), centro = M.naTela(M.v3(0, 0.01, 0), "relogio");
+  halo.style.left = `${centro.x.toFixed(0)}px`; halo.style.top = `${centro.y.toFixed(0)}px`;
+  halo.style.opacity = "0";
+  tl.fromTo(halo, { opacity: 0, scale: 0.85 }, { opacity: 0.55, scale: 1, duration: 0.35, ease: "power2.out", immediateRender: false }, 9.0);
+  tl.to(halo, { opacity: 0, duration: 0.45, ease: "power2.in" }, 9.35);
+  const B = batida(0, [{ o: 1.8, texto: F.rotulo, cam: 1 }, { o: 2.2, texto: F.titulo }, { o: 3.4, texto: F.acoes.map((a, i) => `${i + 1}. ${a}`).join(" ") }, { o: 6.0, texto: F.rodape }], [[0.2, 2.2], [4.0, 5.2], [9.0, 0.8]]);
+  parada(tl, ctx, "fim", B.t, B.hold);          // o último marco: a peça para aqui, no último quadro
+  tl.to({}, { duration: 0.4 }, B.fim);
   return tl;
 }
-
-// ============================================================================ quem somos (provisória)
-export function socios(c, ctx) { return cenaProvisoria(c, ctx, "Quem somos.", "Cena provisória: os quatro sócios.", 6, "socios"); }

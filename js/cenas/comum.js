@@ -46,8 +46,9 @@ export const apagar = (tl, bs, t, dur = 0.6) => bs.forEach((b) => tl.to(b, { a: 
 // Leitura mínima de um bloco: orientação (0,5 s; 1,0 s logo depois de câmera ou corte) + caracteres ÷ 12,5 +
 // 0,5 s por número com unidade; piso de 1,5 s (2,0 s com número).
 export function leitura(texto, opc = {}) {
-  const t = String(texto || "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim();
-  const nums = (t.match(/(R\$\s?[\d.,]+(\s?(mi|mil|bi))?|[\d.,]+\s?%|\d+[.,]?\d*\s?(dias|semanas|meses|lojas|vezes|×|x)\b)/gi) || []).length;
+  const t = String(texto || "").replace(/<[^>]+>/g, " ").replace(/\s+\/\s+/g, " ").replace(/\s+/g, " ").trim();
+  // "10×" também é número: depois de "×" ou "x" o fim de palavra é "nem letra nem dígito" (o \b falhava no ×)
+  const nums = (t.match(/(R\$\s?[\d.,]+(\s?(mi|mil|bi))?|[\d.,]+\s?%|\d+[.,]?\d*\s?(dias|semanas|meses|lojas|vezes|×|x)(?![\p{L}\d]))/giu) || []).length;
   const base = (opc.depoisDeCamera ? 1.0 : 0.5) + t.length / (opc.v || 12.5) + 0.5 * nums;
   return Math.max(nums ? 2.0 : 1.5, base);
 }
@@ -80,6 +81,51 @@ export function recolher(tl, els, t, dur = 0.35) {
 // Foco por atenuação: o que não é o assunto cai para `nivel` de opacidade; `focar` devolve ao normal.
 export const atenuar = (tl, els, t, nivel = 0.32, dur = 0.5) => { const l = [].concat(els).filter(Boolean); if (l.length) tl.to(l, { opacity: nivel, duration: dur, ease: "power2.out" }, t); };
 export const focar = (tl, els, t, dur = 0.4) => { const l = [].concat(els).filter(Boolean); if (l.length) tl.to(l, { opacity: 1, duration: dur, ease: "power2.out" }, t); };
+// Texto sem marcação (para medir leitura) e hold de gráfico (B.3): 1,5 + 0,5 × rótulos + 2 × comparações, teto 8 s.
+export const textoPuro = (html) => String(html || "").replace(/<[^>]+>/g, " ").replace(/\s+\/\s+/g, " ").replace(/\s+/g, " ").trim();
+export const holdGrafico = (rotulos = 2, comparacoes = 1) => Math.min(8, 1.5 + 0.5 * rotulos + 2 * comparacoes);
+
+// Leitura em sequência (o modelo do roteiro): cada bloco é lido a partir de quando entra ou de quando o anterior
+// termina, o que vier depois. `fim` é quando o último termina; o hold de uma parada em t é `fim − t + 0,5`.
+// O hold só vale no modo assistir (no apresentar, o → pula o hold e a fala ocupa o tempo): ali não há fala junto,
+// e a velocidade é a do cartão só de texto da pesquisa (15 car/s, tabela B.3). Rótulos curtos se olham (`olhar`).
+export function leitor(t0 = 0) {
+  let fim = t0;
+  return {
+    ler(t, texto, opc = {}) { fim = Math.max(t, fim) + leitura(texto, { v: 15, ...opc }); return fim; },
+    olhar(t, s) { fim = Math.max(t, fim) + s; return fim; },          // tempo de olhar um gráfico (hold de gráfico)
+    hold(t, respiro = 0.5) { return Math.max(1.0, fim - t + respiro); },
+    get fim() { return fim; },
+    zerar(t) { fim = t; },
+  };
+}
+
+// ---------------------------------------------------------------------------------------------
+// Lâmina com um caminho de várias poses (subir do mostrador → ficar em fila → empilhar → virar a folha...).
+// O mundo leva cada lâmina de `de` a `para`; aqui as duas são a mesma pose "viva", que acompanha `st.s` pelas
+// poses da lista (0 = a primeira, 1 = a segunda...). `ir` anima `st.s` com o GSAP e marca o mundo para redesenhar;
+// como é um tween como outro qualquer, buscar qualquer tempo da linha do tempo dá a pose certa.
+export function caminho(M, poses) {
+  const st = { s: 0 }, n = poses.length - 1;
+  const v = poses[0].pos.clone(), q = poses[0].quat.clone();
+  const seg = () => { const s = Math.max(0, Math.min(n, st.s)), k = Math.min(n - 1, Math.floor(s)); return [k, s - k]; };
+  const viva = {
+    get pos() { const [k, f] = seg(); return v.copy(poses[k].pos).lerp(poses[k + 1].pos, f); },
+    get quat() { const [k, f] = seg(); return q.copy(poses[k].quat).slerp(poses[k + 1].quat, f); },
+    get w() { const [k, f] = seg(); return poses[k].w + (poses[k + 1].w - poses[k].w) * f; },
+    get h() { const [k, f] = seg(); return poses[k].h + (poses[k + 1].h - poses[k].h) * f; },
+    get deitada() { const [k, f] = seg(); return !!(f < 0.5 ? poses[k] : poses[k + 1]).deitada; },
+  };
+  const ir = (tl, a, b, dur, pos, ease = "power3.inOut") => tl.fromTo(st, { s: a }, { s: b, duration: dur, ease, immediateRender: false, onUpdate: () => M.marcar() }, pos);
+  return { st, viva, ir };
+}
+// Anima um uniforme de uma lâmina (ex.: o ouro do vidro), redesenhando o mundo.
+export function uniformeLamina(tl, M, i, nome, de, para, dur, pos, ease = "power2.inOut") {
+  const u = M.objLaminas[i].material.uniforms[nome], p = { v: de };
+  tl.fromTo(p, { v: de }, { v: para, duration: dur, ease, immediateRender: false, onUpdate: () => { u.value = p.v; M.marcar(); } }, pos);
+}
+// Pose de uma lâmina deitada sobre o índice de um projeto (de onde as folhas da lente saem e para onde voltam).
+export const poseIndice = (M, codigo = "FIN3.10", r = 0.86) => { const ix = M.top3[codigo]; return M.poseDeitada(direcao(ix.ang, r, 0.006), 0.012, 0.05, ix.ang); };
 
 // ---------------------------------------------------------------------------------------------
 // Planos fixos da v2
@@ -96,6 +142,13 @@ export function lamT3(M, i) {
 export const poseFolha = (M) => M.poseRet(RET_FOLHA, PLANO_FOLHA, 2.6);
 // o instrumento à direita, no alto, com o texto no escuro da esquerda (retrato da rede e a pergunta)
 export const PLANO_RETRATO = { x: -0.72, y: 2.25, z: 2.75, tx: -1.35, ty: 0, tz: 0.05, fov: 30 };
+// A lente: o mostrador inteiro à direita, visto do alto com um pouco de inclinação; o índice do FIN3.10 fica
+// embaixo, à direita; a coluna da esquerda fica no escuro, para o texto e os cartões dos insumos.
+export const PLANO_LENTE = { x: -0.86, y: 3.95, z: 1.25, tx: -0.80, ty: 0, tz: 0.16, fov: 34 };
+// O entregável e o resultado: o mostrador grande à direita (o relógio legível), a coluna da esquerda livre.
+export const PLANO_MESA = { x: -1.25, y: 3.2, z: 1.9, tx: -1.05, ty: 0, tz: 0.1, fov: 34 };
+// "Isto é um projeto.": o mostrador inteiro, de cima, com folga para os 208 índices.
+export const PLANO_UM = { x: -0.42, y: 4.2, z: 0.55, tx: -0.42, ty: 0, tz: 0.06, fov: 34 };
 
 export function direcaoCam(M, th, o) {
   const cpos = direcao(th, o.raio, o.alt), a = direcao(th, o.alvoR, o.alvoY);
@@ -106,7 +159,7 @@ export function direcaoCam(M, th, o) {
 // formulário
 export function campoHTML(cp) {
   const cls = ["v", cp.t === "texto" ? "texto" : "", cp.alerta ? "alerta" : ""].filter(Boolean).join(" ");
-  return `<div class="campo"><label>${cp.l}</label><div class="${cls}"><span class="txt">${cp.v || ""}</span></div></div>`;
+  return `<div class="campo"${cp.foco != null ? ` data-foco="${cp.foco}"` : ""}><label>${cp.l}</label><div class="${cls}"><span class="txt">${cp.v || ""}</span></div></div>`;
 }
 export function blocoHTML(b) {
   let corpo = "";
@@ -119,19 +172,21 @@ export function blocoHTML(b) {
 // ---------------------------------------------------------------------------------------------
 // grafo da análise
 // Tamanho de um rótulo do grafo sem pedir layout à página (a montagem da cena não pode forçar reflow).
+// As medidas seguem estilos/cenas-lente.css (.c-analise .no): 22 px nos nós comuns, 28 px nos dourados.
 export let _medida;
 export function medidaRotulo(no) {
   const k = _medida || (_medida = document.createElement("canvas").getContext("2d"));
   const larg = (fonte, t) => { k.font = fonte; return k.measureText(t).width; };
   const i = no.t.indexOf(" · ");
-  if (!no.ouro || i < 0) return { w: larg("400 18px Inter", no.t), h: 23 };
-  return { w: Math.max(larg("400 18px Inter", no.t.slice(0, i)), larg("600 27px 'Inter Tight'", no.t.slice(i + 3))), h: 55 };
+  if (no.ouro && i < 0) return { w: larg("600 28px 'Inter Tight'", no.t), h: 34 };
+  if (!no.ouro || i < 0) return { w: larg("400 22px Inter", no.t), h: 28 };
+  return { w: Math.max(larg("400 22px Inter", no.t.slice(0, i)), larg("600 28px 'Inter Tight'", no.t.slice(i + 3))), h: 62 };
 }
 
 // Cada rótulo do grafo vai para o lado (direita, esquerda, acima, abaixo) em que nenhuma ligação o atravessa e
-// nenhum outro rótulo ou nó o toca. A conta é feita na tela, com a câmera no meio da deriva da cena.
-export function ladosDoGrafo(M, P, parede, ancs) {
-  const cam = M.plano("analise", { cam: { x: -0.6, y: 1.02, z: 2.92 } });
+// nenhum outro rótulo ou nó o toca. A conta é feita na tela, no plano em que a câmera fica parada (`plano`).
+export function ladosDoGrafo(M, P, parede, ancs, plano) {
+  const cam = plano || M.plano("analise", { cam: { x: -0.6, y: 1.02, z: 2.92 } });
   const T = P.map((v) => M.naTela(v, cam));
   const segs = parede.lig.map(([a, b]) => [T[a], T[b]]);
   const dentro = (p, r) => p.x > r.x0 && p.x < r.x1 && p.y > r.y0 && p.y < r.y1;
@@ -164,11 +219,17 @@ export function ladosDoGrafo(M, P, parede, ancs) {
 
 // ============================================================================ 6 · o diagnóstico: gráficos no instrumento
 // Cada quadro: título (o achado), subtítulo, o gráfico construído e lido de frente.
+// O gráfico entra em estágios (B.3): régua e barras → nomes e valores → legenda e destaque. Cada rótulo cai
+// num grupo pela classe (S.g); listas (ações, cartões) entram uma linha por vez (S.seq). `S.fim` e `S.nota`
+// entram depois da lista.
+const GRUPO = [["regua", "regua"], ["val", "valores"], ["cat", "nomes"], ["ind", "nomes"], ["colh", "nomes"], ["col", "nomes"], ["acao", "nomes"],
+  ["leg", "legenda"], ["cand", "legenda"], ["seg", "destaque"], ["grande", "destaque"], ["total", "destaque"], ["tile", "destaque"], ["dentro", "destaque"]];
+const grupoDe = (cls) => { const k = cls.split(/\s+/); const g = GRUPO.find(([c]) => k.includes(c)); return g ? g[1] : "nomes"; };
 export function montarQuadro(qd, c, M, G, specs, rots, linhas, matriz) {
-  const faixa = (i, arr) => arr.slice(i[0], i[1]);
-  const S = { barras: [], rots: [], linhas: [], matriz: false, plano: { x: 0, y: 0.55, dist: 4.4, fov: 20, alt: 0.32 } };
-  const bar = (s) => { specs.push(s); S.barras.push(specs.length - 1); };
-  const lab = (v, cls, html, dx = 0, dy = 0) => { const m = rot(c, M, v, cls, html, dx, dy); S.rots.push(m); rots.push(m); return m; };
+  const S = { barras: [], rots: [], linhas: [], matriz: false, plano: { x: 0, y: 0.55, dist: 4.4, fov: 20, alt: 0.32 },
+    g: { regua: [], valores: [], nomes: [], legenda: [], destaque: [] }, seq: null, fim: [], nota: [] };
+  const bar = (s) => { specs.push(s); S.barras.push(specs.length - 1); return specs.length - 1; };
+  const lab = (v, cls, html, dx = 0, dy = 0, grupo) => { const m = rot(c, M, v, cls, html, dx, dy); S.rots.push(m); rots.push(m); if (grupo !== false) S.g[grupo || grupoDe(cls)].push(m); return m; };
   const lin = (s) => { linhas.push(s); S.linhas.push(linhas.length - 1); };
   const P = G.ponto;
   const pct = (v, cc = 1) => F.pct(v, cc);
@@ -240,103 +301,118 @@ export function montarQuadro(qd, c, M, G, specs, rots, linhas, matriz) {
       const x = x0 + i * dx, conf = qd.conf[i], sem = qd.total[i] - conf;
       if (conf) bar({ x, y0: 0, h: conf * sy, w: 0.11, cor: "marfim", cheio: 0.72, topo: sem ? 0 : 1 });
       if (sem) bar({ x, y0: conf * sy, h: sem * sy, w: 0.11, cor: "ouro", cheio: 0.8, sobre: conf ? specs.length - 1 : undefined });
-      lab(P(x, qd.total[i] * sy + 0.02), "val c peq", `<b class="num">${qd.total[i]}</b>`, 0, -16);
-      lab(P(x, 0), "cat c", m, 0, 24);
+      if (!qd.semValores) lab(P(x, qd.total[i] * sy + 0.02), "val c peq", `<b class="num">${qd.total[i]}</b>`, 0, -16);   // a lente compacta não numera cada barra (≤ 3 números novos)
+      lab(P(x, 0), "cat c", m, 0, 26);
     });
     lab(P(1.08, 0.86), "leg d", `<i class="o"></i>sem confirmação<br><i></i>confirmadas por outro canal`, 0, 0);
     S.plano = { x: 0.1, y: 0.48, dist: 4.4, fov: 20, alt: 0.3 };
   }
+  // ---- FIN3.10: custo de cada fonte. Largura = saldo médio, altura = taxa efetiva ao ano (a área é o custo).
+  // Recebível vendido (antecipação) em ouro; dívidas em vidro. Rótulos: nome e taxa sobre cada barra; o custo do
+  // ano só na barra destacada (a maior fonte); a linha tracejada é o que rende o caixa aplicado.
   if (qd.id === "fontes") {
-    const tot = qd.fontes.reduce((s, f) => s + f.saldo, 0), L = 2.1, sx = L / tot, sy = 0.70 / Math.max(36, ...qd.fontes.map((f) => f.taxa)), gap = 0.018;
-    let x = -1.05 - gap * (qd.fontes.length - 1) / 2;
-    qd.fontes.forEach((f, i) => {
-      const w = f.saldo * sx;
-      bar({ x: x + w / 2, y0: 0, h: f.taxa * sy, w, cor: f.rot === "antecipação" ? "verde" : i === 0 ? "ouro" : "marfim", cheio: 0.7 });
-      lab(P(x + w / 2, f.taxa * sy + 0.02), "val c peq", `<b class="num">${pct(f.taxa)}</b>`, 0, -18);
-      lab(P(x + w / 2, f.taxa * sy + 0.02), "cat c", `${f.rot}<span>R$ ${r1(f.saldo)} mi</span>`, 0, -66);
-      if (w > 0.3) lab(P(x + w / 2, f.taxa * sy * 0.80), "dentro c", `R$ ${r1(f.custo)} mi<span>por ano</span>`, 0, 0);
+    const tot = qd.fontes.reduce((s, f) => s + f.saldo, 0), L = 2.0, sx = L / tot, sy = 0.66 / Math.max(36, ...qd.fontes.map((f) => f.taxa)), gap = 0.03;
+    let x = -L / 2 - gap * (qd.fontes.length - 1) / 2;
+    qd.fontes.forEach((f) => {
+      const w = Math.max(0.05, f.saldo * sx), dest = f.id === qd.destaque;
+      bar({ x: x + w / 2, y0: 0, h: f.taxa * sy, w, cor: f.id === "antecipacao" ? "ouro" : "marfim", cheio: dest ? 0.78 : 0.6 });
+      lab(P(x + w / 2, f.taxa * sy + 0.02), `val c peq ${dest ? "ouro" : ""}`, `<b class="num">${pct(f.taxa)}</b>`, 0, -20);
+      lab(P(x + w / 2, f.taxa * sy + 0.02), "cat c", f.rot, 0, -64);
+      if (dest) lab(P(x + w / 2, f.taxa * sy * 0.5), "dentro c", `${qd.custoRot(f.custo)}<span>por ano</span>`, 0, 0);
       x += w + gap;
     });
-    lin({ pts: [[-1.1, qd.rendimento * sy], [1.12, qd.rendimento * sy]], cor: "marfim", tracejada: true });
-    lab(P(1.12, qd.rendimento * sy), "seg", `${pct(qd.rendimento)} <span>rende o caixa parado</span>`, 10, 0);
-    S.plano = { x: 0.20, y: 0.5, dist: 4.5, fov: 20, alt: 0.3 };
+    lin({ pts: [[-L / 2 - 0.08, qd.rendimento * sy], [L / 2 + 0.16, qd.rendimento * sy]], cor: "marfim", tracejada: true });
+    lab(P(L / 2 + 0.16, qd.rendimento * sy), "seg", `${pct(qd.rendimento)} <span>${qd.rendimentoRot}</span>`, 10, 0);
+    S.plano = { x: 0.06, y: 0.42, dist: 4.6, fov: 20, alt: 0.3 };
   }
+  // ---- FIN3.10: treze semanas (hoje e com a regra). Barra larga = menor saldo de caixa da semana; barra fina ao
+  // lado = conta garantida sacada (hoje) ou o estresse (com a regra); linha tracejada = saldo mínimo de referência.
   if (qd.id === "hoje" || qd.id === "depois") {
-    const sy = 0.66 / 12e6, dx = 0.145, x0 = -0.96, S13 = qd.semanas;
-    regua(x0, x0 + 12 * dx, { dist: qd.candidatos ? 4.9 : 4.5, fov: 20 }, 24);
-    const lado = qd.garantida || qd.estresse;      // segunda série, fina, ao lado de cada barra: garantida sacada (hoje) ou estresse (plano)
-    S13.forEach((v, i) => { bar({ x: x0 + i * dx - (lado ? 0.014 : 0), y0: 0, h: v * sy, w: lado ? 0.072 : 0.100, cor: qd.id === "hoje" ? "marfim" : "verde", cheio: 0.72 }); if (i % 2 === 0) lab(P(x0 + i * dx, 0), "cat c", `sem. ${i + 1}`, 0, 24); });
-    if (lado) lado.forEach((v, i) => { if (v > 1000) bar({ x: x0 + i * dx + 0.045, y0: 0, h: v * sy, w: 0.026, cor: qd.garantida ? "ouro" : "grafite", cheio: 0.85, topo: 0 }); });
-    if (lado) lab(P(1.12, 0.80), "leg d", qd.garantida ? `<i></i>caixa mínimo da semana<br><i class="o"></i>conta garantida sacada (máximo)` : `<i></i>com a regra<br><i style="background:#57605c"></i>${qd.estresseRot}`, 0, 0);
-    // o rótulo de uma barra fica acima das vizinhas, para não encostar no vidro delas
-    const acima = (i) => Math.max(...[i - 1, i, i + 1].filter((k) => k >= 0 && k < S13.length).map((k) => S13[k])) * sy + 0.02;
-    lab(P(x0, acima(0)), "val c peq", `<b class="num">R$ ${r1(S13[0])} mi</b>`, 0, -18);
+    const sy = 0.66 / Math.max(12e6, ...qd.semanas), dx = 0.15, x0 = -0.9, S13 = qd.semanas, lado = qd.garantida || qd.estresse;
+    regua(x0, x0 + 12 * dx, { dist: 4.5, fov: 20 }, 26);
+    S13.forEach((v, i) => { bar({ x: x0 + i * dx - (lado ? 0.016 : 0), y0: 0, h: v * sy, w: lado ? 0.074 : 0.100, cor: qd.id === "hoje" ? "marfim" : "verde", cheio: 0.72 }); if (i % 2 === 0) lab(P(x0 + i * dx, 0), "cat c", `${qd.semanaRot} ${i + 1}`, 0, 26); });
+    // série fina: garantida sacada em ouro (roteiro 5.4); estresse em grafite
+    if (lado) lado.forEach((v, i) => { if (v > 1000) bar({ x: x0 + i * dx + 0.046, y0: 0, h: v * sy, w: 0.03, cor: qd.garantida ? "ouro" : "grafite", cheio: 0.9, topo: 0 }); });
+    if (lado) lab(P(x0 + 12 * dx + 0.06, 0.86), "leg d", `<i class="${qd.id === "depois" ? "v" : ""}"></i>${qd.serieRot}<br><i class="${qd.garantida ? "o" : "g"}"></i>${qd.ladoRot}`, 0, 0);
+    // rótulos de valor só nos extremos: o menor saldo (a série principal) e o maior valor da série fina
+    const acima = (arr, i) => Math.max(...[i - 1, i, i + 1].filter((k) => k >= 0 && k < arr.length).map((k) => Math.max(S13[k], lado ? lado[k] : 0))) * sy + 0.02;
     const iMin = S13.indexOf(Math.min(...S13));
-    lab(P(x0 + iMin * dx, acima(iMin)), "val c peq ouro", `<b class="num">R$ ${r1(S13[iMin])} mi</b><span>mínimo</span>`, 0, -30);
+    lab(P(x0 + iMin * dx, acima(S13, iMin)), "val c peq ouro", `<b class="num">${qd.minRot(S13[iMin])}</b><span>${qd.minLeg}</span>`, 0, -34);
+    if (qd.garantida) {
+      const iMax = lado.indexOf(Math.max(...lado));
+      lab(P(x0 + iMax * dx + 0.046, lado[iMax] * sy + 0.02), "val c peq", `<b class="num">${qd.minRot(lado[iMax])}</b><span>${qd.maxLeg}</span>`, 0, -34);
+    }
     lin({ pts: [[x0 - 0.08, qd.linha * sy], [x0 + 12 * dx + 0.08, qd.linha * sy]], cor: "ouro", tracejada: true });
     lab(P(x0 + 12 * dx + 0.08, qd.linha * sy), "seg", qd.linhaRot, 12, 0);
-    if (qd.candidatos) lab(P(1.08, 0.78), "cand", `<h5>antecipação da agenda</h5>${qd.candidatos.map((cc) => `<div class="${cc.abaixo ? "" : "ok"}"><b>${cc.p}%</b><span>${cc.abaixo ? `${cc.abaixo} semanas abaixo do mínimo` : "nenhuma semana abaixo"}</span></div>`).join("")}`, 0, 0);
-    S.plano = { x: qd.candidatos ? 0.2 : 0.05, y: 0.5, dist: qd.candidatos ? 4.9 : 4.5, fov: 20, alt: 0.3 };
+    S.plano = { x: 0.08, y: 0.46, dist: 4.5, fov: 20, alt: 0.3 };
   }
+  // ---- FIN3.10: a agenda de recebíveis por mês de vencimento (já antecipado, cedido em garantia, livre).
   if (qd.id === "agenda") {
-    const ms = qd.meses, mx = Math.max(...ms.map((m) => m.total)), sy = 0.66 / mx, dx = 0.205, x0 = -0.92;
-    regua(x0, x0 + (ms.length - 1) * dx, { dist: 4.5, fov: 20 }, 24);
+    const ms = qd.meses, mx = Math.max(...ms.map((m) => m.total)), sy = 0.66 / mx, dx = 0.2, x0 = -0.9;
+    regua(x0, x0 + (ms.length - 1) * dx, { dist: 4.5, fov: 20 }, 26);
     ms.forEach((m, i) => {
       const x = x0 + i * dx; let y = 0;
-      [["antecipado", "ouro", 0.82], ["cedido", "grafite", 0.75], ["livre", "marfim", 0.72]].forEach(([k, cor, ch], j) => { const h = m[k] * sy; if (h <= 0) return; bar({ x, y0: y, h, w: 0.15, cor, cheio: ch, topo: j === 2 ? 1 : 0, sobre: j ? specs.length - 1 : undefined }); y += h; });
-      lab(P(x, m.total * sy + 0.02), "val c peq", `<b class="num">${r1(m.total)}</b>`, 0, -16);
-      lab(P(x, 0), "cat c", m.mes, 0, 24);
+      [["antecipado", "ouro", 0.82], ["cedido", "grafite", 0.9], ["livre", "marfim", 0.72]].forEach(([k, cor, ch], j) => { const h = m[k] * sy; if (h <= 0) return; bar({ x, y0: y, h, w: 0.15, cor, cheio: ch, topo: j === 2 ? 1 : 0, sobre: j ? specs.length - 1 : undefined }); y += h; });
+      lab(P(x, m.total * sy + 0.02), "val c peq", `<b class="num">${i === 0 ? qd.valorRot(m.total) : r1(m.total)}</b>`, 0, -18);
+      lab(P(x, 0), "cat c", m.mes, 0, 26);
     });
-    lab(P(1.16, 0.80), "leg d", `<i class="o"></i>já antecipado<br><i style="background:#57605c"></i>cedido ao Banco B<br><i></i>livre, chega na data`, 0, 0);
-    S.plano = { x: 0.08, y: 0.48, dist: 4.5, fov: 20, alt: 0.3 };
+    lab(P(x0 + (ms.length - 1) * dx + 0.12, 0.84), "leg d", qd.legenda.map(([cls, t]) => `<i class="${cls}"></i>${t}`).join("<br>"), 0, 0);
+    S.plano = { x: 0.06, y: 0.44, dist: 4.5, fov: 20, alt: 0.3 };
   }
   if (qd.tiles) {
     const px = M.pxPorUnidade(4.4, 20), W0 = 560 / px, H0 = 220 / px, xs = [-0.44, 0.44], ys = [0.58, 0.20];
-    qd.tiles.forEach((tt, i) => { const x = xs[i % 2], y = ys[Math.floor(i / 2)]; bar({ x, y0: y - H0 / 2, h: H0, w: W0, cor: "grafite", cheio: 0.0, topo: 0, escuro: 0.86, ouro: tt.d ? 0.5 : 0.15 }); lab(P(x, y), `tile c ${tt.d ? "d" : ""}`, `<b class="num">${tt.v}</b><p>${tt.t}</p><em>${tt.e}</em>`, 0, 0); });
+    S.seq = [];
+    qd.tiles.forEach((tt, i) => { const x = xs[i % 2], y = ys[Math.floor(i / 2)]; const b = bar({ x, y0: y - H0 / 2, h: H0, w: W0, cor: "grafite", cheio: 0.0, topo: 0, escuro: 0.86, ouro: tt.d ? 0.5 : 0.15 }); const m = lab(P(x, y), `tile c ${tt.d ? "d" : ""}`, `<b class="num">${tt.v}</b><p>${tt.t}</p><em>${tt.e}</em>`, 0, 0, false); S.seq.push({ barras: [b], rots: [m] }); });
     S.plano = { x: 0, y: 0.43, dist: 4.4, fov: 20, alt: 0.0 };
   }
+  // ---- FIN3.10: as ações em cascata. Economia potencial = vidro com contorno de ouro e pouco corpo (regra 6:
+  // potencial não é caixa); cada linha entra com o nome, de quem depende e o valor anual estimado.
   if (qd.acoes) {
-    const max = Math.max(...qd.acoes.map((a) => a.v)), L = 1.05, sx = L / max, esp = 0.13, x0 = -0.1;
-    qd.acoes.forEach((a, i) => { const y = 0.86 - i * esp, w = a.v * sx; bar({ x: x0 + w / 2, y0: y - 0.035, h: 0.07, w, cor: a.empresa ? "ouro" : "marfim", cheio: 0.78, hor: true, topo: 0 }); lab(P(x0 - 0.05, y), "acao", `${a.t}<span>${a.quem}</span>`, 0, 0); lab(P(x0 + w + 0.03, y), "val e peq", `<b class="num">R$ ${F.n(Math.round(a.v / 1000))} mil</b>`, 0, 0); });
-    lab(P(x0, 0.86 - qd.acoes.length * esp + 0.02), "total", `<b class="num">R$ ${F.n(qd.total / 1e6, 2)} mi</b> por ano, estimados · <b class="num ouro">R$ ${F.n(qd.empresa / 1e6, 2)} mi</b> dependem só da empresa`, 0, 0);
-    if (qd.recuperacao) lab(P(x0, 0.86 - qd.acoes.length * esp - 0.09), "total nota", `Uma vez: R$ ${F.n(Math.round(qd.recuperacao / 1000))} mil a contestar. Não é ganho: R$ ${r1(qd.divida)} mi de dívida quitada com o caixa e R$ ${r1(qd.caixaUsado)} mi de caixa médio usado.`, 0, 0);
-    S.plano = { x: 0.0, y: 0.5, dist: 4.5, fov: 20, alt: 0.25 };
+    const max = Math.max(...qd.acoes.map((a) => a.v)), L = 1.0, sx = L / max, esp = 0.135, x0 = -0.06;
+    S.seq = [];
+    qd.acoes.forEach((a, i) => {
+      const y = 0.86 - i * esp, w = a.v * sx;
+      const b = bar({ x: x0 + w / 2, y0: y - 0.036, h: 0.072, w, cor: "ouro", cheio: a.empresa ? 0.34 : 0.16, ouro: 1, hor: true, topo: 0 });
+      const m1 = lab(P(x0 - 0.05, y), "acao", `${a.t}<span>${a.quem} · ${a.prazo}</span>`, 0, 0, false);
+      const m2 = lab(P(x0 + w + 0.03, y), "val e peq ouro", `<b class="num">${qd.valorRot(a.v)}</b>`, 0, 0, false);
+      S.seq.push({ barras: [b], rots: [m1, m2] });
+    });
+    S.fim.push(lab(P(x0 - 0.05, 0.86 - qd.acoes.length * esp + 0.02), "total", qd.totalHTML, 0, 0, false));
+    if (qd.notaHTML) S.nota.push(lab(P(x0 - 0.05, 0.86 - qd.acoes.length * esp - 0.085), "total nota", qd.notaHTML, 0, 0, false));
+    S.plano = { x: 0.08, y: 0.52, dist: 4.5, fov: 20, alt: 0.25 };
   }
   return S;
 }
 
 // ============================================================================ 7 · o entregável: o que chega à empresa
-// As peças pousam sobre o instrumento; a câmera desce sobre cada uma.
-// As peças ficam em volta do centro, sobre o vidro: os ponteiros, a tampa e a marca continuam à vista.
+// Cinco folhas deitadas no mostrador (a pilha); uma por vez sobe até a posição de leitura, à direita, e volta.
+// Posição na pilha: x, z sobre o mostrador; w × h em unidades do mundo (retrato, como uma página).
 export const PECAS = [
-  { id: "capa", x: -0.56, z: 0.10, w: 0.40, h: 0.545, giro: 0.06, y: 0.022 },
-  { id: "f0", x: -0.28, z: 0.56, w: 0.40, h: 0.545, giro: -0.04, y: 0.026 },
-  { id: "f1", x: 0.20, z: 0.52, w: 0.40, h: 0.545, giro: 0.05, y: 0.024 },
-  { id: "planilha", x: 0.58, z: 0.12, w: 0.50, h: 0.304, giro: -0.05, y: 0.028 },
-  { id: "painel", x: 0.58, z: 0.47, w: 0.44, h: 0.275, giro: 0.04, y: 0.030 },
-  { id: "devolutiva", x: -0.56, z: -0.50, w: 0.32, h: 0.195, giro: -0.07, y: 0.026 },
-];
+  { id: "capa", x: -0.64, z: 0.02, giro: 0.10, y: 0.020 },
+  { id: "mapa", x: -0.38, z: 0.50, giro: -0.06, y: 0.023 },
+  { id: "projecao", x: 0.04, z: 0.64, giro: 0.05, y: 0.026 },
+  { id: "plano", x: 0.46, z: 0.48, giro: -0.08, y: 0.029 },
+  { id: "regra", x: 0.66, z: 0.04, giro: 0.07, y: 0.032 },
+].map((p) => ({ ...p, w: 0.36, h: 0.49 }));
+// a folha de leitura: 690 × 940 px no palco, à direita (a coluna da esquerda fica para a legenda)
+export const RET_LEITURA = { left: 1080, top: 70, width: 690, height: 940 };
+const cabPg = (C) => `<div class="cab"><img src="${LOGO_ESC}" alt=""><span>${C.proj.codigo} · rede ilustrativa</span></div>`;
 export function htmlPeca(p, E, C) {
-  if (p.id === "capa") return `<div class="capa"><img src="midia/marca/logo_horizontal_claro.svg" alt="SWOT WEALTH"><h2>${E.capa.titulo}</h2><p>${E.capa.sub}</p><ol>${E.capa.indice.map((x) => `<li>${x}</li>`).join("")}</ol></div>`;
-  if (p.id === "f0" || p.id === "f1") {
-    const f = E.folhas[p.id === "f0" ? 0 : 1];
-    const linha = (l) => (l.length > 2 ? `<tr><td>${l[0]}<span class="q">${l[2]}</span></td><td class="d">${l[1]}</td></tr>` : `<tr>${l.map((v, i) => `<td class="${i ? "d" : ""}">${v}</td>`).join("")}</tr>`);
-    const corpo = f.itens ? `<ol class="itens">${f.itens.map((x) => `<li>${x}</li>`).join("")}</ol>` : `<table class="${f.linhas[0].length > 2 ? "tres" : ""}">${f.linhas.map(linha).join("")}</table>`;
-    return `<div class="pg"><div class="cab"><img src="${LOGO_ESC}" alt=""><span>${C.proj.nome}</span></div><h2>${f.titulo}</h2><p class="sub">${f.sub}</p>${corpo}</div>`;
+  const P = (E.pecas || {})[p.id];
+  if (!P) return "";
+  if (p.id === "capa") return `<div class="capa"><img src="midia/marca/logo_horizontal_claro.svg" alt="SWOT WEALTH"><h2>${P.titulo}</h2><p>${P.sub}</p><ol>${P.indice.map((x) => `<li>${x}</li>`).join("")}</ol></div>`;
+  const topo = `${cabPg(C)}<h2>${P.titulo}</h2><p class="sub">${P.sub}</p>`;
+  if (p.id === "mapa") return `<div class="pg">${topo}<table class="mapa"><thead><tr>${P.cab.map((h, i) => `<th class="${i ? "d" : ""}">${h}</th>`).join("")}</tr></thead><tbody>${P.linhas.map((l) => `<tr class="${l.dest ? "dest" : ""}${l.total ? " tot" : ""}">${l.v.map((v, i) => `<td class="${i ? "d" : ""}">${v}</td>`).join("")}</tr>`).join("")}</tbody></table><p class="rod">${P.rodape}</p></div>`;
+  if (p.id === "projecao") {
+    const max = Math.max(...P.valores, P.linha) * 1.08;
+    const barras = P.valores.map((v, i) => `<i class="${i === P.iMin ? "min" : ""}" style="height:${(100 * v / max).toFixed(1)}%"></i>`).join("");
+    return `<div class="pg">${topo}<div class="pj"><div class="pj-g">${barras}<em style="bottom:${(100 * P.linha / max).toFixed(1)}%"><span>${P.linhaRot}</span></em></div><div class="pj-x">${P.valores.map((_, i) => `<span>${i % 2 === 0 ? i + 1 : ""}</span>`).join("")}</div></div><div class="pj-dest"><b class="num">${P.minimo}</b><span>${P.minimoRot}</span></div><p class="rod">${P.rodape}</p></div>`;
   }
-  if (p.id === "planilha") {
-    const P = E.planilha;
-    return `<div class="xl"><div class="xl-t"><i></i>${P.titulo}</div><table class="${P.cab.length > 5 ? "largo" : ""}"><thead><tr><th></th>${P.cab.map((h) => `<th>${h}</th>`).join("")}</tr></thead><tbody>${P.linhas.slice(0, P.cab.length > 5 ? 13 : 14).map((l, i) => `<tr><td class="n">${i + 2}</td>${l.map((v) => `<td>${v}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
-  }
-  if (p.id === "painel") {
-    const P = E.painel, max = Math.max(...P.valores);
-    const barras = P.valores.map((v, i) => `<i style="height:${(100 * v / max).toFixed(1)}%" class="${P.tipo === "fluxo" && i === 1 ? "o" : ""}"></i>`).join("");
-    const linha = P.linha ? `<em style="bottom:${(100 * P.linha / max).toFixed(1)}%"></em>` : "";
-    return `<div class="pn"><div class="pn-t"><b>${P.titulo}</b><span>atualizado no fechamento de agosto</span></div><div class="pn-g ${P.tipo}">${barras}${linha}</div></div>`;
-  }
-  return `<div class="dv"><b>Devolutiva</b><span>${E.devolutiva}</span></div>`;
+  if (p.id === "plano") return `<div class="pg">${topo}<table class="plano">${P.linhas.map((l) => `<tr><td>${l.t}<span class="q">${l.q}</span></td><td class="d">${l.v}</td></tr>`).join("")}<tr class="tot"><td>${P.totalRot}</td><td class="d"><span class="alvo">${P.total}</span></td></tr></table><p class="rod">${P.rodape}</p></div>`;
+  if (p.id === "regra") return `<div class="pg">${topo}<ol class="itens">${P.itens.map((x) => `<li>${x}</li>`).join("")}</ol></div>`;
+  return "";
 }
-export const LEGENDAS = { capa: ["O documento", "Diagnóstico e direcionamento, com o índice do que foi decidido."], f0: ["As folhas", "Cada achado com a sua conta e o que fazer."], f1: ["As regras", "Prontas para aprovar em ata e colocar no sistema."], planilha: ["A planilha", "Os mesmos números, para a empresa continuar no fechamento seguinte."], painel: ["O painel", "Uma tela que se atualiza a cada fechamento."], devolutiva: ["A devolutiva", "Uma hora e meia com os sócios, no nono dia."] };
+export const LEGENDAS = {};
 
 // Cena provisória: um título e um subtítulo no escuro, com o instrumento ao fundo (até a cena definitiva existir).
 export function cenaProvisoria(c, ctx, titulo, sub = "", dur = 6, cam = "inteiro") {
