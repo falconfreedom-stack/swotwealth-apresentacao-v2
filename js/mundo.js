@@ -438,7 +438,9 @@ export class Mundo {
     this.camera = new THREE.PerspectiveCamera(30, W / H, 0.01, 80);
     this.cam = { x: 0.07, y: 0.075, z: -0.30, tx: 0, ty: 0, tz: -0.545, fov: 24 };
     this.luz = { a: -1.2, i: 1, expo: 1 };
-    this.disco = { acesos: 0, top3: 0, pulso: 0, aneis: 1, vidro: 1, horas: 1 };
+    // destaque: ouro só no índice de `destaqueCodigo` ("Isto é um projeto"), independente do Top 3 inteiro
+    this.disco = { acesos: 0, top3: 0, pulso: 0, aneis: 1, vidro: 1, horas: 1, destaque: 0 };
+    this.destaqueCodigo = "FIN3.10";
     // o relógio: hora do dia em horas (hora e minuto) e segundos à parte; anda em tempo real, para na pausa,
     // e as cenas o fazem correr e assentar (correrRelogio, assentarRelogio)
     this.relogio = { hora: 10 + 8 / 60 + 24 / 3600, seg: 24, ritmoSeg: 1, a: 1 };
@@ -521,7 +523,7 @@ export class Mundo {
     this.indices.forEach((ix, k) => {
       const o = ix.slot * 4;
       const brilho = Math.max(0, Math.min(1, s.acesos - k));
-      const ouro = ix.top3 ? s.top3 : 0;
+      const ouro = ix.top3 ? Math.max(s.top3, ix.top3 === this.destaqueCodigo ? s.destaque || 0 : 0) : 0;
       D[o] = Math.round(255 * Math.min(1, brilho + ouro * 0.4 + (ix.top3 ? s.pulso * 0.6 : 0)));
       D[o + 1] = Math.round(255 * ouro); D[o + 2] = Math.round(255 * Math.min(1, ouro + (ix.top3 ? s.pulso * 0.5 : 0))); D[o + 3] = 255;
     });
@@ -910,6 +912,15 @@ export class Mundo {
     this.ritmoSegundo(tl, -1, dur, pos);
     return tl;
   }
+  // Avança (no sentido do tempo) e para exatamente em `alvo` (horas; 12 = meio-dia). A distância é medida quando a
+  // corrida começa; com menos de meia hora de distância, dá uma volta inteira para o movimento ser visível.
+  acertarRelogio(tl, alvo, dur, pos) {
+    const R = this.relogio;
+    const falta = () => { const f = (((alvo - R.hora) % 12) + 12) % 12; return f < 0.5 ? f + 12 : f; };
+    tl.to(R, { hora: () => R.hora + falta(), duration: dur, ease: CORRIDA }, pos);
+    this.ritmoSegundo(tl, 1, dur, pos);
+    return tl;
+  }
   ritmoSegundo(tl, sentido, dur, pos) {
     const R = this.relogio;
     tl.to(R, { ritmoSeg: 60 * sentido, duration: dur * 0.33, ease: "power2.in" }, pos);
@@ -918,7 +929,7 @@ export class Mundo {
 
   base(tl, o = {}) {
     tl.set(this.luz, { a: -0.6, i: 1, expo: 1, ...o.luz }, 0);
-    tl.set(this.disco, { acesos: 208, top3: 0, pulso: 0, aneis: 1, vidro: 1, horas: 1, ...o.disco }, 0);
+    tl.set(this.disco, { acesos: 208, top3: 0, pulso: 0, aneis: 1, vidro: 1, horas: 1, destaque: 0, ...o.disco }, 0);
     tl.set(this.relogio, { ritmoSeg: 1 }, 0);
     tl.set(this.marca, { a: 1, ...o.marca }, 0);
     tl.set(this.multidao, { fase: 0, a: 0 }, 0);
@@ -972,7 +983,7 @@ export class Mundo {
     const aH = ((uH % TAU) + TAU) % TAU, aM = ((uM % TAU) + TAU) % TAU, aS = ((uS % TAU) + TAU) % TAU;
     // assinatura do estado (números, sem texto e sem alocar): se nada mudou, não desenha
     const N = this._nums || (this._nums = []); N.length = 0;
-    N.push(c.x, c.y, c.z, c.tx, c.ty, c.tz, c.fov, L.a, L.i, L.expo, d.acesos, d.top3, d.pulso, d.aneis, d.vidro, d.horas, aH, aM, aS, Rl.a, this.marca.a,
+    N.push(c.x, c.y, c.z, c.tx, c.ty, c.tz, c.fov, L.a, L.i, L.expo, d.acesos, d.top3, d.pulso, d.aneis, d.vidro, d.horas, d.destaque, aH, aM, aS, Rl.a, this.marca.a,
       this.multidao.fase, this.multidao.a, this.dados.fase, this.dados.a, this.grafo.desenho, this.grafo.nos, this.grafo.a, this.poeira.a, this.chao.refl, this.matriz.a, this.matriz.n);
     for (const l of this.laminas) N.push(l.p, l.e, l.branco, l.a);
     for (const b of this.barras) N.push(b.a, b.k, b.h, b.y0, b.x);
@@ -986,7 +997,7 @@ export class Mundo {
       return;
     }
     this._ant = N; this._nums = A;
-    if (d.acesos !== this._ia || d.top3 !== this._it || d.pulso !== this._ip) { this.atualizarIndices(); this._ia = d.acesos; this._it = d.top3; this._ip = d.pulso; }
+    if (d.acesos !== this._ia || d.top3 !== this._it || d.pulso !== this._ip || d.destaque !== this._id) { this.atualizarIndices(); this._ia = d.acesos; this._it = d.top3; this._ip = d.pulso; this._id = d.destaque; }
     this.sujo = false;
     const T = this._tmp || (this._tmp = { v1: new THREE.Vector3(), v2: new THREE.Vector3(), v3: new THREE.Vector3(), q1: new THREE.Quaternion(), q2: new THREE.Quaternion(), eixoY: new THREE.Vector3(0, 1, 0) });
     const cam = this.camDe(c);

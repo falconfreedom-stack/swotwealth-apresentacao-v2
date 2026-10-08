@@ -1,31 +1,38 @@
-// As cenas, na ordem da peça. Cada cena monta a sua camada de texto, move câmera e luz dentro da própria linha
-// do tempo GSAP e marca os pontos para onde o espaço salta (ver js/cenas/*.js).
-import { abertura, venda, retrato } from "./cenas/abertura.js?v=202610071930";
-import { lente, formulario, analise, diagnostico, entregavel, resultado } from "./cenas/lente.js?v=202610071930";
-import { oferta } from "./cenas/oferta.js?v=202610071930";
-import { top3Cena } from "./cenas/top3.js?v=202610071930";
-import { socios, projetos208, fecho } from "./cenas/ecossistema.js?v=202610071930";
-import { calendario } from "./cenas/prototipo.js?v=202610071930";
+// As cenas, na ordem da peça (roteiro em estudo/roteiro/). Cada cena monta a sua camada de texto, move câmera e
+// luz dentro da própria linha do tempo GSAP e marca os pontos para onde o espaço salta (ver js/cenas/*.js).
+// Os módulos entram como espaços de nome: uma cena que ainda não exista no seu arquivo usa a anterior equivalente
+// ou vira provisória, e a peça continua rodando inteira enquanto os blocos são construídos.
+import * as A from "./cenas/abertura.js?v=202610071930";
+import * as L from "./cenas/lente.js?v=202610071930";
+import * as O from "./cenas/oferta.js?v=202610071930";
+import * as T from "./cenas/top3.js?v=202610071930";
+import * as E from "./cenas/ecossistema.js?v=202610071930";
+import { cenaProvisoria } from "./cenas/comum.js?v=202610071930";
 
-// Percurso principal: a venda que vira caixa, o retrato, a lente FIN3.10 inteira, "isto é um projeto", a oferta;
-// depois o Top 3 como hub (as outras duas lentes são percursos opcionais que voltam a ele), quem somos, os 208
-// projetos e o próximo passo.
+const ou = (...fs) => { const titulo = fs.pop(); const f = fs.find((x) => typeof x === "function"); return f || ((c, ctx) => cenaProvisoria(c, ctx, titulo, "Cena provisória.", 5)); };
+
+// Percurso principal: a venda que vira caixa, o retrato da rede, a lente FIN3.10 (insumos → cruzamento →
+// descoberta → conta → semanas → entrega), "isto é um projeto", a oferta; depois o Top 3 como hub (as outras duas
+// lentes são percursos opcionais que voltam a ele), quem conduz, os 208 projetos e o próximo passo.
 export const ORDEM = [
-  { id: "abertura", f: abertura, nome: "Abertura" },
-  { id: "venda", f: venda, nome: "A venda que vira caixa" },
-  { id: "retrato", f: retrato, nome: "A rede e o porte" },
-  { id: "lente", f: lente, nome: "A lente FIN3.10", projeto: 3 },
-  { id: "formulario", f: formulario, nome: "Os insumos", projeto: 3 },
-  { id: "analise", f: analise, nome: "O cruzamento", projeto: 3 },
-  { id: "diagnostico", f: diagnostico, nome: "O diagnóstico", projeto: 3 },
-  { id: "entregavel", f: entregavel, nome: "O entregável", projeto: 3 },
-  { id: "resultado", f: resultado, nome: "O que você passa a saber", projeto: 3 },
-  { id: "oferta", f: oferta, nome: "A oferta" },
-  { id: "top3", f: top3Cena, nome: "Mais duas lentes", hub: true },
-  { id: "lente1", f: diagnostico, nome: "Lente FIN8.2", projeto: 1, opcional: "lente1", compacto: true },
-  { id: "lente2", f: diagnostico, nome: "Lente FIN5.11", projeto: 2, opcional: "lente2", compacto: true },
-  { id: "socios", f: socios, nome: "Quem somos" },
-  { id: "projetos208", f: projetos208, nome: "O ecossistema: 208 projetos" },
-  { id: "fecho", f: fecho, nome: "O próximo passo" },
-  { id: "proto", f: calendario, nome: "Protótipo: calendário", opcional: "proto" },
+  { id: "abertura", f: ou(A.abertura, "Abertura"), nome: "Abertura" },
+  { id: "venda", f: ou(A.venda, "A venda que vira caixa"), nome: "A venda que vira caixa" },
+  { id: "retrato", f: ou(A.retrato, "A rede e o porte"), nome: "A rede e o porte" },
+  { id: "insumos", f: ou(L.insumos, L.formulario, "Os quatro documentos"), nome: "Os quatro documentos", projeto: 3 },
+  { id: "cruzamento", f: ou(L.cruzamento, L.analise, "O cruzamento"), nome: "O cruzamento", projeto: 3 },
+  { id: "descoberta", f: ou(L.descoberta, L.diagnostico, "O que o cruzamento mostra"), nome: "O que o cruzamento mostra", projeto: 3 },
+  { id: "conta", f: ou(L.conta, "O que a lente revela"), nome: "O que a lente revela", projeto: 3 },
+  { id: "semanas", f: ou(L.semanas, "E no mês fraco?"), nome: "E no mês fraco?", projeto: 3 },
+  { id: "entrega", f: ou(L.entrega, L.entregavel, "A entrega"), nome: "A entrega", projeto: 3 },
+  { id: "um-projeto", f: ou(L.umProjeto, L.resultado, "Isto é um projeto."), nome: "Isto é um projeto", projeto: 3 },
+  { id: "oferta", f: ou(O.oferta, "A oferta"), nome: "A oferta" },
+  { id: "top3", f: ou(T.top3Cena, "Mais duas lentes"), nome: "Mais duas lentes", hub: true },
+  { id: "lente1", f: ou(L.diagnostico, "Lente FIN8.2"), nome: "Lente FIN8.2", projeto: 1, opcional: "lente1", compacto: true },
+  { id: "lente2", f: ou(L.diagnostico, "Lente FIN5.11"), nome: "Lente FIN5.11", projeto: 2, opcional: "lente2", compacto: true },
+  { id: "socios", f: ou(E.socios, "Quem conduz o diagnóstico"), nome: "Quem conduz o diagnóstico" },
+  { id: "projetos208", f: ou(E.projetos208, "208 projetos"), nome: "208 projetos, em dez fases" },
+  { id: "fecho", f: ou(E.fecho, "Próximo passo"), nome: "Próximo passo" },
+  // fora do percurso: cenas anteriores ainda abertas por id durante a construção (somem quando os blocos fecharem)
+  ...[["lente", "A lente (anterior)"], ["formulario", "Os insumos (anterior)"], ["analise", "O cruzamento (anterior)"], ["diagnostico", "O diagnóstico (anterior)"], ["entregavel", "O entregável (anterior)"], ["resultado", "O resultado (anterior)"]]
+    .filter(([id]) => typeof L[id] === "function").map(([id, nome]) => ({ id, f: L[id], nome, projeto: 3, opcional: "legado" })),
 ];

@@ -12,7 +12,7 @@ import { el } from "./util.js?v=202610071930";
 window.__motor = motor;
 window.__ordem = ORDEM.map((d) => ({ id: d.id, nome: d.nome, projeto: d.projeto ?? null, opcional: d.opcional ?? null, hub: !!d.hub }));
 const gsap = window.gsap;
-const ESPERA_ESCOLHA = 12000;      // sem escolha no hub, a peça segue para a próxima cena principal
+const ESPERA_ESCOLHA = 15000;      // sem escolha no hub, a peça segue para a próxima cena principal (leitura dos dois cartões)
 
 const estado = { i: -1, tl: null, cena: null, projeto: null, base: null, R: null, fichas: null, mundo: null, C: null, rects: {}, escolhaAberta: false, vistas: new Set(), lenteEscolhida: null };
 
@@ -54,6 +54,7 @@ async function carregar() {
   estado.captura = params.has("captura");
   // assistir: a peça corre sozinha, cada bloco no tempo de leitura; apresentar: para nos marcos e espera o →
   estado.modo = params.has("apresentar") ? "apresentar" : "assistir";
+  document.body.dataset.modo = estado.modo;
   ajustarPalco();
   window.addEventListener("resize", ajustarPalco);
   const fonte = params.get("rascunho") ? "dados/rascunho.json" : "dados/base.json";
@@ -90,6 +91,7 @@ async function carregar() {
     const ini = document.getElementById("inicio");
     ini.insertAdjacentHTML("beforeend", `<div class="modos"><button data-modo="assistir">Assistir</button><button data-modo="apresentar">Apresentar ao vivo</button></div><p class="nota-modo"></p>`);
     const marcarModo = () => {
+      document.body.dataset.modo = estado.modo;
       ini.querySelectorAll(".modos button").forEach((b) => b.classList.toggle("sel", b.dataset.modo === estado.modo));
       ini.querySelector(".nota-modo").textContent = estado.modo === "apresentar" ? "A peça para nos marcos e espera o → (ou o espaço) para seguir." : "A peça corre sozinha; espaço pausa, as setas vão de marco em marco.";
     };
@@ -276,6 +278,7 @@ function continuarParada() {
 }
 function trocarModo() {
   estado.modo = estado.modo === "apresentar" ? "assistir" : "apresentar";
+  document.body.dataset.modo = estado.modo;
   if (estado.marcarModo) estado.marcarModo();
   if (estado.modo === "assistir" && estado.parada) continuarParada();
   if (estado.iniciado || !estado.dar) dica(estado.modo === "apresentar" ? "modo apresentar: a peça para nos marcos e espera o →" : "modo assistir: a peça segue sozinha");

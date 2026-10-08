@@ -59,6 +59,8 @@ body.pausa #controle #c-tocar{border-color:var(--ouro)}
 .num{font-family:var(--disp);font-weight:600;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
 /* revelação por linha: cada linha sobe de dentro da própria máscara (js/cenas/comum.js: linhas, revelar) */
 .l{display:block;overflow:hidden;padding-bottom:.14em;margin-bottom:-.14em}
+/* legenda de leitura [L]: só no modo assistir; no apresentar, quem diz é o apresentador */
+body[data-modo="apresentar"] .so-assistir{display:none !important}
 .l > span{display:block;will-change:transform}
 /* modo apresentar: numa parada, o botão de seguir acende devagar (a peça espera o →) */
 body.esperando #c-avancar{border-color:var(--ouro);background:rgba(200,164,90,.16);animation:espera 2.4s ease-in-out infinite}
