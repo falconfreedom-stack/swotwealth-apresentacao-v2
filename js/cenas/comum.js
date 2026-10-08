@@ -279,7 +279,7 @@ export function montarQuadro(qd, c, M, G, specs, rots, linhas, matriz) {
     const incompat = new Set();
     qd.pessoas.forEach((p, i) => {
       const y = y0p - i * esp;
-      lab(P(x0 - 0.08, y), `ind ${p.caminho ? "ouro" : ""}`, p.cargo, 0, 0);
+      lab(P(x0 - 0.08, y), "ind", p.cargo, 0, 0);          // o ouro fica nos acessos e na linha do caminho, não no cargo (a pessoa pode estar na sala)
       const emConflito = new Set(p.conflitos.flat());
       qd.passos.forEach((_, k) => { const id = "CBLAPQ"[k]; if (p.acessos.includes(id)) cel.push({ x: x0 + k * dxp, y, cor: emConflito.has(id) ? "ouro" : "marfim", tam: emConflito.has(id) ? 0.032 : 0.022 }); });
       if (p.caminho) lin({ pts: [[x0 - 0.02, y], [x0 + 4 * dxp + 0.02, y]], cor: "ouro" });
